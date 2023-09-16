@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Hide and Seek</string>
+    <string name="title_activity_game_play">GamePlay</string>
 </resources>
