@@ -23,6 +23,7 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.MarkerOptions
 
 
@@ -126,18 +127,22 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         val lon = location.longitude
         val user = LatLng(lat, lon)
 
-        // Convert the drawable user icon to a Bitmap
+        // convert the drawable user icon to a Bitmap
         val userIconBitmap = getBitmapFromVectorDrawable(this, R.drawable.user_icon)
 
         // add the marker and adjust the view
         map.addMarker(
             MarkerOptions()
                 .position(user)
-                //.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
                 .icon(BitmapDescriptorFactory.fromBitmap(userIconBitmap))
         )
         map.setMinZoomPreference(15F)
         map.moveCamera(CameraUpdateFactory.newLatLng(user))
+
+        // set the map style
+        map.setMapStyle(
+            MapStyleOptions.loadRawResourceStyle(this, R.raw.gamemap_lightmode)
+        )
     }
 
     override fun onRequestPermissionsResult(
