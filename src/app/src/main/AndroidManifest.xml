@@ -12,7 +12,21 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.HideAndSeek"
         tools:targetApi="31">
-
+        <activity
+            android:name=".JoinGame"
+            android:exported="false" />
+        <activity
+            android:name=".GameOver"
+            android:exported="false" />
+        <activity
+            android:name=".Lobby"
+            android:exported="false" />
+        <activity
+            android:name=".NewGameSettings"
+            android:exported="false" />
+        <activity
+            android:name=".HomeScreen"
+            android:exported="false" />
         <!--
              TODO: Before you run your application, you need a Google Maps API key.
 
@@ -34,14 +48,13 @@
             android:label="@string/title_activity_game_play">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".MainActivity"
-            android:exported="true">
-        </activity>
+            android:exported="true" />
     </application>
 
 </manifest>
