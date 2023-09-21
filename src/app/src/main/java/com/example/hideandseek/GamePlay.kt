@@ -1,12 +1,16 @@
 package com.example.hideandseek
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.location.Location
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.example.hideandseek.databinding.GamePlayBinding
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
@@ -17,6 +21,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 
@@ -121,8 +126,17 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         val lon = location.longitude
         val user = LatLng(lat, lon)
 
-        // add the marker and adjust
-        map.addMarker(MarkerOptions().position(user).title("User"))
+        // Convert the drawable user icon to a Bitmap
+        val userIconBitmap = getBitmapFromVectorDrawable(this, R.drawable.user_icon)
+
+        // add the marker and adjust the view
+        map.addMarker(
+            MarkerOptions()
+                .position(user)
+                //.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
+                .icon(BitmapDescriptorFactory.fromBitmap(userIconBitmap))
+        )
+        map.setMinZoomPreference(15F)
         map.moveCamera(CameraUpdateFactory.newLatLng(user))
     }
 
@@ -137,5 +151,20 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 updateLocation(map)
             }
         }
+    }
+
+    /**
+     * Converts the drawables from vector form to Bitmap form.
+     */
+    private fun getBitmapFromVectorDrawable(context: Context, drawableId: Int): Bitmap {
+        val drawable = ContextCompat.getDrawable(context, drawableId)
+        val bitmap = Bitmap.createBitmap(
+            drawable!!.intrinsicWidth,
+            drawable.intrinsicHeight, Bitmap.Config.ARGB_8888
+        )
+        val canvas = Canvas(bitmap)
+        drawable.setBounds(0, 0, canvas.width, canvas.height)
+        drawable.draw(canvas)
+        return bitmap
     }
 }
