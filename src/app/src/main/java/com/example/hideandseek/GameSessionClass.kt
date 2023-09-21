@@ -1,8 +1,8 @@
 package com.example.hideandseek
 
-data class GameSession(
+data class GameSessionClass(
     val sessionId: String,
     val gameStatus: String,
-    val players: List<Player>,
+    val players: List<PlayerClass>,
     val gameLength: Int
 )

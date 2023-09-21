@@ -1,6 +1,6 @@
 package com.example.hideandseek
 
-class Player(
+class PlayerClass(
     var userName: String,
     var seeker: Boolean,
     var latitude: Double,
