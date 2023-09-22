@@ -22,6 +22,7 @@ class NewGameSettings : AppCompatActivity() {
         }
 
         FirebaseApp.initializeApp(this)
+        // YOUR OWN DATABASE URL
         val databaseUrl = "https://db-demo-26f0a-default-rtdb.asia-southeast1.firebasedatabase.app/"
         database = FirebaseDatabase.getInstance(databaseUrl)
     }
