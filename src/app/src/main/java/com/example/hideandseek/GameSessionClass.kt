@@ -1,8 +1,26 @@
 package com.example.hideandseek
 
-data class GameSessionClass(
-    val sessionId: String,
-    val gameStatus: String,
-    val players: List<PlayerClass>,
-    val gameLength: Int
-)
+class GameSessionClass() {
+    var sessionId: String = ""
+    var gameStatus: String = ""
+    var players: List<PlayerClass> = listOf()
+    var gameLength: Int = 0
+    var seekersNumber: Int = 0
+    var hidersNumber: Int = 0
+
+    constructor(
+        sessionId: String,
+        gameStatus: String,
+        players: List<PlayerClass>,
+        gameLength: Int,
+        seekersNumber: Int,
+        hidersNumber: Int
+    ) : this() {
+        this.sessionId = sessionId
+        this.gameStatus = gameStatus
+        this.players = players
+        this.gameLength = gameLength
+        this.seekersNumber = seekersNumber
+        this.hidersNumber = hidersNumber
+    }
+}
