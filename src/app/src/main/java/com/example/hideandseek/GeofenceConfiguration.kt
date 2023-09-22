@@ -15,7 +15,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.hideandseek.databinding.GeofenceConfigurationBinding
 import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
@@ -35,8 +34,8 @@ import com.google.android.material.slider.Slider
 class GeofenceConfiguration : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var map: GoogleMap
-    private lateinit var geofencingClient: GeofencingClient
     private lateinit var binding: GeofenceConfigurationBinding
+    private var geofenceRadius = 100.0
 
     // Google's API for location services
     private var fusedLocationClient: FusedLocationProviderClient? = null
@@ -48,9 +47,6 @@ class GeofenceConfiguration : AppCompatActivity(), OnMapReadyCallback {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // get geofencing client
-        geofencingClient = LocationServices.getGeofencingClient(this)
 
         // location API settings
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
@@ -80,6 +76,10 @@ class GeofenceConfiguration : AppCompatActivity(), OnMapReadyCallback {
         val radiusText: TextView = findViewById(R.id.radiusText)
         discreteSlider.addOnChangeListener { _, radius, _ ->
             radiusText.text = "Radius = ${radius.toInt()}m"
+
+            // update the visible geofence on map as it goes
+            geofenceRadius = radius.toDouble()
+            updateLocation(map)
         }
     }
 
@@ -133,7 +133,10 @@ class GeofenceConfiguration : AppCompatActivity(), OnMapReadyCallback {
      * Reflect the user's location on the map with virtual geofence.
      */
     private fun updateMap(location: Location, googleMap: GoogleMap) {
+        // clear previous drawings the map
         map = googleMap
+        map.clear()
+
         // extract the coordinates
         val lat = location.latitude
         val lon = location.longitude
@@ -156,14 +159,14 @@ class GeofenceConfiguration : AppCompatActivity(), OnMapReadyCallback {
             MapStyleOptions.loadRawResourceStyle(this, R.raw.gamemap_lightmode)
         )
 
-        // draw the geofence
-        val circleOptions = CircleOptions()
-            .center(user) // Geofence center
-            .radius(100.0) // Radius in meters
-            .strokeColor(Color.RED) // Circle border color
-            .fillColor(Color.argb(70, 255, 0, 0)) // Fill color with transparency
-
-        googleMap.addCircle(circleOptions)
+        // add the geofence
+        map.addCircle(
+            CircleOptions()
+                .center(user)
+                .radius(geofenceRadius) // Radius in meters
+                .strokeColor(Color.RED) // Circle border color
+                .fillColor(Color.argb(60, 220, 0, 0)) // Fill color with transparency
+        )
 
     }
 
