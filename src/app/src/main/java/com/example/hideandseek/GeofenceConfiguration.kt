@@ -35,6 +35,7 @@ class GeofenceConfiguration : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var map: GoogleMap
     private lateinit var binding: GeofenceConfigurationBinding
+    // default geofence radius
     private var geofenceRadius = 100.0
 
     // Google's API for location services
@@ -84,7 +85,7 @@ class GeofenceConfiguration : AppCompatActivity(), OnMapReadyCallback {
     }
 
     /**
-     * Manipulates the map once available.
+     * Manipulates the map once available with latest values.
      */
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
@@ -130,7 +131,7 @@ class GeofenceConfiguration : AppCompatActivity(), OnMapReadyCallback {
     }
 
     /**
-     * Reflect the user's location on the map with virtual geofence.
+     * Reflect the user's location on the map with virtual geofence drawn.
      */
     private fun updateMap(location: Location, googleMap: GoogleMap) {
         // clear previous drawings the map
