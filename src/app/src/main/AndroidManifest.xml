@@ -28,7 +28,7 @@
             android:name=".NewGameSettings"
             android:exported="false" />
         <activity
-            android:name=".GamePlay"
+            android:name=".HomeScreen"
             android:exported="false" />
         <!--
              TODO: Before you run your application, you need a Google Maps API key.
@@ -46,7 +46,7 @@
             android:value="${MAPS_API_KEY}" />
 
         <activity
-            android:name=".HomeScreen"
+            android:name=".GamePlay"
             android:exported="true"
             android:label="@string/title_activity_game_play">
             <intent-filter>
