@@ -11,12 +11,13 @@
 
     <!-- Top half of the screen -->
     <TextView
-        android:id="@+id/titleTextView"
+        android:id="@+id/titleText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:text="Configure Geofence"
         android:textSize="24sp"
+        android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -25,7 +26,7 @@
         android:id="@+id/topHalfLayout"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@+id/titleTextView"
+        app:layout_constraintTop_toBottomOf="@+id/titleText"
         app:layout_constraintBottom_toTopOf="@+id/guideline"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -54,7 +55,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.5" />
+        app:layout_constraintGuide_percent="0.6" />
 
     <!-- Bottom half of the screen -->
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -70,15 +71,38 @@
 
         <com.google.android.material.slider.Slider
             android:id="@+id/discreteSlider"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="32dp"
-            android:layout_marginTop="32dp"
+            android:layout_width="363dp"
+            android:layout_height="36dp"
+            android:layout_marginTop="24dp"
             android:stepSize="100"
             android:valueFrom="100"
-            android:valueTo="1000"
+            android:valueTo="500"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.75"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/radiusText" />
+
+        <Button
+            android:id="@+id/button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Confirm"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/discreteSlider"
+            app:layout_constraintVertical_bias="0.318" />
+
+        <TextView
+            android:id="@+id/radiusText"
+            android:layout_width="0dp"
+            android:layout_height="35dp"
+            android:layout_marginStart="94dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginEnd="95dp"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:text="Radius = 100m"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>

@@ -5,15 +5,17 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.hideandseek.databinding.GeofenceConfigurationBinding
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
@@ -23,6 +25,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.CircleOptions
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.MarkerOptions
@@ -32,26 +35,26 @@ import com.google.android.material.slider.Slider
 class GeofenceConfiguration : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var map: GoogleMap
+    private lateinit var geofencingClient: GeofencingClient
     private lateinit var binding: GeofenceConfigurationBinding
 
     // Google's API for location services
     private var fusedLocationClient: FusedLocationProviderClient? = null
 
     // configuration of all settings of FusedLocationProviderClient
-    var locationRequest: LocationRequest? = null
-    var locationCallBack: LocationCallback? = null
+    private var locationRequest: LocationRequest? = null
+    private var locationCallBack: LocationCallback? = null
     private val Request_Code_Location = 22
-
-    // interval in milliseconds for location updates
-    private var updateInterval: Long = 10000
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // get geofencing client
+        geofencingClient = LocationServices.getGeofencingClient(this)
+
         // location API settings
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         locationRequest = LocationRequest.create()
-        locationRequest!!.interval = updateInterval
         locationCallBack = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
                 super.onLocationResult(locationResult)
@@ -74,8 +77,9 @@ class GeofenceConfiguration : AppCompatActivity(), OnMapReadyCallback {
 
         // observe the changes on the slider
         val discreteSlider: Slider = findViewById(R.id.discreteSlider)
-        discreteSlider.addOnChangeListener { _, value, _ ->
-            Toast.makeText(this,"$value", Toast.LENGTH_SHORT).show()
+        val radiusText: TextView = findViewById(R.id.radiusText)
+        discreteSlider.addOnChangeListener { _, radius, _ ->
+            radiusText.text = "Radius = ${radius.toInt()}m"
         }
     }
 
@@ -126,7 +130,7 @@ class GeofenceConfiguration : AppCompatActivity(), OnMapReadyCallback {
     }
 
     /**
-     * Reflect the user's location on the map.
+     * Reflect the user's location on the map with virtual geofence.
      */
     private fun updateMap(location: Location, googleMap: GoogleMap) {
         map = googleMap
@@ -151,6 +155,16 @@ class GeofenceConfiguration : AppCompatActivity(), OnMapReadyCallback {
         map.setMapStyle(
             MapStyleOptions.loadRawResourceStyle(this, R.raw.gamemap_lightmode)
         )
+
+        // draw the geofence
+        val circleOptions = CircleOptions()
+            .center(user) // Geofence center
+            .radius(100.0) // Radius in meters
+            .strokeColor(Color.RED) // Circle border color
+            .fillColor(Color.argb(70, 255, 0, 0)) // Fill color with transparency
+
+        googleMap.addCircle(circleOptions)
+
     }
 
     override fun onRequestPermissionsResult(
