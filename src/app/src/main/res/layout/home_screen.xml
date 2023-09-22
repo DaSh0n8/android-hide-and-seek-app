@@ -54,7 +54,7 @@
             android:layout_gravity="center"
             android:layout_marginTop="15dp"
             android:hint="Please enter your preferred username"
-            android:maxLength="6"
+            android:maxLength="15"
             android:textAlignment="center"
             android:textSize="15sp" />
 
