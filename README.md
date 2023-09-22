@@ -27,6 +27,7 @@ Introduce an Android application aimed at bringing the traditional hide and seek
 
 - production branch: master branch
 - feature branches: feature/`feature_name`
+- hotfix branches: hotfix/`issue`
 
 ### Commits
 
