@@ -95,6 +95,9 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
             .orderByChild("sessionId")
             .equalTo(lobbycode)
 
+        // convert the drawable user icon to a Bitmap
+        val userIconBitmap = getBitmapFromVectorDrawable(this, R.drawable.user_icon)
+
         query.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 // get the game session
@@ -104,7 +107,19 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 if (gameSession != null) {
                     // get the players in the game session
                     val players = gameSession.players
-                    // reflect latest location on map
+
+                    // reflect hiders' latest locations on map
+                    players.forEach{
+                        if (!it.seeker) {
+                            val coordinates = LatLng(it.latitude!!, it.longitude!!)
+
+                            map.addMarker(
+                                MarkerOptions()
+                                    .position(coordinates)
+                                    .icon(BitmapDescriptorFactory.fromBitmap(userIconBitmap))
+                            )
+                        }
+                    }
                 }
             }
 
