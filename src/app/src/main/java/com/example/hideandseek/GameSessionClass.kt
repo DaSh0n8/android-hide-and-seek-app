@@ -7,6 +7,7 @@ class GameSessionClass() {
     var gameLength: Int = 0
     var seekersNumber: Int = 0
     var hidersNumber: Int = 0
+    var radius: Int = 100
 
     constructor(
         sessionId: String,
@@ -14,7 +15,8 @@ class GameSessionClass() {
         players: List<PlayerClass>,
         gameLength: Int,
         seekersNumber: Int,
-        hidersNumber: Int
+        hidersNumber: Int,
+        radius: Int
     ) : this() {
         this.sessionId = sessionId
         this.gameStatus = gameStatus
@@ -22,5 +24,6 @@ class GameSessionClass() {
         this.gameLength = gameLength
         this.seekersNumber = seekersNumber
         this.hidersNumber = hidersNumber
+        this.radius = radius
     }
 }

@@ -1,168 +1,248 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:map="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <!-- Title TextView -->
+
+    <!-- Top half of the screen -->
+
     <TextView
-        android:id="@+id/create_a_new_game"
+        android:id="@+id/titleText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="create a new game"
-        android:textSize="30sp"
+        android:layout_marginTop="16dp"
+        android:text="New Game Setting"
+        android:textSize="24sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <FrameLayout
-        android:id="@+id/frameLayout"
-        android:layout_width="321dp"
-        android:layout_height="187dp"
-        android:layout_marginTop="96dp"
-        android:background="@drawable/background"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/topHalfLayout"
+        android:layout_width="411dp"
+        android:layout_height="347dp"
+        android:layout_marginTop="48dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/create_a_new_game" />
+        app:layout_constraintTop_toTopOf="parent">
 
-    <TextView
-        android:id="@+id/modeTextView"
+        <!-- Map Fragment with margins -->
+        <fragment
+            android:id="@+id/map"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_margin="16dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.062"
+            tools:context=".NewGameSettings" />
+
+        <!-- Add other UI elements within the top half layout here -->
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Guideline to split the layout in half -->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Mode:"
-        android:textSize="17sp"
-        android:textStyle="bold"
-        android:layout_marginTop="10dp"
-        app:layout_constraintStart_toStartOf="@+id/frameLayout"
-        app:layout_constraintTop_toTopOf="@+id/frameLayout"
-        android:layout_marginStart="16dp"/>
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.54" />
 
-    <Spinner
-        android:id="@+id/spinnerGameMode"
+    <!-- Bottom half of the screen -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/bottomHalfLayout"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:layout_constraintEnd_toEndOf="@+id/frameLayout"
-        app:layout_constraintStart_toEndOf="@+id/modeTextView"
-        app:layout_constraintTop_toTopOf="@+id/frameLayout"
-        android:layout_marginEnd="16dp"
-        android:layout_marginTop="10dp"
-        android:layout_marginStart="16dp"/>
-
-    <View
-        android:id="@+id/divider1"
-        android:layout_width="316dp"
-        android:layout_height="1dp"
-        android:background="#E0E0E0"
-        android:layout_marginTop="10dp"
-        app:layout_constraintTop_toBottomOf="@+id/spinnerGameMode"
-        app:layout_constraintStart_toStartOf="@+id/frameLayout"
-        app:layout_constraintEnd_toEndOf="@+id/frameLayout" />
-
-    <TextView
-        android:id="@+id/hidersTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hiders:"
-        android:textSize="17sp"
-        android:textStyle="bold"
-        android:layout_marginTop="10dp"
-        app:layout_constraintStart_toStartOf="@+id/frameLayout"
-        app:layout_constraintTop_toBottomOf="@+id/divider1"
-        android:layout_marginStart="16dp"/>
-
-    <EditText
-        android:id="@+id/editHiders"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:hint="Number of Hiders"
-        android:inputType="number"
-        android:layout_marginTop="-10dp"
-        app:layout_constraintEnd_toEndOf="@+id/frameLayout"
-        app:layout_constraintStart_toEndOf="@+id/hidersTextView"
-        app:layout_constraintTop_toTopOf="@+id/hidersTextView"
-        android:layout_marginEnd="16dp"
-        android:layout_marginStart="16dp"/>
-
-    <View
-        android:id="@+id/divider2"
-        android:layout_width="316dp"
-        android:layout_height="1dp"
-        android:background="#E0E0E0"
-        app:layout_constraintTop_toBottomOf="@+id/editHiders"
-        app:layout_constraintStart_toStartOf="@+id/frameLayout"
-        app:layout_constraintEnd_toEndOf="@+id/frameLayout" />
-
-    <TextView
-        android:id="@+id/seekersTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Seekers:"
-        android:textSize="17sp"
-        android:textStyle="bold"
-        android:layout_marginTop="10dp"
-        app:layout_constraintStart_toStartOf="@+id/frameLayout"
-        app:layout_constraintTop_toBottomOf="@+id/divider2"
-        android:layout_marginStart="16dp"/>
-
-    <EditText
-        android:id="@+id/editSeekers"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:hint="Number of Seekers"
-        android:inputType="number"
-        android:layout_marginTop="-10dp"
-        app:layout_constraintEnd_toEndOf="@+id/frameLayout"
-        app:layout_constraintStart_toEndOf="@+id/seekersTextView"
-        app:layout_constraintTop_toTopOf="@+id/seekersTextView"
-        android:layout_marginEnd="16dp"
-        android:layout_marginStart="16dp"/>
-
-    <View
-        android:id="@+id/divider3"
-        android:layout_width="316dp"
-        android:layout_height="1dp"
-        android:background="#E0E0E0"
-        android:layout_marginTop="0dp"
-        app:layout_constraintTop_toBottomOf="@+id/editSeekers"
-        app:layout_constraintStart_toStartOf="@+id/frameLayout"
-        app:layout_constraintEnd_toEndOf="@+id/frameLayout" />
-
-    <TextView
-        android:id="@+id/timeTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Time:"
-        android:textSize="17sp"
-        android:textStyle="bold"
-        android:layout_marginTop="10dp"
-        app:layout_constraintStart_toStartOf="@+id/frameLayout"
-        app:layout_constraintTop_toBottomOf="@+id/divider3"
-        android:layout_marginStart="16dp"/>
-
-    <EditText
-        android:id="@+id/editGameTime"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:hint="Game Time (minutes)"
-        android:inputType="number"
-        android:layout_marginTop="-10dp"
-        app:layout_constraintEnd_toEndOf="@+id/frameLayout"
-        app:layout_constraintStart_toEndOf="@+id/timeTextView"
-        app:layout_constraintTop_toTopOf="@+id/timeTextView"
-        android:layout_marginEnd="16dp"
-        android:layout_marginStart="16dp"/>
-
-    <Button
-        android:id="@+id/btnStartGame"
-        android:layout_width="224dp"
-        android:layout_height="70dp"
-        android:text="Start Game"
+        android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/frameLayout"
-        app:layout_constraintVertical_bias="0.204" />
+        app:layout_constraintTop_toBottomOf="@+id/guideline"
+        app:layout_constraintVertical_bias="0.0">
+
+        <com.google.android.material.slider.Slider
+            android:id="@+id/discreteSlider"
+            android:layout_width="200dp"
+            android:layout_height="20dp"
+            android:layout_marginTop="4dp"
+            android:stepSize="100"
+            android:valueFrom="100"
+            android:valueTo="500"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.625"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/frameLayout" />
+
+        <Button
+            android:id="@+id/btnStartGame"
+            android:layout_width="189dp"
+            android:layout_height="52dp"
+            android:text="Confirm"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/discreteSlider" />
+
+        <TextView
+            android:id="@+id/radiusText"
+            android:layout_width="63dp"
+            android:layout_height="25dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
+            android:text="Radius:"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@+id/discreteSlider"
+            app:layout_constraintTop_toBottomOf="@+id/frameLayout" />
+
+        <FrameLayout
+            android:id="@+id/frameLayout"
+            android:layout_width="321dp"
+            android:layout_height="187dp"
+            android:background="@drawable/background"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"></FrameLayout>
+
+        <TextView
+            android:id="@+id/modeTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="10dp"
+            android:text="Mode:"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="@+id/frameLayout"
+            app:layout_constraintTop_toTopOf="@+id/frameLayout" />
+
+        <Spinner
+            android:id="@+id/spinnerGameMode"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="16dp"
+            app:layout_constraintEnd_toEndOf="@+id/frameLayout"
+            app:layout_constraintStart_toEndOf="@+id/modeTextView"
+            app:layout_constraintTop_toTopOf="@+id/frameLayout" />
+
+        <View
+            android:id="@+id/divider1"
+            android:layout_width="316dp"
+            android:layout_height="1dp"
+            android:layout_marginTop="10dp"
+            android:background="#E0E0E0"
+            app:layout_constraintEnd_toEndOf="@+id/frameLayout"
+            app:layout_constraintStart_toStartOf="@+id/frameLayout"
+            app:layout_constraintTop_toBottomOf="@+id/spinnerGameMode" />
+
+        <TextView
+            android:id="@+id/hidersTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="10dp"
+            android:text="Hiders:"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="@+id/frameLayout"
+            app:layout_constraintTop_toBottomOf="@+id/divider1" />
+
+        <EditText
+            android:id="@+id/editHiders"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="-10dp"
+            android:layout_marginEnd="16dp"
+            android:hint="Number of Hiders"
+            android:inputType="number"
+            app:layout_constraintEnd_toEndOf="@+id/frameLayout"
+            app:layout_constraintStart_toEndOf="@+id/hidersTextView"
+            app:layout_constraintTop_toTopOf="@+id/hidersTextView" />
+
+        <View
+            android:id="@+id/divider2"
+            android:layout_width="316dp"
+            android:layout_height="1dp"
+            android:background="#E0E0E0"
+            app:layout_constraintEnd_toEndOf="@+id/frameLayout"
+            app:layout_constraintStart_toStartOf="@+id/frameLayout"
+            app:layout_constraintTop_toBottomOf="@+id/editHiders" />
+
+        <TextView
+            android:id="@+id/seekersTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="10dp"
+            android:text="Seekers:"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="@+id/frameLayout"
+            app:layout_constraintTop_toBottomOf="@+id/divider2" />
+
+        <EditText
+            android:id="@+id/editSeekers"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="-10dp"
+            android:layout_marginEnd="16dp"
+            android:hint="Number of Seekers"
+            android:inputType="number"
+            app:layout_constraintEnd_toEndOf="@+id/frameLayout"
+            app:layout_constraintStart_toEndOf="@+id/seekersTextView"
+            app:layout_constraintTop_toTopOf="@+id/seekersTextView" />
+
+        <View
+            android:id="@+id/divider3"
+            android:layout_width="316dp"
+            android:layout_height="1dp"
+            android:layout_marginTop="0dp"
+            android:background="#E0E0E0"
+            app:layout_constraintEnd_toEndOf="@+id/frameLayout"
+            app:layout_constraintStart_toStartOf="@+id/frameLayout"
+            app:layout_constraintTop_toBottomOf="@+id/editSeekers" />
+
+        <TextView
+            android:id="@+id/timeTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="10dp"
+            android:text="Time:"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="@+id/frameLayout"
+            app:layout_constraintTop_toBottomOf="@+id/divider3" />
+
+        <EditText
+            android:id="@+id/editGameTime"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="-10dp"
+            android:layout_marginEnd="16dp"
+            android:hint="Game Time (minutes)"
+            android:inputType="number"
+            app:layout_constraintEnd_toEndOf="@+id/frameLayout"
+            app:layout_constraintStart_toEndOf="@+id/timeTextView"
+            app:layout_constraintTop_toTopOf="@+id/timeTextView" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
