@@ -25,12 +25,18 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.firebase.FirebaseApp
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 
 
 class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var map: GoogleMap
     private lateinit var binding: GamePlayBinding
+    private lateinit var database: FirebaseDatabase
 
     // Google's API for location services
     private var fusedLocationClient: FusedLocationProviderClient? = null
@@ -41,10 +47,13 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private val Request_Code_Location = 22
 
     // interval in milliseconds for location updates
-    private var updateInterval: Long = 10000
+    private var updateInterval: Long = 60 * 1000
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        binding = GamePlayBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         // location API settings
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
@@ -62,14 +71,49 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
             }
         }
 
-        binding = GamePlayBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        // start the firebase
+        FirebaseApp.initializeApp(this)
+        val databaseUrl = "https://db-demo-26f0a-default-rtdb.asia-southeast1.firebasedatabase.app/"
+        database = FirebaseDatabase.getInstance(databaseUrl)
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+
+        // show the hiders' location
+        showHiderLocation()
     }
+
+    /**
+     * Show other hiders' locations on the map.
+     */
+    private fun showHiderLocation() {
+        var lobbycode = "4076"
+        // query the db to get the user's session
+        val query = database.getReference("gameSessions")
+            .orderByChild("sessionId")
+            .equalTo(lobbycode)
+
+        query.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                // get the game session
+                val gameSessionSnapshot = dataSnapshot.children.first()
+                val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+
+                if (gameSession != null) {
+                    // get the players in the game session
+                    val players = gameSession.players
+                    // reflect latest location on map
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                TODO("Not yet implemented")
+            }
+        })
+    }
+
 
     /**
      * Manipulates the map once available.
