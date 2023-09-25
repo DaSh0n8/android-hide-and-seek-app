@@ -196,7 +196,7 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
         val user = LatLng(lat, lon)
 
         // convert the drawable user icon to a Bitmap
-        val userIconBitmap = getBitmapFromVectorDrawable(this, R.drawable.user_icon)
+        val userIconBitmap = getBitmapFromVectorDrawable(this, R.drawable.self_user_icon)
 
         // add the marker and adjust the view
         map.addMarker(
