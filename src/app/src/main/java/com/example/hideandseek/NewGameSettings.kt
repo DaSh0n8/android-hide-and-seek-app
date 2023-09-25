@@ -2,6 +2,7 @@ package com.example.hideandseek
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -128,6 +129,10 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
         val sessionIdString: String = sessionId.toString()
         val newGameSession = GameSessionClass(sessionIdString, "ongoing", players, 300, seekersNumber.toInt() ,hidersNumber.toInt(), geofenceRadius.toInt())
         gameSessionRef.setValue(newGameSession)
+
+        val intent = Intent(this, Lobby::class.java)
+        intent.putExtra("lobby_key", sessionIdString)
+        startActivity(intent)
     }
 
     /**

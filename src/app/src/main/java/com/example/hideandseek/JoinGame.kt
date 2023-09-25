@@ -1,5 +1,6 @@
 package com.example.hideandseek
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
@@ -53,7 +54,13 @@ class JoinGame : AppCompatActivity() {
 
 
                         gameSession.players = updatedPlayers
-                        gameSessionSnapshot.ref.setValue(gameSession)
+                        gameSessionSnapshot.ref.setValue(gameSession).addOnSuccessListener {
+                            val intent = Intent(this@JoinGame, Lobby::class.java)
+                            intent.putExtra("lobby_key", lobbyCode)
+                            startActivity(intent)
+                        }.addOnFailureListener {
+                            Toast.makeText(this@JoinGame, "Error joining game", Toast.LENGTH_SHORT).show()
+                        }
                     } else {
                         Toast.makeText(this@JoinGame, "Unexpected Error", Toast.LENGTH_SHORT).show()
                     }
