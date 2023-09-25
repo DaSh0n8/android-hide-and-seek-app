@@ -8,6 +8,7 @@ import android.graphics.Canvas
 import android.location.Location
 import android.os.Bundle
 import android.util.Log
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -33,6 +34,8 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.Query
 import com.google.firebase.database.ValueEventListener
+import java.text.SimpleDateFormat
+import java.util.Date
 
 
 class GamePlay : AppCompatActivity(), OnMapReadyCallback {
@@ -104,6 +107,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         // convert the drawable user icon to a Bitmap
         val userIconBitmap = getBitmapFromVectorDrawable(this, R.drawable.self_user_icon)
         val hiderIconBitmap = getBitmapFromVectorDrawable(this, R.drawable.user_icon)
+        var lastUpdate: TextView = findViewById(R.id.lastUpdateValue)
 
         query.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
@@ -136,6 +140,11 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                         }
                     }
                 }
+
+                // update the last update time
+                val sdf = SimpleDateFormat("dd/M/yyyy hh:mm:ss")
+                val currentDate = sdf.format(Date())
+                lastUpdate.text = currentDate
             }
 
             override fun onCancelled(error: DatabaseError) {
