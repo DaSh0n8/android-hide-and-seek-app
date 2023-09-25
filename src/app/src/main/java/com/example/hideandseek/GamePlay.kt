@@ -7,6 +7,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.location.Location
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.util.Log
 import android.widget.TextView
 import android.widget.Toast
@@ -43,6 +44,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     // need to fetch from "Lobby" activity
     private var lobbycode = "4407"
     private var userName = "Yao"
+    private var gameTime = (10 * 60 * 1000).toLong()
 
     private lateinit var map: GoogleMap
     private lateinit var binding: GamePlayBinding
@@ -57,7 +59,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private val Request_Code_Location = 22
 
     // interval in milliseconds for location updates
-    private var updateInterval: Long = 60 * 1000
+    private var updateInterval: Long = 1 * 60 * 1000
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -98,6 +100,21 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
         // show the users' location
         showUserLocation(query)
+
+        // start the game by counting down
+        var countDown: TextView = findViewById(R.id.playTimeValue)
+        val timer = object: CountDownTimer(gameTime, 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                val seconds = (millisUntilFinished / 1000) % 60
+                val minutes = (millisUntilFinished / 1000) / 60
+                countDown.text = String.format("%02d:%02d", minutes, seconds)
+            }
+
+            override fun onFinish() {
+
+            }
+        }
+        timer.start()
     }
 
     /**
