@@ -111,7 +111,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
             }
 
             override fun onFinish() {
-
+                TODO()
             }
         }
         timer.start()
