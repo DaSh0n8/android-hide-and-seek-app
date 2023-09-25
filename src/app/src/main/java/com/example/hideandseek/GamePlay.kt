@@ -107,6 +107,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         // convert the drawable user icon to a Bitmap
         val userIconBitmap = getBitmapFromVectorDrawable(this, R.drawable.self_user_icon)
         val hiderIconBitmap = getBitmapFromVectorDrawable(this, R.drawable.user_icon)
+        val eliminatedIcon = getBitmapFromVectorDrawable(this, R.drawable.eliminated)
         var lastUpdate: TextView = findViewById(R.id.lastUpdateValue)
 
         query.addValueEventListener(object : ValueEventListener {
@@ -126,11 +127,20 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                     players.forEach{
                         val coordinates = LatLng(it.latitude!!, it.longitude!!)
                         if (!it.seeker) {
-                            map.addMarker(
-                                MarkerOptions()
-                                    .position(coordinates)
-                                    .icon(BitmapDescriptorFactory.fromBitmap(hiderIconBitmap))
-                            )
+                            // check if user has been eliminated
+                            if (it.eliminated) {
+                                map.addMarker(
+                                    MarkerOptions()
+                                        .position(coordinates)
+                                        .icon(BitmapDescriptorFactory.fromBitmap(eliminatedIcon))
+                                )
+                            } else {
+                                map.addMarker(
+                                    MarkerOptions()
+                                        .position(coordinates)
+                                        .icon(BitmapDescriptorFactory.fromBitmap(hiderIconBitmap))
+                                )
+                            }
                         } else if (it.userName == userName) {
                             map.addMarker(
                                 MarkerOptions()
