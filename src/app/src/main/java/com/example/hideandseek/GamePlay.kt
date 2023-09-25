@@ -7,7 +7,9 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.location.Location
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.util.Log
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -33,13 +35,16 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.Query
 import com.google.firebase.database.ValueEventListener
+import java.text.SimpleDateFormat
+import java.util.Date
 
 
 class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
     // need to fetch from "Lobby" activity
-    private var lobbycode = "4076"
+    private var lobbycode = "4407"
     private var userName = "Yao"
+    private var gameTime = (10 * 60 * 1000).toLong()
 
     private lateinit var map: GoogleMap
     private lateinit var binding: GamePlayBinding
@@ -54,7 +59,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private val Request_Code_Location = 22
 
     // interval in milliseconds for location updates
-    private var updateInterval: Long = 60 * 1000
+    private var updateInterval: Long = 1 * 60 * 1000
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -95,6 +100,21 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
         // show the users' location
         showUserLocation(query)
+
+        // start the game by counting down
+        var countDown: TextView = findViewById(R.id.playTimeValue)
+        val timer = object: CountDownTimer(gameTime, 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                val seconds = (millisUntilFinished / 1000) % 60
+                val minutes = (millisUntilFinished / 1000) / 60
+                countDown.text = String.format("%02d:%02d", minutes, seconds)
+            }
+
+            override fun onFinish() {
+                TODO()
+            }
+        }
+        timer.start()
     }
 
     /**
@@ -104,6 +124,8 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         // convert the drawable user icon to a Bitmap
         val userIconBitmap = getBitmapFromVectorDrawable(this, R.drawable.self_user_icon)
         val hiderIconBitmap = getBitmapFromVectorDrawable(this, R.drawable.user_icon)
+        val eliminatedIcon = getBitmapFromVectorDrawable(this, R.drawable.eliminated)
+        var lastUpdate: TextView = findViewById(R.id.lastUpdateValue)
 
         query.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
@@ -120,13 +142,14 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
                     // reflect hiders' latest locations on map
                     players.forEach{
+                        val coordinates = LatLng(it.latitude!!, it.longitude!!)
                         if (!it.seeker) {
-                            val coordinates = LatLng(it.latitude!!, it.longitude!!)
-                            if (it.userName == userName) {
+                            // check if user has been eliminated
+                            if (it.eliminated) {
                                 map.addMarker(
                                     MarkerOptions()
                                         .position(coordinates)
-                                        .icon(BitmapDescriptorFactory.fromBitmap(userIconBitmap))
+                                        .icon(BitmapDescriptorFactory.fromBitmap(eliminatedIcon))
                                 )
                             } else {
                                 map.addMarker(
@@ -135,9 +158,20 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                                         .icon(BitmapDescriptorFactory.fromBitmap(hiderIconBitmap))
                                 )
                             }
+                        } else if (it.userName == userName) {
+                            map.addMarker(
+                                MarkerOptions()
+                                    .position(coordinates)
+                                    .icon(BitmapDescriptorFactory.fromBitmap(userIconBitmap))
+                            )
                         }
                     }
                 }
+
+                // update the last update time
+                val sdf = SimpleDateFormat("dd/M/yyyy hh:mm:ss")
+                val currentDate = sdf.format(Date())
+                lastUpdate.text = currentDate
             }
 
             override fun onCancelled(error: DatabaseError) {
