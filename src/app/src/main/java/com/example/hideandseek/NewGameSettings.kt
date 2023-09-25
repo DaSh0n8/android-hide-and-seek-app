@@ -127,7 +127,7 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
 
         val sessionId: Int = Random().nextInt(9999 - 1000 + 1) + 1000
         val sessionIdString: String = sessionId.toString()
-        val newGameSession = GameSessionClass(sessionIdString, "ongoing", players, 300, seekersNumber.toInt() ,hidersNumber.toInt(), geofenceRadius.toInt())
+        val newGameSession = GameSessionClass(sessionIdString, "ongoing", players, gameTime.toInt(), seekersNumber.toInt() ,hidersNumber.toInt(), geofenceRadius.toInt())
         gameSessionRef.setValue(newGameSession)
 
         val intent = Intent(this, Lobby::class.java)
