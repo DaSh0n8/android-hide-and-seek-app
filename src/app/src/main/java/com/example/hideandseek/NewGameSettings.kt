@@ -20,6 +20,7 @@ import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -47,6 +48,9 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
     // Google's API for location services
     private var fusedLocationClient: FusedLocationProviderClient? = null
 
+    // interval in milliseconds for location updates
+    private var updateInterval: Long = 60 * 1000
+
     // configuration of all settings of FusedLocationProviderClient
     private var locationRequest: LocationRequest? = null
     private var locationCallBack: LocationCallback? = null
@@ -60,7 +64,9 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
 
         // location API settings
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-        locationRequest = LocationRequest.create()
+        locationRequest = LocationRequest.Builder(
+            Priority.PRIORITY_HIGH_ACCURACY,
+            updateInterval).build()
         locationCallBack = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
                 super.onLocationResult(locationResult)

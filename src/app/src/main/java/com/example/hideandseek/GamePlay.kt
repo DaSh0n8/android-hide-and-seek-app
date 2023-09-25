@@ -8,6 +8,7 @@ import android.graphics.Canvas
 import android.location.Location
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -17,6 +18,7 @@ import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -57,8 +59,9 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
         // location API settings
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-        locationRequest = LocationRequest.create()
-        locationRequest!!.interval = updateInterval
+        locationRequest = LocationRequest.Builder(
+            Priority.PRIORITY_HIGH_ACCURACY,
+            updateInterval).build()
         locationCallBack = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
                 super.onLocationResult(locationResult)
@@ -70,6 +73,11 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 }
             }
         }
+
+        val locationRequest = LocationRequest.Builder(
+            LocationRequest.PRIORITY_HIGH_ACCURACY,
+            10000
+        ).build()
 
         // start the firebase
         FirebaseApp.initializeApp(this)
@@ -89,7 +97,10 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
      * Show other hiders' locations on the map.
      */
     private fun showHiderLocation() {
+        // need to fetch from "Lobby" activity
         var lobbycode = "4076"
+        var userName = "null"
+
         // query the db to get the user's session
         val query = database.getReference("gameSessions")
             .orderByChild("sessionId")
@@ -124,7 +135,8 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
             }
 
             override fun onCancelled(error: DatabaseError) {
-                TODO("Not yet implemented")
+                Toast.makeText(this@GamePlay, "Error fetching data", Toast.LENGTH_SHORT)
+                    .show()
             }
         })
     }
