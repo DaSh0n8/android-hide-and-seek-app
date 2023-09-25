@@ -38,7 +38,7 @@ import com.google.firebase.database.ValueEventListener
 class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
     // need to fetch from "Lobby" activity
-    private var lobbycode = "4076"
+    private var lobbycode = "4407"
     private var userName = "Yao"
 
     private lateinit var map: GoogleMap
@@ -120,21 +120,19 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
                     // reflect hiders' latest locations on map
                     players.forEach{
+                        val coordinates = LatLng(it.latitude!!, it.longitude!!)
                         if (!it.seeker) {
-                            val coordinates = LatLng(it.latitude!!, it.longitude!!)
-                            if (it.userName == userName) {
-                                map.addMarker(
-                                    MarkerOptions()
-                                        .position(coordinates)
-                                        .icon(BitmapDescriptorFactory.fromBitmap(userIconBitmap))
-                                )
-                            } else {
-                                map.addMarker(
-                                    MarkerOptions()
-                                        .position(coordinates)
-                                        .icon(BitmapDescriptorFactory.fromBitmap(hiderIconBitmap))
-                                )
-                            }
+                            map.addMarker(
+                                MarkerOptions()
+                                    .position(coordinates)
+                                    .icon(BitmapDescriptorFactory.fromBitmap(hiderIconBitmap))
+                            )
+                        } else if (it.userName == userName) {
+                            map.addMarker(
+                                MarkerOptions()
+                                    .position(coordinates)
+                                    .icon(BitmapDescriptorFactory.fromBitmap(userIconBitmap))
+                            )
                         }
                     }
                 }
