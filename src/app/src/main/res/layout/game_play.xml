@@ -88,6 +88,16 @@
             app:layout_constraintTop_toBottomOf="@+id/map"
             tools:text="dd/M/yyyy hh:mm:ss" />
 
+        <ImageView
+            android:id="@+id/hidingOverlay"
+            android:layout_width="308dp"
+            android:layout_height="265dp"
+            app:layout_constraintBottom_toBottomOf="@+id/map"
+            app:layout_constraintEnd_toEndOf="@+id/map"
+            app:layout_constraintStart_toStartOf="@+id/map"
+            app:layout_constraintTop_toTopOf="@+id/map"
+            map:srcCompat="@drawable/hiding" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout

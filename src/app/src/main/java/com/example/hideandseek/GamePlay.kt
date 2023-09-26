@@ -9,6 +9,7 @@ import android.location.Location
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -102,6 +103,8 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         // hiding time for hiders
         var countDown: TextView = findViewById(R.id.playTime)
         var countDownValue: TextView = findViewById(R.id.playTimeValue)
+        var overlay: ImageView = findViewById(R.id.hidingOverlay)
+        overlay.alpha = 0.8F
         val hideTimer = object: CountDownTimer(hideTime, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 val seconds = (millisUntilFinished / 1000) % 60
@@ -112,6 +115,9 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
             override fun onFinish() {
                 // start the game
                 countDown.text = "Play Time: "
+
+                // remove overlay
+                overlay.setImageDrawable(null)
 
                 // start showing the hiders location
                 showUserLocation(query)
