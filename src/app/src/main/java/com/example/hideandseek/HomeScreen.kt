@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.FirebaseApp
 import com.google.firebase.database.FirebaseDatabase
@@ -32,9 +33,15 @@ class HomeScreen : AppCompatActivity() {
         val usernameInput: EditText = findViewById(R.id.username_input)
         val username: String = usernameInput.text.toString()
 
-        val intent = Intent(this, NewGameSettings::class.java)
-        intent.putExtra("username_key", username)
-        startActivity(intent)
+        if (username.isBlank()) {
+            Toast.makeText(this@HomeScreen, "Please enter a username", Toast.LENGTH_SHORT).show()
+        } else {
+            val intent = Intent(this, NewGameSettings::class.java)
+            intent.putExtra("username_key", username)
+            startActivity(intent)
+        }
+
+
 
 //        val gameSessionRef = database.getReference("gameSessions").push()
 //
@@ -51,8 +58,12 @@ class HomeScreen : AppCompatActivity() {
         val usernameInput: EditText = findViewById(R.id.username_input)
         val username: String = usernameInput.text.toString()
 
-        val intent = Intent(this, JoinGame::class.java)
-        intent.putExtra("username_key", username)
-        startActivity(intent)
+        if (username.isBlank()) {
+            Toast.makeText(this@HomeScreen, "Please enter a username", Toast.LENGTH_SHORT).show()
+        } else {
+            val intent = Intent(this, JoinGame::class.java)
+            intent.putExtra("username_key", username)
+            startActivity(intent)
+        }
     }
 }
