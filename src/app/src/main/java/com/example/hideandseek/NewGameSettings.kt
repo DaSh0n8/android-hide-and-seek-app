@@ -12,6 +12,7 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -126,12 +127,17 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
 
         val sessionId: Int = Random().nextInt(9999 - 1000 + 1) + 1000
         val sessionIdString: String = sessionId.toString()
-        val newGameSession = GameSessionClass(sessionIdString, "ongoing", players, gameTime.toInt(), seekersNumber.toInt() ,hidersNumber.toInt(), geofenceRadius.toInt())
-        gameSessionRef.setValue(newGameSession)
+        if (seekersNumber.toInt() >= hidersNumber.toInt()){
+            Toast.makeText(this@NewGameSettings, "There needs to be more hiders than seekers", Toast.LENGTH_SHORT).show()
+        } else {
+            val newGameSession = GameSessionClass(sessionIdString, "ongoing", players, gameTime.toInt(), seekersNumber.toInt() ,hidersNumber.toInt(), geofenceRadius.toInt())
+            gameSessionRef.setValue(newGameSession)
 
-        val intent = Intent(this, Lobby::class.java)
-        intent.putExtra("lobby_key", sessionIdString)
-        startActivity(intent)
+            val intent = Intent(this, Lobby::class.java)
+            intent.putExtra("lobby_key", sessionIdString)
+            startActivity(intent)
+        }
+
     }
 
     /**
