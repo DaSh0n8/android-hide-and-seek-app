@@ -5,10 +5,12 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -26,6 +28,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.CircleOptions
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.MarkerOptions
@@ -45,6 +48,10 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private var lobbycode = "4407"
     private var userName = "Yao"
     private var gameTime = (10 * 60 * 1000).toLong()
+    private var hideTime = (1 * 60 * 1000).toLong()
+    private var initLat = -37.809105
+    private var initLon = 144.9609933
+    private var geofenceRadius = 200
 
     private lateinit var map: GoogleMap
     private lateinit var binding: GamePlayBinding
@@ -98,23 +105,44 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
-        // show the users' location
-        showUserLocation(query)
-
-        // start the game by counting down
-        var countDown: TextView = findViewById(R.id.playTimeValue)
-        val timer = object: CountDownTimer(gameTime, 1000) {
+        // hiding time for hiders
+        var countDown: TextView = findViewById(R.id.playTime)
+        var countDownValue: TextView = findViewById(R.id.playTimeValue)
+        var overlay: ImageView = findViewById(R.id.hidingOverlay)
+        overlay.alpha = 0.8F
+        val hideTimer = object: CountDownTimer(hideTime, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 val seconds = (millisUntilFinished / 1000) % 60
                 val minutes = (millisUntilFinished / 1000) / 60
-                countDown.text = String.format("%02d:%02d", minutes, seconds)
+                countDownValue.text = String.format("%02d:%02d", minutes, seconds)
             }
 
             override fun onFinish() {
-                TODO()
+                // start the game
+                countDown.text = "Play Time: "
+
+                // remove overlay
+                overlay.setImageDrawable(null)
+
+                // start showing the hiders location
+                showUserLocation(query)
+
+                // start the game by counting down
+                val timer = object: CountDownTimer(gameTime, 1000) {
+                    override fun onTick(millisUntilFinished: Long) {
+                        val seconds = (millisUntilFinished / 1000) % 60
+                        val minutes = (millisUntilFinished / 1000) / 60
+                        countDownValue.text = String.format("%02d:%02d", minutes, seconds)
+                    }
+
+                    override fun onFinish() {
+                        TODO()
+                    }
+                }
+                timer.start()
             }
         }
-        timer.start()
+        hideTimer.start()
     }
 
     /**
@@ -135,6 +163,15 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
                 // reset the map before reflecting users' latest location
                 map.clear()
+
+                // draw geofence
+                map.addCircle(
+                    CircleOptions()
+                        .center(LatLng(initLat, initLon))
+                        .radius(geofenceRadius.toDouble()) // Radius in meters
+                        .strokeColor(Color.RED) // Circle border color
+                        .fillColor(Color.argb(60, 220, 0, 0)) // Fill color with transparency
+                )
 
                 if (gameSession != null) {
                     // get the players in the game session
