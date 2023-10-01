@@ -127,7 +127,9 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
 
         val sessionId: Int = Random().nextInt(9999 - 1000 + 1) + 1000
         val sessionIdString: String = sessionId.toString()
-        if (seekersNumber.toInt() >= hidersNumber.toInt()){
+        if (seekersNumber.isBlank() || hidersNumber.isBlank() || gameTime.isBlank()) {
+            Toast.makeText(this@NewGameSettings, "All fields are required", Toast.LENGTH_SHORT).show()
+        } else if (seekersNumber.toInt() >= hidersNumber.toInt()){
             Toast.makeText(this@NewGameSettings, "There needs to be more hiders than seekers", Toast.LENGTH_SHORT).show()
         } else {
             val newGameSession = GameSessionClass(sessionIdString, "ongoing", players, gameTime.toInt(), seekersNumber.toInt() ,hidersNumber.toInt(), geofenceRadius.toInt())
