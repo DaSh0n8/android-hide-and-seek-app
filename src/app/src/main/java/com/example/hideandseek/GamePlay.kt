@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
 import android.os.CountDownTimer
@@ -27,6 +28,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.CircleOptions
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.MarkerOptions
@@ -47,6 +49,9 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private var userName = "Yao"
     private var gameTime = (10 * 60 * 1000).toLong()
     private var hideTime = (1 * 60 * 1000).toLong()
+    private var initLat = -37.809105
+    private var initLon = 144.9609933
+    private var geofenceRadius = 200
 
     private lateinit var map: GoogleMap
     private lateinit var binding: GamePlayBinding
@@ -158,6 +163,15 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
                 // reset the map before reflecting users' latest location
                 map.clear()
+
+                // draw geofence
+                map.addCircle(
+                    CircleOptions()
+                        .center(LatLng(initLat, initLon))
+                        .radius(geofenceRadius.toDouble()) // Radius in meters
+                        .strokeColor(Color.RED) // Circle border color
+                        .fillColor(Color.argb(60, 220, 0, 0)) // Fill color with transparency
+                )
 
                 if (gameSession != null) {
                     // get the players in the game session
