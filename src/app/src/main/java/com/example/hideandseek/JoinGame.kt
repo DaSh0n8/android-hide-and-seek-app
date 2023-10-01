@@ -48,6 +48,12 @@ class JoinGame : AppCompatActivity() {
                     val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
 
                     if (gameSession != null) {
+                        for (player in gameSession.players){
+                            if (username == player.userName) {
+                                Toast.makeText(this@JoinGame, "Username already taken in game", Toast.LENGTH_SHORT).show()
+                                return
+                            }
+                        }
                         val newPlayer = PlayerClass(username, false, 0.0, 0.0, false, false)
                         val updatedPlayers = gameSession.players.toMutableList()
                         updatedPlayers.add(newPlayer)
