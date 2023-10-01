@@ -37,7 +37,7 @@ class Lobby : AppCompatActivity() {
 
         val createGameButton: FrameLayout = findViewById(R.id.settingsPlaceholder)
         createGameButton.setOnClickListener {
-            val intent = Intent(this@Lobby, NewGameSettings::class.java)
+            val intent = Intent(this@Lobby, LobbySettings::class.java)
             intent.putExtra("receivedLobbyCode", lobbyCode)
             startActivity(intent)
         }
