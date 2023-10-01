@@ -1,8 +1,11 @@
 package com.example.hideandseek
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.ArrayAdapter
+import android.widget.Button
+import android.widget.FrameLayout
 import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
@@ -31,6 +34,13 @@ class Lobby : AppCompatActivity() {
         // YOUR OWN DATABASE URL
         val databaseUrl = "https://db-demo-26f0a-default-rtdb.asia-southeast1.firebasedatabase.app/"
         database = FirebaseDatabase.getInstance(databaseUrl)
+
+        val createGameButton: FrameLayout = findViewById(R.id.settingsPlaceholder)
+        createGameButton.setOnClickListener {
+            val intent = Intent(this@Lobby, NewGameSettings::class.java)
+            intent.putExtra("receivedLobbyCode", lobbyCode)
+            startActivity(intent)
+        }
 
         val query = database.getReference("gameSessions")
             .orderByChild("sessionId")
@@ -69,4 +79,5 @@ class Lobby : AppCompatActivity() {
 
 
     }
+
 }

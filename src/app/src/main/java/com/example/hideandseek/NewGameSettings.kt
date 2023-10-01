@@ -94,7 +94,6 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
 
         val createGameButton: Button = findViewById(R.id.btnStartGame)
         val receivedUsername: String? = intent.getStringExtra("username_key")
-
         createGameButton.setOnClickListener {
             createButtonClicked(receivedUsername)
         }
