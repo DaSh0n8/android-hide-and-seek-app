@@ -4,7 +4,6 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.ArrayAdapter
-import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ListView
 import android.widget.TextView
@@ -35,10 +34,10 @@ class Lobby : AppCompatActivity() {
         val databaseUrl = "https://db-demo-26f0a-default-rtdb.asia-southeast1.firebasedatabase.app/"
         database = FirebaseDatabase.getInstance(databaseUrl)
 
-        val createGameButton: FrameLayout = findViewById(R.id.settingsPlaceholder)
-        createGameButton.setOnClickListener {
+        val updateGameSettings: FrameLayout = findViewById(R.id.settingsPlaceholder)
+        updateGameSettings.setOnClickListener {
             val intent = Intent(this@Lobby, LobbySettings::class.java)
-            intent.putExtra("receivedLobbyCode", lobbyCode)
+            intent.putExtra("lobby_code_key", receivedLobbyCode)
             startActivity(intent)
         }
 
