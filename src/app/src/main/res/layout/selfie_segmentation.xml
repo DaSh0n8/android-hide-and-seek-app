@@ -8,12 +8,13 @@
 
     <androidx.camera.view.PreviewView
         android:id="@+id/viewFinder"
-        android:layout_width="412dp"
-        android:layout_height="594dp"
-        android:layout_marginTop="137dp"
+        android:layout_width="match_parent"
+        android:layout_height="400dp"
+        app:layout_constraintBottom_toTopOf="@+id/image_capture_button"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toBottomOf="@+id/textView">
+
 
     </androidx.camera.view.PreviewView>
 
@@ -21,44 +22,29 @@
         android:id="@+id/image_capture_button"
         android:layout_width="110dp"
         android:layout_height="110dp"
-        android:layout_marginEnd="50dp"
-        android:layout_marginBottom="50dp"
+        android:layout_marginStart="141dp"
+        android:layout_marginEnd="142dp"
+        android:layout_marginBottom="38dp"
         android:elevation="2dp"
         android:text="@string/take_photo"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/vertical_centerline"
-        app:layout_constraintLeft_toLeftOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
-    <Button
-        android:id="@+id/video_capture_button"
-        android:layout_width="110dp"
-        android:layout_height="110dp"
-        android:layout_marginStart="50dp"
-        android:layout_marginBottom="50dp"
-        android:elevation="2dp"
-        android:text="@string/start_capture"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@id/vertical_centerline" />
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/vertical_centerline"
+    <TextView
+        android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_percent=".50" />
-
-    <ImageView
-        android:id="@+id/test"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="141dp"
-        android:layout_marginTop="9dp"
-        android:layout_marginEnd="142dp"
-        android:layout_marginBottom="594dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginStart="56dp"
+        android:layout_marginTop="42dp"
+        android:layout_marginEnd="57dp"
+        android:layout_marginBottom="20dp"
+        android:text="Create Your Personal Icon"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/viewFinder"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:srcCompat="@tools:sample/avatars" />
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

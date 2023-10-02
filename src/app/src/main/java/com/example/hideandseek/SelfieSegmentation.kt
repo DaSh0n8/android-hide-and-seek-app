@@ -116,8 +116,9 @@ class SelfieSegmentation : AppCompatActivity() {
                     Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
                     Log.d(TAG, msg)
 
-                    var image: InputImage
+
                     try {
+                        var image: InputImage
                         image = InputImage.fromFilePath(this@SelfieSegmentation, output.savedUri!!)
 
                         // configure segmenter
@@ -134,30 +135,31 @@ class SelfieSegmentation : AppCompatActivity() {
                                 val maskWidth = results.width
                                 val maskHeight = results.height
 
-//                                val bitmapMask = Bitmap.createBitmap( maskWidth , maskHeight , Bitmap.Config.ARGB_8888 )
-//                                bitmapMask.copyPixelsFromBuffer(mask)
-
                                 try {
                                     val inputStream = contentResolver.openInputStream(output.savedUri!!)
-                                    var yourDrawable =
+                                    var userPhoto =
                                         Drawable.createFromStream(inputStream, output.savedUri.toString())
 
-                                    var bitmapImage = yourDrawable?.toBitmap(maskWidth, maskHeight)
-                                    var copy = bitmapImage?.copy(Bitmap.Config.ARGB_8888, true)
+                                    // convert user image into bitmap and retrieve the foreground
+                                    var bitmapImage = userPhoto?.toBitmap(maskWidth, maskHeight)
+                                    var copyBitmap = bitmapImage?.copy(Bitmap.Config.ARGB_8888, true)
 
-                                    val threshold = 0.9
+                                    val threshold = 0.92
                                     for (y in 0 until maskHeight) {
                                         for (x in 0 until maskWidth) {
                                             val foregroundConfidence = mask.float
                                             if (foregroundConfidence < threshold) {
-                                                copy?.setPixel(x, y, Color.TRANSPARENT)
+                                                copyBitmap?.setPixel(x, y, Color.TRANSPARENT)
                                             }
                                         }
                                     }
 
-                                    viewBinding.test.setImageBitmap(copy)
+                                    // pass the bitmap to next activity
+//                                    Intent intent = new Intent(this@SelfieSegmentation, GamePlay)
+//                                    intent.putExtra("UserIcon", copyBitmap)
 
                                 } catch (e: FileNotFoundException) {
+                                    Log.e(TAG, "File Absent: $e")
                                 }
 
                             }
