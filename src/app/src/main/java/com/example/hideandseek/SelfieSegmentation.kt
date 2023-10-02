@@ -3,10 +3,12 @@ package com.example.hideandseek
 import android.Manifest
 import android.content.ContentValues
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -17,6 +19,10 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import com.example.hideandseek.databinding.SelfieSegmentationBinding
+import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.segmentation.Segmentation
+import com.google.mlkit.vision.segmentation.selfie.SelfieSegmenterOptions
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.concurrent.ExecutorService
@@ -105,13 +111,43 @@ class SelfieSegmentation : AppCompatActivity() {
                     val msg = "Photo capture succeeded: ${output.savedUri}"
                     Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
                     Log.d(TAG, msg)
+
+                    val image: InputImage
+                    try {
+                        image = InputImage.fromFilePath(this@SelfieSegmentation, output.savedUri!!)
+
+                        // configure segmenter
+                        val options =
+                            SelfieSegmenterOptions.Builder()
+                                .setDetectorMode(SelfieSegmenterOptions.SINGLE_IMAGE_MODE)
+                                .enableRawSizeMask()
+                                .build()
+                        val segmenter = Segmentation.getClient(options)
+
+                        // process the image
+                        segmenter.process(image)
+                            .addOnSuccessListener { results ->
+                                val mask = results.buffer
+                                val maskWidth = results.width
+                                val maskHeight = results.height
+
+                                val bitmap = Bitmap.createBitmap( maskWidth , maskHeight , Bitmap.Config.ARGB_8888 )
+                                bitmap.copyPixelsFromBuffer(mask)
+                                var imageView: ImageView = findViewById(R.id.test)
+                                imageView.setImageBitmap(bitmap)
+
+                            }
+                            .addOnFailureListener { e ->
+                                Log.e(TAG, "Segmentation failed: $e")
+                            }
+
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                    }
                 }
             }
         )
     }
-
-    private fun captureVideo() {}
-
     private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
 
