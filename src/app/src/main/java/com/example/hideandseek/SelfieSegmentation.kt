@@ -4,11 +4,12 @@ import android.Manifest
 import android.content.ContentValues
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.Color
+import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
-import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -18,15 +19,18 @@ import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
 import com.example.hideandseek.databinding.SelfieSegmentationBinding
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.segmentation.Segmentation
 import com.google.mlkit.vision.segmentation.selfie.SelfieSegmenterOptions
+import java.io.FileNotFoundException
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+
 
 typealias LumaListener = (luma: Double) -> Unit
 
@@ -112,7 +116,7 @@ class SelfieSegmentation : AppCompatActivity() {
                     Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
                     Log.d(TAG, msg)
 
-                    val image: InputImage
+                    var image: InputImage
                     try {
                         image = InputImage.fromFilePath(this@SelfieSegmentation, output.savedUri!!)
 
@@ -120,7 +124,6 @@ class SelfieSegmentation : AppCompatActivity() {
                         val options =
                             SelfieSegmenterOptions.Builder()
                                 .setDetectorMode(SelfieSegmenterOptions.SINGLE_IMAGE_MODE)
-                                .enableRawSizeMask()
                                 .build()
                         val segmenter = Segmentation.getClient(options)
 
@@ -131,10 +134,31 @@ class SelfieSegmentation : AppCompatActivity() {
                                 val maskWidth = results.width
                                 val maskHeight = results.height
 
-                                val bitmap = Bitmap.createBitmap( maskWidth , maskHeight , Bitmap.Config.ARGB_8888 )
-                                bitmap.copyPixelsFromBuffer(mask)
-                                var imageView: ImageView = findViewById(R.id.test)
-                                imageView.setImageBitmap(bitmap)
+//                                val bitmapMask = Bitmap.createBitmap( maskWidth , maskHeight , Bitmap.Config.ARGB_8888 )
+//                                bitmapMask.copyPixelsFromBuffer(mask)
+
+                                try {
+                                    val inputStream = contentResolver.openInputStream(output.savedUri!!)
+                                    var yourDrawable =
+                                        Drawable.createFromStream(inputStream, output.savedUri.toString())
+
+                                    var bitmapImage = yourDrawable?.toBitmap(maskWidth, maskHeight)
+                                    var copy = bitmapImage?.copy(Bitmap.Config.ARGB_8888, true)
+
+                                    val threshold = 0.9
+                                    for (y in 0 until maskHeight) {
+                                        for (x in 0 until maskWidth) {
+                                            val foregroundConfidence = mask.float
+                                            if (foregroundConfidence < threshold) {
+                                                copy?.setPixel(x, y, Color.TRANSPARENT)
+                                            }
+                                        }
+                                    }
+
+                                    viewBinding.test.setImageBitmap(copy)
+
+                                } catch (e: FileNotFoundException) {
+                                }
 
                             }
                             .addOnFailureListener { e ->
