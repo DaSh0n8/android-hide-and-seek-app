@@ -5,7 +5,7 @@ class PlayerClass() {
     var seeker: Boolean = false
     var latitude: Double? = 0.0
     var longitude: Double? = 0.0
-    var status: Boolean = false
+    var eliminated: Boolean = false
     var host: Boolean = false
 
     constructor(
@@ -20,7 +20,7 @@ class PlayerClass() {
         this.seeker = seeker
         this.latitude = latitude
         this.longitude = longitude
-        this.status = status
+        this.eliminated = status
         this.host = host
     }
 }
