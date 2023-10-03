@@ -164,8 +164,8 @@ class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
         if (seekersNumber.isBlank() || hidersNumber.isBlank() || gameTime.isBlank()) {
             Toast.makeText(this@LobbySettings, "All fields are required", Toast.LENGTH_SHORT).show()
             return
-        } else if (seekersNumber.toInt() >= hidersNumber.toInt()) {
-            Toast.makeText(this@LobbySettings, "There needs to be more hiders than seekers", Toast.LENGTH_SHORT).show()
+        } else if (seekersNumber.toInt() < 1 || hidersNumber.toInt() < 1 || gameTime.toInt() < 1){
+            Toast.makeText(this@LobbySettings, "Input values have to be more than 0", Toast.LENGTH_SHORT).show()
             return
         }
 
