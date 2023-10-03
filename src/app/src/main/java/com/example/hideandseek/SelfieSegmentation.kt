@@ -112,14 +112,14 @@ class SelfieSegmentation : AppCompatActivity() {
 
                 override fun
                         onImageSaved(output: ImageCapture.OutputFileResults){
-                    val msg = "Photo capture succeeded: ${output.savedUri}"
+                    val msg = "Photo capture succeeded"
                     Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
                     Log.d(TAG, msg)
 
 
                     try {
-                        var image: InputImage
-                        image = InputImage.fromFilePath(this@SelfieSegmentation, output.savedUri!!)
+                        var image: InputImage =
+                            InputImage.fromFilePath(this@SelfieSegmentation, output.savedUri!!)
 
                         // configure segmenter
                         val options =
@@ -155,6 +155,7 @@ class SelfieSegmentation : AppCompatActivity() {
                                     }
 
                                     // pass the bitmap to next activity
+                                    viewBinding.test.setImageBitmap(copyBitmap)
 //                                    Intent intent = new Intent(this@SelfieSegmentation, GamePlay)
 //                                    intent.putExtra("UserIcon", copyBitmap)
 

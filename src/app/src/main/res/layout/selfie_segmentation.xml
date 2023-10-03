@@ -10,41 +10,52 @@
         android:id="@+id/viewFinder"
         android:layout_width="match_parent"
         android:layout_height="400dp"
-        app:layout_constraintBottom_toTopOf="@+id/image_capture_button"
+        android:layout_marginTop="22dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView">
-
 
     </androidx.camera.view.PreviewView>
 
     <Button
         android:id="@+id/image_capture_button"
-        android:layout_width="110dp"
-        android:layout_height="110dp"
-        android:layout_marginStart="141dp"
-        android:layout_marginEnd="142dp"
-        android:layout_marginBottom="38dp"
+        android:layout_width="173dp"
+        android:layout_height="82dp"
+        android:layout_marginStart="110dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginEnd="110dp"
         android:elevation="2dp"
         android:text="@string/take_photo"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/viewFinder" />
 
     <TextView
         android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="56dp"
-        android:layout_marginTop="42dp"
+        android:layout_marginTop="55dp"
         android:layout_marginEnd="57dp"
-        android:layout_marginBottom="20dp"
         android:text="Create Your Personal Icon"
         android:textSize="24sp"
         android:textStyle="bold"
-        app:layout_constraintBottom_toTopOf="@+id/viewFinder"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/test"
+        android:layout_width="141dp"
+        android:layout_height="134dp"
+        android:layout_marginStart="133dp"
+        android:layout_marginTop="34dp"
+        android:layout_marginEnd="132dp"
+        android:layout_marginBottom="39dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/image_capture_button"
+        tools:srcCompat="@tools:sample/avatars" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
