@@ -123,9 +123,7 @@ class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
 
         query.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                Log.d("FirebaseDebug", "Game session fetched: $lobbyCode")
                 if (snapshot.exists()) {
-                    Log.e("FirebaseData", "SNAPSHOT EXISTS")
                     val gameSessionSnapshot = snapshot.children.first()
                     val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
 
