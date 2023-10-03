@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:foregroundTint="#88404040"
     tools:context=".MainActivity">
 
     <androidx.camera.view.PreviewView
@@ -11,11 +12,12 @@
         android:layout_width="match_parent"
         android:layout_height="400dp"
         android:layout_marginTop="22dp"
+        android:foreground="@drawable/selfie_guideline"
+        android:foregroundGravity="bottom|center"
+        android:foregroundTint="#80FFFFFF"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView">
-
-    </androidx.camera.view.PreviewView>
+        app:layout_constraintTop_toBottomOf="@+id/textView"></androidx.camera.view.PreviewView>
 
     <Button
         android:id="@+id/image_capture_button"

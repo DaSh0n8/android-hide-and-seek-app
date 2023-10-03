@@ -31,9 +31,6 @@ import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-
-typealias LumaListener = (luma: Double) -> Unit
-
 class SelfieSegmentation : AppCompatActivity() {
     private lateinit var viewBinding: SelfieSegmentationBinding
 
