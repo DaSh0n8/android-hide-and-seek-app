@@ -46,7 +46,7 @@
             android:value="${MAPS_API_KEY}" />
 
         <activity
-            android:name=".GamePlay"
+            android:name=".HomeScreen"
             android:exported="true"
             android:label="@string/title_activity_game_play">
             <intent-filter>

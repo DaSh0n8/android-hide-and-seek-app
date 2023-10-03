@@ -13,6 +13,7 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -61,6 +62,11 @@ class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
         binding = NewGameSettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        val receivedLobbyCode: String? = intent.getStringExtra("lobby_code_key")
+        val lobbyHeader = findViewById<TextView>(R.id.titleText)
+        val lobbyCode = "Lobby #$receivedLobbyCode Settings"
+        lobbyHeader.text = lobbyCode
+
         // location API settings
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         locationRequest = LocationRequest.create()
@@ -95,11 +101,48 @@ class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
         }
 
         val createGameButton: Button = findViewById(R.id.btnStartGame)
-        val receivedLobbyCode: String? = intent.getStringExtra("lobby_code_key")
+
+        loadSettingsInFields(receivedLobbyCode)
+
         createGameButton.setOnClickListener {
             confirmSettingsClicked(receivedLobbyCode)
         }
     }
+
+    private fun loadSettingsInFields(lobbyCode: String?){
+        if (lobbyCode == null){
+            return
+        }
+        val hidersNumberInput: EditText = findViewById(R.id.editHiders)
+        val seekersNumberInput: EditText = findViewById(R.id.editSeekers)
+        val gameTimeInput: EditText = findViewById(R.id.editGameTime)
+        val radiusInput: Slider = findViewById(R.id.discreteSlider)
+
+        val gameSessionRef = database.getReference("gameSessions")
+        val query = gameSessionRef.orderByChild("sessionId").equalTo(lobbyCode)
+
+        query.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                Log.d("FirebaseDebug", "Game session fetched: $lobbyCode")
+                if (snapshot.exists()) {
+                    Log.e("FirebaseData", "SNAPSHOT EXISTS")
+                    val gameSessionSnapshot = snapshot.children.first()
+                    val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+
+                    gameSession?.let {
+                        hidersNumberInput.setText(it.hidersNumber.toString())
+                        seekersNumberInput.setText(it.seekersNumber.toString())
+                        gameTimeInput.setText(it.gameLength.toString())
+                        radiusInput.value = it.radius.toFloat()
+                    }
+                }
+            }
+            override fun onCancelled(error: DatabaseError) {
+                Toast.makeText(this@LobbySettings, "Error loading game settings", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
 
     /**
      * Update game session with user input values
@@ -135,7 +178,7 @@ class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
                     val gameSessionSnapshot = dataSnapshot.children.first()
 
                     val updatedGameSession = mapOf(
-                        "status" to "ongoing",
+                        "gameStatus" to "ongoing",
                         "gameLength" to gameTime.toInt(),
                         "seekersNumber" to seekersNumber.toInt(),
                         "hidersNumber" to hidersNumber.toInt(),
