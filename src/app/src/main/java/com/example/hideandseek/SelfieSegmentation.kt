@@ -2,6 +2,7 @@ package com.example.hideandseek
 
 import android.Manifest
 import android.content.ContentValues
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Color
@@ -24,12 +25,14 @@ import com.example.hideandseek.databinding.SelfieSegmentationBinding
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.segmentation.Segmentation
 import com.google.mlkit.vision.segmentation.selfie.SelfieSegmenterOptions
+import java.io.ByteArrayOutputStream
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+
 
 class SelfieSegmentation : AppCompatActivity() {
     private lateinit var viewBinding: SelfieSegmentationBinding
@@ -151,10 +154,15 @@ class SelfieSegmentation : AppCompatActivity() {
                                         }
                                     }
 
+                                    // compress the bitmap
+                                    val stream = ByteArrayOutputStream()
+                                    copyBitmap?.compress(Bitmap.CompressFormat.PNG, 100, stream)
+                                    val byteArray = stream.toByteArray()
+
                                     // pass the bitmap to next activity
-                                    viewBinding.test.setImageBitmap(copyBitmap)
-//                                    Intent intent = new Intent(this@SelfieSegmentation, GamePlay)
-//                                    intent.putExtra("UserIcon", copyBitmap)
+                                    val intent = Intent(this@SelfieSegmentation, UserSetting::class.java)
+                                    intent.putExtra("UserIcon", byteArray)
+                                    startActivity(intent)
 
                                 } catch (e: FileNotFoundException) {
                                     Log.e(TAG, "File Absent: $e")
