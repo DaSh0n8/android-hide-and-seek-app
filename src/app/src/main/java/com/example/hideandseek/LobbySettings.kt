@@ -8,12 +8,13 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.location.Location
+import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.hideandseek.databinding.NewGameSettingsBinding
@@ -22,7 +23,6 @@ import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -34,12 +34,13 @@ import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.slider.Slider
 import com.google.firebase.FirebaseApp
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import java.util.Random
 
-
-class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
-
+class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var map: GoogleMap
     private lateinit var binding: NewGameSettingsBinding
     private lateinit var database: FirebaseDatabase
@@ -49,9 +50,6 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
 
     // Google's API for location services
     private var fusedLocationClient: FusedLocationProviderClient? = null
-
-    // interval in milliseconds for location updates
-    private var updateInterval: Long = 60 * 1000
 
     // configuration of all settings of FusedLocationProviderClient
     private var locationRequest: LocationRequest? = null
@@ -64,11 +62,14 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
         binding = NewGameSettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        val receivedLobbyCode: String? = intent.getStringExtra("lobby_code_key")
+        val lobbyHeader = findViewById<TextView>(R.id.titleText)
+        val lobbyCode = "Lobby #$receivedLobbyCode Settings"
+        lobbyHeader.text = lobbyCode
+
         // location API settings
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-        locationRequest = LocationRequest.Builder(
-            Priority.PRIORITY_HIGH_ACCURACY,
-            updateInterval).build()
+        locationRequest = LocationRequest.create()
         locationCallBack = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
                 super.onLocationResult(locationResult)
@@ -100,17 +101,52 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
         }
 
         val createGameButton: Button = findViewById(R.id.btnStartGame)
-        val receivedUsername: String? = intent.getStringExtra("username_key")
+
+        loadSettingsInFields(receivedLobbyCode)
+
         createGameButton.setOnClickListener {
-            createButtonClicked(receivedUsername)
+            confirmSettingsClicked(receivedLobbyCode)
         }
     }
 
+    private fun loadSettingsInFields(lobbyCode: String?){
+        if (lobbyCode == null){
+            return
+        }
+        val hidersNumberInput: EditText = findViewById(R.id.editHiders)
+        val seekersNumberInput: EditText = findViewById(R.id.editSeekers)
+        val gameTimeInput: EditText = findViewById(R.id.editGameTime)
+        val radiusInput: Slider = findViewById(R.id.discreteSlider)
+
+        val gameSessionRef = database.getReference("gameSessions")
+        val query = gameSessionRef.orderByChild("sessionId").equalTo(lobbyCode)
+
+        query.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (snapshot.exists()) {
+                    val gameSessionSnapshot = snapshot.children.first()
+                    val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+
+                    gameSession?.let {
+                        hidersNumberInput.setText(it.hidersNumber.toString())
+                        seekersNumberInput.setText(it.seekersNumber.toString())
+                        gameTimeInput.setText(it.gameLength.toString())
+                        radiusInput.value = it.radius.toFloat()
+                    }
+                }
+            }
+            override fun onCancelled(error: DatabaseError) {
+                Toast.makeText(this@LobbySettings, "Error loading game settings", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
+
     /**
-     * Create game session with user input values
+     * Update game session with user input values
      */
-    private fun createButtonClicked(username: String?){
-        if (username == null){
+    private fun confirmSettingsClicked(receivedLobbyCode: String?) {
+        if (receivedLobbyCode == null) {
             return
         }
         val hidersNumberInput: EditText = findViewById(R.id.editHiders)
@@ -125,27 +161,47 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
         val radiusInput: Slider = findViewById(R.id.discreteSlider)
         val geofenceRadius: Float = radiusInput.value
 
-        val gameSessionRef = database.getReference("gameSessions").push()
-
-        val players = listOf(
-            PlayerClass(username, true, null, null, true, true)
-        )
-
-        val sessionId: Int = Random().nextInt(999999 - 100000 + 1) + 10000
-        val sessionIdString: String = sessionId.toString()
         if (seekersNumber.isBlank() || hidersNumber.isBlank() || gameTime.isBlank()) {
-            Toast.makeText(this@NewGameSettings, "All fields are required", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this@LobbySettings, "All fields are required", Toast.LENGTH_SHORT).show()
+            return
         } else if (seekersNumber.toInt() < 1 || hidersNumber.toInt() < 1 || gameTime.toInt() < 1){
-            Toast.makeText(this@NewGameSettings, "Input values have to be more than 0", Toast.LENGTH_SHORT).show()
-        } else {
-            val newGameSession = GameSessionClass(sessionIdString, "ongoing", players, gameTime.toInt(), seekersNumber.toInt() ,hidersNumber.toInt(), geofenceRadius.toInt())
-            gameSessionRef.setValue(newGameSession)
-
-            val intent = Intent(this, Lobby::class.java)
-            intent.putExtra("lobby_key", sessionIdString)
-            startActivity(intent)
+            Toast.makeText(this@LobbySettings, "Input values have to be more than 0", Toast.LENGTH_SHORT).show()
+            return
         }
 
+        val query = database.getReference("gameSessions").orderByChild("sessionId").equalTo(receivedLobbyCode)
+        query.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    val gameSessionSnapshot = dataSnapshot.children.first()
+
+                    val updatedGameSession = mapOf(
+                        "gameStatus" to "ongoing",
+                        "gameLength" to gameTime.toInt(),
+                        "seekersNumber" to seekersNumber.toInt(),
+                        "hidersNumber" to hidersNumber.toInt(),
+                        "radius" to geofenceRadius.toInt()
+                    )
+
+                    gameSessionSnapshot.ref.updateChildren(updatedGameSession)
+                        .addOnSuccessListener {
+                            Toast.makeText(this@LobbySettings, "Game configurations updated", Toast.LENGTH_SHORT).show()
+                            val intent = Intent(this@LobbySettings, Lobby::class.java)
+                            intent.putExtra("lobby_key", receivedLobbyCode)
+                            startActivity(intent)
+                        }
+                        .addOnFailureListener {
+                            Toast.makeText(this@LobbySettings, "Error updating game settings", Toast.LENGTH_SHORT).show()
+                        }
+                } else {
+                    Toast.makeText(this@LobbySettings, "Lobby code not found", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                Toast.makeText(this@LobbySettings, "Error fetching data", Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
     /**
@@ -162,7 +218,7 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
     private fun updateLocation(googleMap: GoogleMap) {
         //if user grants permission
         if (ActivityCompat.checkSelfPermission(
-                this@NewGameSettings,
+                this@LobbySettings,
                 Manifest.permission.ACCESS_FINE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED
         ) {
@@ -187,7 +243,7 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
         } else {
             //if user hasn't granted permission, ask for it explicitly
             ActivityCompat.requestPermissions(
-                this@NewGameSettings,
+                this@LobbySettings,
                 arrayOf<String>(Manifest.permission.ACCESS_FINE_LOCATION),
                 Request_Code_Location
             )
@@ -208,7 +264,7 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
         val user = LatLng(lat, lon)
 
         // convert the drawable user icon to a Bitmap
-        val userIconBitmap = getBitmapFromVectorDrawable(this, R.drawable.self_user_icon)
+        val userIconBitmap = getBitmapFromVectorDrawable(this, R.drawable.user_icon)
 
         // add the marker and adjust the view
         map.addMarker(
