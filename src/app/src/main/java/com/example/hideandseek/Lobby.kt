@@ -47,7 +47,7 @@ class Lobby : AppCompatActivity() {
         val seekersList = mutableListOf<String>()
         val hidersList = mutableListOf<String>()
 
-        query.addListenerForSingleValueEvent(object : ValueEventListener {
+        query.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 for (sessionSnapshot in dataSnapshot.children) {
                     val players = sessionSnapshot.child("players").children

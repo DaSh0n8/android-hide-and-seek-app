@@ -131,7 +131,7 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
             PlayerClass(username, true, null, null, true, true)
         )
 
-        val sessionId: Int = Random().nextInt(999999 - 100000 + 1) + 10000
+        val sessionId: Int = Random().nextInt(999999 - 100000 + 1) + 100000
         val sessionIdString: String = sessionId.toString()
         if (seekersNumber.isBlank() || hidersNumber.isBlank() || gameTime.isBlank()) {
             Toast.makeText(this@NewGameSettings, "All fields are required", Toast.LENGTH_SHORT).show()
