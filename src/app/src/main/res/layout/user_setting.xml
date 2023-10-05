@@ -36,6 +36,7 @@
         android:layout_width="179dp"
         android:layout_height="195dp"
         android:layout_marginTop="37dp"
+        android:background="@android:color/transparent"
         android:cropToPadding="false"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

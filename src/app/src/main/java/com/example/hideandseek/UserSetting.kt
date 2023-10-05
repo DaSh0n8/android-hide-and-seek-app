@@ -3,6 +3,7 @@ package com.example.hideandseek
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
@@ -26,8 +27,9 @@ class UserSetting : AppCompatActivity() {
         if (bundle != null) {
             val byteArray = intent.getByteArrayExtra("UserIcon")
             userIcon = BitmapFactory.decodeByteArray(byteArray, 0, byteArray?.size ?:0)
-            var imageView: ImageView = findViewById(R.id.profilePic)
-            imageView.setImageBitmap(userIcon)
+            var test = makeBlackPixelsTransparent(userIcon)
+            var profilePic: ImageView = findViewById(R.id.profilePic)
+            profilePic.setImageBitmap(test)
         }
 
         // enabled changing icon
@@ -66,4 +68,28 @@ class UserSetting : AppCompatActivity() {
             startActivity(intent)
         }
     }
+
+    private fun makeBlackPixelsTransparent(bitmap: Bitmap): Bitmap {
+        val width = bitmap.width
+        val height = bitmap.height
+        val resultBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+
+        for (x in 0 until width) {
+            for (y in 0 until height) {
+                val pixelColor = bitmap.getPixel(x, y)
+
+                // Check if the pixel is fully black (R = 0, G = 0, B = 0)
+                if (Color.red(pixelColor) == 0 && Color.green(pixelColor) == 0 && Color.blue(pixelColor) == 0) {
+                    // Set the alpha channel to 0 (fully transparent)
+                    resultBitmap.setPixel(x, y, Color.TRANSPARENT)
+                } else {
+                    // Copy the pixel as it is
+                    resultBitmap.setPixel(x, y, pixelColor)
+                }
+            }
+        }
+
+        return resultBitmap
+    }
+
 }
