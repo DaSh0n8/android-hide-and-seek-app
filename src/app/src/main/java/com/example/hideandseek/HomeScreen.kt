@@ -13,20 +13,15 @@ class HomeScreen : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.home_screen)
 
-
-
-
         val createGameButton: Button = findViewById(R.id.createGameButton)
         createGameButton.setOnClickListener {
             val intent = Intent(this@HomeScreen, UserSetting::class.java)
             intent.putExtra("origin", "home_screen")
-            intent.putExtra("host", true)
             startActivity(intent)
         }
         val joinGameButton: Button = findViewById(R.id.joinGameButton)
         joinGameButton.setOnClickListener {
             val intent = Intent(this@HomeScreen, JoinGame::class.java)
-            intent.putExtra("host", false)
             startActivity(intent)
         }
         FirebaseApp.initializeApp(this)
