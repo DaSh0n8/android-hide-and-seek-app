@@ -15,7 +15,7 @@ class UserSetting : AppCompatActivity() {
         if (bundle != null) {
             val byteArray = intent.getByteArrayExtra("UserIcon")
             val userIcon = BitmapFactory.decodeByteArray(byteArray, 0, byteArray?.size ?:0)
-            var imageView: ImageView = findViewById(R.id.imageView)
+            var imageView: ImageView = findViewById(R.id.profilePic)
             imageView.setImageBitmap(userIcon)
         }
 

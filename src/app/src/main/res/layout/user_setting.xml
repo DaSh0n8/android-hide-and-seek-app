@@ -6,17 +6,97 @@
     android:layout_height="match_parent"
     tools:context=".UserSetting">
 
-    <ImageView
-        android:id="@+id/imageView"
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/changePic"
+        android:layout_width="58dp"
+        android:layout_height="54dp"
+        android:layout_marginEnd="97dp"
+        android:layout_marginBottom="33dp"
+        android:clickable="true"
+        android:src="@android:drawable/ic_input_add"
+        app:layout_constraintBottom_toTopOf="@+id/rectangles_frame"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <TextView
+        android:id="@+id/header"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="130dp"
-        android:layout_marginTop="345dp"
-        android:layout_marginEnd="135dp"
-        android:layout_marginBottom="334dp"
+        android:layout_marginStart="101dp"
+        android:layout_marginTop="31dp"
+        android:layout_marginEnd="102dp"
+        android:text="User Setting"
+        android:textSize="34sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/profilePic"
+        android:layout_width="179dp"
+        android:layout_height="195dp"
+        android:layout_marginTop="37dp"
+        android:cropToPadding="false"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/header"
+        app:srcCompat="@drawable/emptyprofile" />
+
+    <FrameLayout
+        android:id="@+id/rectangles_frame"
+        android:layout_width="335dp"
+        android:layout_height="185dp"
+        android:layout_marginTop="40dp"
+        android:background="@drawable/background"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/profilePic"
+        app:layout_constraintWidth_percent="0.8">
+
+        <TextView
+            android:id="@+id/username"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal|top"
+            android:layout_marginTop="20dp"
+            android:text="Your Username"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <View
+            android:id="@+id/horizontalLine"
+            android:layout_width="332dp"
+            android:layout_height="1dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="60dp"
+            android:background="@android:color/darker_gray" />
+
+        <EditText
+            android:id="@+id/username_input"
+            android:layout_width="wrap_content"
+            android:layout_height="67dp"
+            android:layout_gravity="center"
+            android:layout_marginTop="15dp"
+            android:hint="Please enter your preferred username"
+            android:maxLength="15"
+            android:textAlignment="center"
+            android:textSize="15sp" />
+
+    </FrameLayout>
+
+    <Button
+        android:id="@+id/confirmBtn"
+        android:layout_width="180dp"
+        android:layout_height="74dp"
+        android:layout_marginStart="106dp"
+        android:layout_marginTop="40dp"
+        android:layout_marginEnd="107dp"
+        android:layout_marginBottom="176dp"
+        android:text="Confirm"
+        android:textSize="20sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:srcCompat="@tools:sample/avatars" />
+        app:layout_constraintTop_toBottomOf="@+id/rectangles_frame" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
