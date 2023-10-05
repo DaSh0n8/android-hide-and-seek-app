@@ -24,8 +24,8 @@ class UserSetting : AppCompatActivity() {
         val origin: String? = intent.getStringExtra("origin")
         var userIcon: Bitmap? = null
 
-        if (origin == "user_setting") {
-            val byteArray = intent.getByteArrayExtra("UserIcon")
+        if (origin == "selfie_segmentation") {
+            val byteArray = intent.getByteArrayExtra("userIcon")
             userIcon = BitmapFactory.decodeByteArray(byteArray, 0, byteArray?.size ?:0)
             var test = makeBlackPixelsTransparent(userIcon)
             var profilePic: ImageView = findViewById(R.id.profilePic)
@@ -62,9 +62,9 @@ class UserSetting : AppCompatActivity() {
                 val byteArray = stream.toByteArray()
 
                 // pass the bitmap to next activity
-                intent.putExtra("UserIcon", byteArray)
+                intent.putExtra("userIcon", byteArray)
             }
-            intent.putExtra("username_key", username)
+            intent.putExtra("usernameKey", username)
             startActivity(intent)
         }
     }

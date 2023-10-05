@@ -18,7 +18,7 @@ class JoinGame : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.join_game)
 
-        val receivedUsername: String? = intent.getStringExtra("username_key")
+        val receivedUsername: String? = intent.getStringExtra("usernameKey")
 
         val joinGameButton: Button = findViewById(R.id.btnJoinGameLobby)
         joinGameButton.setOnClickListener {

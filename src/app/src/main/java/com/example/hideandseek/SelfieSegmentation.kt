@@ -165,7 +165,8 @@ class SelfieSegmentation : AppCompatActivity() {
 
                                     // pass the bitmap to next activity
                                     val intent = Intent(this@SelfieSegmentation, UserSetting::class.java)
-                                    intent.putExtra("UserIcon", byteArray)
+                                    intent.putExtra("origin", "selfie_segmentation")
+                                    intent.putExtra("userIcon", byteArray)
                                     startActivity(intent)
 
                                 } catch (e: FileNotFoundException) {
