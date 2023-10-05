@@ -14,17 +14,17 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.io.ByteArrayOutputStream
 
 class UserSetting : AppCompatActivity() {
-    // receive from previous section
-    private val host: Boolean = true
-
+    private var host: Boolean = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.user_setting)
 
-        // receive the user icon if any value sent from previous activity
-        val bundle = intent.extras
+        // receive the info and user icon if any value sent from previous activity
+        host = intent.getBooleanExtra("host", false)
+        val origin: String? = intent.getStringExtra("origin")
         var userIcon: Bitmap? = null
-        if (bundle != null) {
+
+        if (origin == "user_setting") {
             val byteArray = intent.getByteArrayExtra("UserIcon")
             userIcon = BitmapFactory.decodeByteArray(byteArray, 0, byteArray?.size ?:0)
             var test = makeBlackPixelsTransparent(userIcon)
