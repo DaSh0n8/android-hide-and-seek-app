@@ -14,27 +14,39 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.io.ByteArrayOutputStream
 
 class UserSetting : AppCompatActivity() {
+    /**
+     *  1) Get Lobby Code
+     *  2) Recursive passing of host value (to selfie segmentation and back)
+     *  3) Check unique username
+     *  4) Add user to the game session in db
+     */
     private var host: Boolean = false
+    private var lobbyCode: String? = null
+    private var userIcon: Bitmap? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.user_setting)
 
         // receive the info and user icon if any value sent from previous activity
         host = intent.getBooleanExtra("host", false)
-        val origin: String? = intent.getStringExtra("origin")
-        var userIcon: Bitmap? = null
+        lobbyCode = intent.getStringExtra("lobbyCode")
+        val byteArray = intent.getByteArrayExtra("userIcon")
 
-        if (origin == "selfie_segmentation") {
+        // show the selfie segmentation if available
+        if (byteArray != null) {
             val byteArray = intent.getByteArrayExtra("userIcon")
             userIcon = BitmapFactory.decodeByteArray(byteArray, 0, byteArray?.size ?:0)
-            var test = makeBlackPixelsTransparent(userIcon)
+            var result = makeBlackPixelsTransparent(userIcon!!)
             var profilePic: ImageView = findViewById(R.id.profilePic)
-            profilePic.setImageBitmap(test)
+            profilePic.setImageBitmap(result)
         }
 
-        // enabled changing icon
+        // enabling changing icon
         val changeIcon: FloatingActionButton = findViewById(R.id.changePic)
         val changeIconIntent = Intent(this@UserSetting, SelfieSegmentation::class.java)
+        changeIconIntent.putExtra("host", host)
+        changeIconIntent.putExtra("lobbyCode", lobbyCode)
         changeIcon.setOnClickListener{ startActivity(changeIconIntent) }
 
         val confirmBtn: Button = findViewById(R.id.confirmBtn)
@@ -52,7 +64,7 @@ class UserSetting : AppCompatActivity() {
             val intent: Intent = if (host) {
                 Intent(this@UserSetting,NewGameSettings::class.java)
             } else {
-                Intent(this@UserSetting,JoinGame::class.java)
+                Intent(this@UserSetting,Lobby::class.java)
             }
 
             if (userIcon != null) {
@@ -64,6 +76,11 @@ class UserSetting : AppCompatActivity() {
                 // pass the bitmap to next activity
                 intent.putExtra("userIcon", byteArray)
             }
+
+            if (lobbyCode != null) {
+                intent.putExtra("lobby_key", lobbyCode)
+            }
+
             intent.putExtra("usernameKey", username)
             startActivity(intent)
         }

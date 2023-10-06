@@ -37,10 +37,11 @@ import java.util.concurrent.Executors
 
 class SelfieSegmentation : AppCompatActivity() {
     private lateinit var viewBinding: SelfieSegmentationBinding
-
     private var imageCapture: ImageCapture? = null
-
     private lateinit var cameraExecutor: ExecutorService
+
+    private var host: Boolean = false
+    private var lobbyCode: String? = null
 
     private val activityResultLauncher =
         registerForActivityResult(
@@ -72,6 +73,10 @@ class SelfieSegmentation : AppCompatActivity() {
         } else {
             requestPermissions()
         }
+
+        // receive the info sent from previous activity
+        host = intent.getBooleanExtra("host", false)
+        lobbyCode = intent.getStringExtra("lobbyCode")
 
         // Set up the listeners for take photo and video capture buttons
         viewBinding.imageCaptureButton.setOnClickListener { takePhoto() }
@@ -165,7 +170,8 @@ class SelfieSegmentation : AppCompatActivity() {
 
                                     // pass the bitmap to next activity
                                     val intent = Intent(this@SelfieSegmentation, UserSetting::class.java)
-                                    intent.putExtra("origin", "selfie_segmentation")
+                                    intent.putExtra("host", host)
+                                    intent.putExtra("lobbyCode", lobbyCode)
                                     intent.putExtra("userIcon", byteArray)
                                     startActivity(intent)
 

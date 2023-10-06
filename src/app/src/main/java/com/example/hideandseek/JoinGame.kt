@@ -41,6 +41,7 @@ class JoinGame : AppCompatActivity() {
                 if (dataSnapshot.exists()) {
                     val intent = Intent(this@JoinGame, UserSetting::class.java)
                     intent.putExtra("lobbyCode", lobbyCode)
+                    intent.putExtra("origin", "join_game")
                     startActivity(intent)
 
                 } else {
