@@ -10,7 +10,9 @@ import android.location.Location
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
-import android.widget.ImageView
+import android.view.View.GONE
+import android.view.View.INVISIBLE
+import android.view.View.VISIBLE
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -82,6 +84,8 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         // query the db to get the user's session
         val reference = database.getReference("gameSessions")
         val query = reference.orderByChild("sessionId").equalTo(lobbycode)
+        var lastUpdate: TextView = findViewById(R.id.lastUpdate)
+        lastUpdate.visibility = INVISIBLE
 
         // location API settings
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
@@ -108,8 +112,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         // hiding time for hiders
         var countDown: TextView = findViewById(R.id.playTime)
         var countDownValue: TextView = findViewById(R.id.playTimeValue)
-        var overlay: ImageView = findViewById(R.id.hidingOverlay)
-        overlay.alpha = 0.8F
+        var hidingText: TextView = findViewById(R.id.hidingText)
         val hideTimer = object: CountDownTimer(hideTime, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 val seconds = (millisUntilFinished / 1000) % 60
@@ -122,7 +125,8 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 countDown.text = "Play Time: "
 
                 // remove overlay
-                overlay.setImageDrawable(null)
+                hidingText.visibility = GONE
+                lastUpdate.visibility = VISIBLE
 
                 // start showing the hiders location
                 showUserLocation(query)
