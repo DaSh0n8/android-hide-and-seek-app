@@ -1,7 +1,9 @@
 package com.example.hideandseek
 
 import android.Manifest
+import android.content.ContentValues.TAG
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -47,10 +49,10 @@ import java.util.TimerTask
 class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
     // need to fetch from "Lobby" activity
-    private var lobbycode = "4407"
+    private var lobbyCode = "4407"
     private var userName = "Yao"
-    private var gameTime = (10 * 60 * 1000).toLong()
-    private var hideTime = (1 * 60 * 1000).toLong()
+    private var gameTime = (0.1 * 60 * 1000).toLong()
+    private var hideTime = (0.1 * 60 * 1000).toLong()
     private var initLat = -37.809105
     private var initLon = 144.9609933
     private var geofenceRadius = 200
@@ -83,7 +85,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
         // query the db to get the user's session
         val reference = database.getReference("gameSessions")
-        val query = reference.orderByChild("sessionId").equalTo(lobbycode)
+        val query = reference.orderByChild("sessionId").equalTo(lobbyCode)
         var lastUpdate: TextView = findViewById(R.id.lastUpdate)
         lastUpdate.visibility = INVISIBLE
 
@@ -140,7 +142,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                     }
 
                     override fun onFinish() {
-                        TODO()
+                        endGame()
                     }
                 }
                 timer.start()
@@ -349,5 +351,40 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         drawable.setBounds(0, 0, canvas.width, canvas.height)
         drawable.draw(canvas)
         return bitmap
+    }
+
+    /**
+     * Calculate the results and initiate result page
+     */
+    private fun endGame() {
+        // query the db to get the user's session
+        val reference = database.getReference("gameSessions")
+        val query = reference.orderByChild("sessionId").equalTo(lobbyCode)
+
+        query.get().addOnSuccessListener{
+            // get the game session
+            val gameSessionSnapshot = it.children.first()
+            val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+            var seekerWonGame = true
+
+            if (gameSession != null) {
+                val players = gameSession.players.toMutableList()
+                for (p in players) {
+                    // check if all players have been eliminated
+                    if (!p.eliminated && !p.seeker) {
+                        Log.d(TAG, "Hider Win")
+                        seekerWonGame = false
+
+                    }
+                }
+                if (seekerWonGame) {
+                    val seekerWin = Intent(this@GamePlay, SeekerWin::class.java)
+                    startActivity(seekerWin)
+                } else {
+                    val hiderWin = Intent(this@GamePlay, HiderWin::class.java)
+                    startActivity(hiderWin)
+                }
+            }
+        }
     }
 }

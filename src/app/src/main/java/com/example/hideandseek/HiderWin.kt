@@ -1,11 +1,11 @@
 package com.example.hideandseek
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
 
-class GameOver : AppCompatActivity() {
+class HiderWin : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.game_over)
+        setContentView(R.layout.hider_win)
     }
 }
