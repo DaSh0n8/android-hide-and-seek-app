@@ -4,6 +4,7 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.ArrayAdapter
+import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ListView
 import android.widget.TextView
@@ -25,6 +26,9 @@ class Lobby : AppCompatActivity() {
         val lobbyHeader = findViewById<TextView>(R.id.lobbyHeader)
         val lobbyCode = "Lobby #$receivedLobbyCode"
         lobbyHeader.text = lobbyCode
+
+        val receivedUserName: String? = intent.getStringExtra("username_key")
+
 
         val hidersListView = findViewById<ListView>(R.id.hiderListView)
         val seekersListView = findViewById<ListView>(R.id.seekerListView)
@@ -49,6 +53,9 @@ class Lobby : AppCompatActivity() {
 
         query.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
+                seekersList.clear()
+                hidersList.clear()
+
                 for (sessionSnapshot in dataSnapshot.children) {
                     val players = sessionSnapshot.child("players").children
                     for (playerSnapshot in players) {
@@ -76,7 +83,48 @@ class Lobby : AppCompatActivity() {
             }
         })
 
+        val switchTeamButton: Button = findViewById(R.id.switchTeamButton)
+        switchTeamButton.setOnClickListener {
+            switchTeamClicked(receivedUserName, receivedLobbyCode)
+        }
 
+
+    }
+
+    private fun switchTeamClicked(username: String?, lobbyCode: String?){
+        if (username == null || lobbyCode == null){
+            return
+        }
+        val gameSessionRef = database.getReference("gameSessions")
+            .orderByChild("sessionId")
+            .equalTo(lobbyCode)
+
+        gameSessionRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                for (sessionSnapshot in dataSnapshot.children) {
+                    val players = sessionSnapshot.child("players").children
+                    for (playerSnapshot in players) {
+                        val playerName = playerSnapshot.child("userName").value.toString()
+                        if (playerName == username) {
+                            // Get the current seeker status
+                            val isSeeker = playerSnapshot.child("seeker").getValue(Boolean::class.java) ?: false
+
+                            if (isSeeker) {
+                                playerSnapshot.ref.child("seeker").setValue(false)
+                            } else{
+                                playerSnapshot.ref.child("seeker").setValue(true)
+                            }
+
+                            return
+                        }
+                    }
+                }
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                Toast.makeText(this@Lobby, "Error updating team", Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
 }

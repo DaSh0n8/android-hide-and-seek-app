@@ -145,6 +145,7 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
             val intent = Intent(this, Lobby::class.java)
             intent.putExtra("userIcon", userIcon)
             intent.putExtra("lobby_key", sessionIdString)
+            intent.putExtra("username_key", username)
             startActivity(intent)
         }
 
