@@ -24,7 +24,7 @@
         android:theme="@style/Theme.HideAndSeek"
         tools:targetApi="31" >
         <activity
-            android:name=".HiderWin"
+            android:name=".HomeScreen"
             android:exported="false" />
         <activity
             android:name=".SelfieSegmentation"
@@ -39,7 +39,7 @@
             android:name=".JoinGame"
             android:exported="false" />
         <activity
-            android:name=".SeekerWin"
+            android:name=".GameOver"
             android:exported="false" />
         <activity
             android:name=".Lobby"

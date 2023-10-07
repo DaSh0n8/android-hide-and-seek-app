@@ -1,6 +1,7 @@
 package com.example.hideandseek
 
 import android.Manifest
+import android.content.ContentValues
 import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.Intent
@@ -49,8 +50,8 @@ import java.util.TimerTask
 class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
     // need to fetch from "Lobby" activity
-    private var lobbyCode = "4407"
-    private var userName = "Yao"
+    private var lobbyCode = "1627"
+    private var userName = "ss"
     private var gameTime = (0.1 * 60 * 1000).toLong()
     private var hideTime = (0.1 * 60 * 1000).toLong()
     private var initLat = -37.809105
@@ -82,6 +83,8 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         FirebaseApp.initializeApp(this)
         val databaseUrl = "https://db-demo-26f0a-default-rtdb.asia-southeast1.firebasedatabase.app/"
         database = FirebaseDatabase.getInstance(databaseUrl)
+
+        resetPlayerIndices()
 
         // query the db to get the user's session
         val reference = database.getReference("gameSessions")
@@ -197,7 +200,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 if (gameSession != null) {
                     // get the players in the game session
                     val players = gameSession.players
-
+                    Log.d(ContentValues.TAG, players.toString())
                     // reflect hiders' latest locations on map
                     players.forEach{
                         val coordinates = LatLng(it.latitude!!, it.longitude!!)
@@ -363,7 +366,11 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
         query.get().addOnSuccessListener{
             // get the game session
+            var index = 0
+            var host = false
+            var playerIndex: String = "0"
             val gameSessionSnapshot = it.children.first()
+            val sessionId = gameSessionSnapshot.key.toString()
             val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
             var seekerWonGame = true
 
@@ -372,19 +379,75 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 for (p in players) {
                     // check if all players have been eliminated
                     if (!p.eliminated && !p.seeker) {
-                        Log.d(TAG, "Hider Win")
                         seekerWonGame = false
 
                     }
+
+                    if (p.userName != userName) {
+                        index += 1
+                    } else {
+                        host = p.host
+                        playerIndex = index.toString()
+                    }
                 }
-                if (seekerWonGame) {
-                    val seekerWin = Intent(this@GamePlay, SeekerWin::class.java)
-                    startActivity(seekerWin)
+                val result: String = if (seekerWonGame) {
+                    "Seekers Won!"
                 } else {
-                    val hiderWin = Intent(this@GamePlay, HiderWin::class.java)
-                    startActivity(hiderWin)
+                    "Hiders Won!"
                 }
+                val gameOver = Intent(this@GamePlay, GameOver::class.java)
+                gameOver.putExtra("result", result)
+                gameOver.putExtra("lobbyCode", lobbyCode)
+                gameOver.putExtra("sessionId", sessionId)
+                gameOver.putExtra("playerIndex", playerIndex)
+                gameOver.putExtra("host", host)
+                startActivity(gameOver)
             }
+        }
+    }
+
+    private fun resetPlayerIndices() {
+        // query the db to get the user's session
+        val reference = database.getReference("gameSessions")
+        val query = reference.orderByChild("sessionId").equalTo(lobbyCode)
+
+        // get session id
+        var sessionId: String
+        query.get().addOnSuccessListener {
+            val gameSessionSnapshot = it.children.first()
+            sessionId = gameSessionSnapshot.key.toString()
+
+            val playersReference = database.reference.child("gameSessions").child(sessionId).child("players")
+
+            // Get the current players
+            playersReference.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    Log.d(TAG, "See here")
+                    Log.d(TAG, dataSnapshot.toString())
+                    // Iterate through the players and update their indices
+                    val updatedPlayers = mutableListOf<Map<String, Any?>>()
+                    var index = 0
+
+                    for (playerSnapshot in dataSnapshot.children) {
+                        val playerData = playerSnapshot.value as Map<String, Any?>
+                        updatedPlayers.add(playerData)
+                        index++
+                    }
+
+                    // Remove all players
+                    playersReference.removeValue().addOnCompleteListener {
+                        // Add the updated players with consecutive indices
+                        for ((playerIndex, playerData) in updatedPlayers.withIndex()) {
+                            playersReference.child(index.toString()).setValue(playerData)
+                        }
+                    }
+                }
+
+                override fun onCancelled(databaseError: DatabaseError) {
+                    Log.e(ContentValues.TAG, "Error: $databaseError")
+                }
+            })
+
         }
     }
 }
