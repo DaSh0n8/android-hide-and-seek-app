@@ -18,11 +18,9 @@ class JoinGame : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.join_game)
 
-        val receivedUsername: String? = intent.getStringExtra("username_key")
-
         val joinGameButton: Button = findViewById(R.id.btnJoinGameLobby)
         joinGameButton.setOnClickListener {
-            joinButtonClicked(receivedUsername)
+            joinButtonClicked()
         }
         FirebaseApp.initializeApp(this)
         // YOUR OWN DATABASE URL
@@ -30,10 +28,7 @@ class JoinGame : AppCompatActivity() {
         database = FirebaseDatabase.getInstance(databaseUrl)
     }
 
-    private fun joinButtonClicked(username: String?) {
-        if (username == null){
-            return
-        }
+    private fun joinButtonClicked() {
         val lobbyCodeInput: EditText = findViewById(R.id.lobbyCodeInput)
         val lobbyCode: String = lobbyCodeInput.text.toString().trim()
 
@@ -44,32 +39,10 @@ class JoinGame : AppCompatActivity() {
         query.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 if (dataSnapshot.exists()) {
-                    val gameSessionSnapshot = dataSnapshot.children.first()
-                    val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+                    val intent = Intent(this@JoinGame, UserSetting::class.java)
+                    intent.putExtra("lobbyCode", lobbyCode)
+                    startActivity(intent)
 
-                    if (gameSession != null) {
-                        for (player in gameSession.players){
-                            if (username == player.userName) {
-                                Toast.makeText(this@JoinGame, "Username already taken in game", Toast.LENGTH_SHORT).show()
-                                return
-                            }
-                        }
-                        val newPlayer = PlayerClass(username, false, 0.0, 0.0, false, false)
-                        val updatedPlayers = gameSession.players.toMutableList()
-                        updatedPlayers.add(newPlayer)
-
-
-                        gameSession.players = updatedPlayers
-                        gameSessionSnapshot.ref.setValue(gameSession).addOnSuccessListener {
-                            val intent = Intent(this@JoinGame, Lobby::class.java)
-                            intent.putExtra("lobby_key", lobbyCode)
-                            startActivity(intent)
-                        }.addOnFailureListener {
-                            Toast.makeText(this@JoinGame, "Error joining game", Toast.LENGTH_SHORT).show()
-                        }
-                    } else {
-                        Toast.makeText(this@JoinGame, "Unexpected Error", Toast.LENGTH_SHORT).show()
-                    }
                 } else {
                     Toast.makeText(this@JoinGame, "Invalid Lobby Code", Toast.LENGTH_SHORT).show()
                 }

@@ -13,14 +13,14 @@ class PlayerClass() {
         seeker: Boolean,
         latitude: Double?,
         longitude: Double?,
-        status: Boolean,
+        eliminated: Boolean,
         host: Boolean
     ) : this() {
         this.userName = userName
         this.seeker = seeker
         this.latitude = latitude
         this.longitude = longitude
-        this.eliminated = status
+        this.eliminated = eliminated
         this.host = host
     }
 }

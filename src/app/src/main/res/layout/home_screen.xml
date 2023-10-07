@@ -10,99 +10,53 @@
         android:id="@+id/lobbyHeader"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="0dp"
+        android:layout_marginTop="112dp"
         android:text="Hide and Seek"
-        android:textSize="30sp"
+        android:textSize="48sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.493"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
-    <FrameLayout
-        android:id="@+id/rectangles_frame"
-        android:layout_width="335dp"
-        android:layout_height="185dp"
-        android:layout_marginTop="28dp"
-        android:background="@drawable/background"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/lobbyHeader"
-        app:layout_constraintWidth_percent="0.8">
-
-        <TextView
-            android:id="@+id/username"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal|top"
-            android:layout_marginTop="20dp"
-            android:text="Your Username"
-            android:textSize="22sp"
-            android:textStyle="bold" />
-
-        <View
-            android:id="@+id/horizontalLine"
-            android:layout_width="332dp"
-            android:layout_height="1dp"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="60dp"
-            android:background="@android:color/darker_gray" />
-
-        <EditText
-            android:id="@+id/username_input"
-            android:layout_width="wrap_content"
-            android:layout_height="67dp"
-            android:layout_gravity="center"
-            android:layout_marginTop="15dp"
-            android:hint="Please enter your preferred username"
-            android:maxLength="15"
-            android:textAlignment="center"
-            android:textSize="15sp" />
-
-    </FrameLayout>
 
     <Button
         android:id="@+id/createGameButton"
         android:layout_width="281dp"
         android:layout_height="90dp"
-        android:layout_marginBottom="24dp"
-        android:text="Create a new Game"
+        android:layout_marginStart="61dp"
+        android:layout_marginTop="48dp"
+        android:layout_marginEnd="46dp"
+        android:text="New Game"
         android:textAlignment="center"
         android:textSize="20sp"
-        app:layout_constraintBottom_toTopOf="@+id/joinGameButton"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageView" />
 
     <Button
         android:id="@+id/joinGameButton"
         android:layout_width="281dp"
         android:layout_height="90dp"
-        android:layout_marginBottom="160dp"
-        android:text="Join an existed Game"
+        android:layout_marginStart="61dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="46dp"
+        android:text="Join Game"
         android:textAlignment="center"
         android:textSize="20sp"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/createGameButton" />
 
-    <!--    <FrameLayout-->
-    <!--        android:id="@+id/settingsPlaceholder"-->
-    <!--        android:layout_width="321dp"-->
-    <!--        android:layout_height="141dp"-->
-    <!--        android:layout_marginTop="28dp"-->
-    <!--        android:background="@android:color/darker_gray"-->
-    <!--        app:layout_constraintEnd_toEndOf="parent"-->
-    <!--        app:layout_constraintHeight_percent="0.3"-->
-    <!--        app:layout_constraintHorizontal_bias="0.411"-->
-    <!--        app:layout_constraintStart_toStartOf="parent"-->
-    <!--        app:layout_constraintTop_toBottomOf="@+id/joinButton"-->
-    <!--        app:layout_constraintWidth_percent="0.8">-->
-
-    <!--        <TextView-->
-    <!--            android:layout_width="wrap_content"-->
-    <!--            android:layout_height="wrap_content"-->
-    <!--            android:layout_gravity="center"-->
-    <!--            android:text="Game Settings Placeholder" />-->
-    <!--    </FrameLayout>-->
-
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="180dp"
+        android:layout_height="170dp"
+        android:layout_marginStart="111dp"
+        android:layout_marginTop="45dp"
+        android:layout_marginEnd="97dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/lobbyHeader"
+        app:srcCompat="@drawable/common_google_signin_btn_icon_light" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

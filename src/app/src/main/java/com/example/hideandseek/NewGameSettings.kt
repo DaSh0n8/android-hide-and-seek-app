@@ -101,15 +101,16 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
 
         val createGameButton: Button = findViewById(R.id.btnStartGame)
         val receivedUsername: String? = intent.getStringExtra("username_key")
+        val receivedUserIcon: ByteArray? = intent.getByteArrayExtra("userIcon")
         createGameButton.setOnClickListener {
-            createButtonClicked(receivedUsername)
+            createButtonClicked(receivedUsername, receivedUserIcon)
         }
     }
 
     /**
      * Create game session with user input values
      */
-    private fun createButtonClicked(username: String?){
+    private fun createButtonClicked(username: String?, userIcon: ByteArray?){
         if (username == null){
             return
         }
@@ -128,7 +129,7 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
         val gameSessionRef = database.getReference("gameSessions").push()
 
         val players = listOf(
-            PlayerClass(username, true, null, null, true, true)
+            PlayerClass(username, true, null, null, false, true)
         )
 
         val sessionId: Int = Random().nextInt(999999 - 100000 + 1) + 100000
@@ -142,6 +143,7 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
             gameSessionRef.setValue(newGameSession)
 
             val intent = Intent(this, Lobby::class.java)
+            intent.putExtra("userIcon", userIcon)
             intent.putExtra("lobby_key", sessionIdString)
             startActivity(intent)
         }
