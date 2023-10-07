@@ -35,6 +35,17 @@
         tools:text="10:00" />
 
     <TextView
+        android:id="@+id/lastUpdate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="88dp"
+        android:layout_marginTop="12dp"
+        android:text="Last Updated: "
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/map" />
+
+    <TextView
         android:id="@+id/lastUpdateValue"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -45,18 +56,7 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toEndOf="@+id/lastUpdate"
         app:layout_constraintTop_toBottomOf="@+id/map"
-        tools:text="dd/M/yyyy hh:mm:ss" />
-
-    <TextView
-        android:id="@+id/lastUpdate"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="88dp"
-        android:layout_marginTop="12dp"
-        android:text="Last Updated: "
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/map" />
+        tools:text="XX minute(s) ago" />
 
     <fragment
         android:id="@+id/map"

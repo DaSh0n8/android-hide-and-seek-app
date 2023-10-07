@@ -40,8 +40,8 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.Query
 import com.google.firebase.database.ValueEventListener
-import java.text.SimpleDateFormat
-import java.util.Date
+import java.util.Timer
+import java.util.TimerTask
 
 
 class GamePlay : AppCompatActivity(), OnMapReadyCallback {
@@ -158,6 +158,19 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         val hiderIconBitmap = getBitmapFromVectorDrawable(this, R.drawable.user_icon)
         val eliminatedIcon = getBitmapFromVectorDrawable(this, R.drawable.eliminated)
         var lastUpdate: TextView = findViewById(R.id.lastUpdateValue)
+        val timer = Timer()
+        var minutePassed = -1
+
+        // update the last update time
+        timer.scheduleAtFixedRate(object : TimerTask() {
+            override fun run() {
+                runOnUiThread {
+                    // Add 1 to the variable every minute
+                    minutePassed++
+                    lastUpdate.text = "$minutePassed minute(s) ago"
+                }
+            }
+        }, 0, 60 * 1000)
 
         query.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
@@ -167,6 +180,8 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
                 // reset the map before reflecting users' latest location
                 map.clear()
+                minutePassed = 0
+                lastUpdate.text = "$minutePassed minute(s) ago"
 
                 // draw geofence
                 map.addCircle(
@@ -208,11 +223,6 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                         }
                     }
                 }
-
-                // update the last update time
-                val sdf = SimpleDateFormat("dd/M/yyyy hh:mm:ss")
-                val currentDate = sdf.format(Date())
-                lastUpdate.text = currentDate
             }
 
             override fun onCancelled(error: DatabaseError) {
