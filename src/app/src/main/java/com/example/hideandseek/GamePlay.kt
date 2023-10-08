@@ -49,8 +49,8 @@ import java.util.TimerTask
 class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
     // need to fetch from "Lobby" activity
-    private var lobbyCode = "96275"
-    private var userName = "brandon"
+    private var lobbyCode = "604750"
+    private var userName = "j"
     private var gameTime = (0.1 * 60 * 1000).toLong()
     private var hideTime = (0.1 * 60 * 1000).toLong()
     private var initLat = -37.809105

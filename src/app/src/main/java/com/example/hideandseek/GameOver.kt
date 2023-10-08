@@ -46,10 +46,14 @@ class GameOver : AppCompatActivity() {
             val intent = Intent(this@GameOver, HomeScreen::class.java)
             startActivity(intent)
         }
+
+        // back to lobby
+        var backToLobbyBtn: Button = findViewById(R.id.btnPlayAgain)
+        backToLobbyBtn.setOnClickListener { returnLobby(username, lobbyCode) }
     }
 
     /**
-     * Clean database and return home
+     * Remove game session from database and return home
      */
     private fun removeGame(playerIndex: String?, sessionId: String?, host: Boolean?) {
         // delete game session
@@ -63,6 +67,9 @@ class GameOver : AppCompatActivity() {
             }
     }
 
+    /**
+     * Remove player from game session in database and return home
+     */
     private fun removePlayer(lobbyCode: String?, username: String?) {
         val query = database.getReference("gameSessions")
             .orderByChild("sessionId")
@@ -93,5 +100,15 @@ class GameOver : AppCompatActivity() {
                     .show()
             }
         })
+    }
+
+    /**
+     * Return to lobby
+     */
+    private fun returnLobby(username: String?, lobbyCode: String?) {
+        val intent = Intent(this@GameOver, Lobby::class.java)
+        intent.putExtra("username_key", username)
+        intent.putExtra("lobby_key", lobbyCode)
+        startActivity(intent)
     }
 }
