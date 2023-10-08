@@ -45,6 +45,7 @@ class GameOver : AppCompatActivity() {
             // return to homepage
             val intent = Intent(this@GameOver, HomeScreen::class.java)
             startActivity(intent)
+            finish()
         }
 
         // back to lobby
