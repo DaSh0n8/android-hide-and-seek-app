@@ -1,26 +1,32 @@
 package com.example.hideandseek
 
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.ArrayAdapter
 import android.widget.FrameLayout
 import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.FirebaseApp
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.google.firebase.storage.FirebaseStorage
+
+
+
 
 class Lobby : AppCompatActivity() {
     private lateinit var database: FirebaseDatabase
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.lobby)
 
-
+        val receivedUsername: String? = intent.getStringExtra("username_key")
+        val receivedUserIcon: ByteArray? = intent.getByteArrayExtra("userIcon")
         val receivedLobbyCode: String? = intent.getStringExtra("lobby_key")
         val lobbyHeader = findViewById<TextView>(R.id.lobbyHeader)
         val lobbyCode = "Lobby #$receivedLobbyCode"
@@ -30,9 +36,13 @@ class Lobby : AppCompatActivity() {
         val seekersListView = findViewById<ListView>(R.id.seekerListView)
 
         FirebaseApp.initializeApp(this)
-        // YOUR OWN DATABASE URL
         val databaseUrl = "https://db-demo-26f0a-default-rtdb.asia-southeast1.firebasedatabase.app/"
         database = FirebaseDatabase.getInstance(databaseUrl)
+
+        // upload user icon if available
+        if (receivedUserIcon != null) {
+            uploadIcon(receivedUserIcon, receivedLobbyCode, receivedUsername)
+        }
 
         val updateGameSettings: FrameLayout = findViewById(R.id.settingsPlaceholder)
         updateGameSettings.setOnClickListener {
@@ -75,8 +85,18 @@ class Lobby : AppCompatActivity() {
                     .show()
             }
         })
-
-
     }
+
+    private fun uploadIcon(userIcon: ByteArray?, lobbyCode: String?, username: String?) {
+        // get storage path
+        var storage = FirebaseStorage.getInstance("gs://hide-and-seek-4983f.appspot.com")
+        var storageRef = storage.reference
+        val pathRef = storageRef.child("$lobbyCode/$username.jpg")
+
+        // Upload user icon
+        pathRef.putBytes(userIcon!!)
+    }
+
+
 
 }
