@@ -14,6 +14,7 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.google.firebase.storage.FirebaseStorage
 
 class Lobby : AppCompatActivity() {
     private lateinit var database: FirebaseDatabase
@@ -27,8 +28,6 @@ class Lobby : AppCompatActivity() {
         val lobbyHeader = findViewById<TextView>(R.id.lobbyHeader)
         val lobbyCode = "Lobby #$receivedLobbyCode"
         lobbyHeader.text = lobbyCode
-
-        val receivedUserName: String? = intent.getStringExtra("username_key")
 
 
         val hidersListView = findViewById<ListView>(R.id.hiderListView)
@@ -91,7 +90,7 @@ class Lobby : AppCompatActivity() {
 
         val switchTeamButton: Button = findViewById(R.id.switchTeamButton)
         switchTeamButton.setOnClickListener {
-            switchTeamClicked(receivedUserName, receivedLobbyCode)
+            switchTeamClicked(receivedUsername, receivedLobbyCode)
         }
 
 
