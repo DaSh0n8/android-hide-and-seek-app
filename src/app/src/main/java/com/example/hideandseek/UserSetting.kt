@@ -97,6 +97,7 @@ class UserSetting : AppCompatActivity() {
                             gameSessionSnapshot.ref.setValue(gameSession).addOnSuccessListener {
                                 val intent = Intent(this@UserSetting, Lobby::class.java)
                                 intent.putExtra("lobby_key", lobbyCode)
+                                intent.putExtra("username_key", username)
 
                                 if (userIcon != null) {
                                     // compress the bitmap
