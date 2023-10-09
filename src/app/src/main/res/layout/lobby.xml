@@ -68,6 +68,16 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/hiderListView" />
 
+    <Button
+        android:id="@+id/leaveLobbyButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="200dp"
+        android:layout_marginTop="12dp"
+        android:text="Leave Lobby"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/hiderListView" />
+
     <FrameLayout
         android:id="@+id/settingsPlaceholder"
         android:layout_width="321dp"

@@ -50,6 +50,7 @@ class Lobby : AppCompatActivity() {
             startActivity(intent)
         }
 
+
         val query = database.getReference("gameSessions")
             .orderByChild("sessionId")
             .equalTo(receivedLobbyCode)
@@ -91,6 +92,11 @@ class Lobby : AppCompatActivity() {
         val switchTeamButton: Button = findViewById(R.id.switchTeamButton)
         switchTeamButton.setOnClickListener {
             switchTeamClicked(receivedUsername, receivedLobbyCode)
+        }
+
+        val leaveLobbyButton: Button = findViewById(R.id.leaveLobbyButton)
+        leaveLobbyButton.setOnClickListener {
+            removePlayer(receivedLobbyCode,receivedUsername)
         }
 
 
@@ -140,6 +146,41 @@ class Lobby : AppCompatActivity() {
 
         // Upload user icon
         pathRef.putBytes(userIcon!!)
+    }
+
+    private fun removePlayer(lobbyCode: String?, username: String?) {
+        val query = database.getReference("gameSessions")
+            .orderByChild("sessionId")
+            .equalTo(lobbyCode)
+
+        query.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    val gameSessionSnapshot = dataSnapshot.children.first()
+                    val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+
+                    if (gameSession != null) {
+                        val updatedPlayers = gameSession.players.toMutableList()
+                        updatedPlayers.removeIf { it.userName == username}
+
+                        gameSession.players = updatedPlayers
+                        gameSessionSnapshot.ref.setValue(gameSession).addOnFailureListener {
+                            Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
+                        }
+                        val intent = Intent(this@Lobby, HomeScreen::class.java)
+                        intent.putExtra("lobby_key", lobbyCode)
+                        startActivity(intent)
+                    } else {
+                        Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                Toast.makeText(this@Lobby, "Error fetching data", Toast.LENGTH_SHORT)
+                    .show()
+            }
+        })
     }
 
 }
