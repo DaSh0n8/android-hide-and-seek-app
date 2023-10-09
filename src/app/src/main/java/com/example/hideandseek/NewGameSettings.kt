@@ -114,11 +114,11 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
         if (username == null){
             return
         }
-        val hidersNumberInput: EditText = findViewById(R.id.editHidingTime)
-        val hidersNumber: String = hidersNumberInput.text.toString().trim()
+        val hidingTimeInput: EditText = findViewById(R.id.editHidingTime)
+        val hidingTime: String = hidingTimeInput.text.toString().trim()
 
-        val seekersNumberInput: EditText = findViewById(R.id.editUpdateInterval)
-        val seekersNumber: String = seekersNumberInput.text.toString().trim()
+        val updateIntervalInput: EditText = findViewById(R.id.editUpdateInterval)
+        val updateInterval: String = updateIntervalInput.text.toString().trim()
 
         val gameTimeInput: EditText = findViewById(R.id.editGameTime)
         val gameTime: String = gameTimeInput.text.toString().trim()
@@ -134,12 +134,12 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
 
         val sessionId: Int = Random().nextInt(999999 - 100000 + 1) + 100000
         val sessionIdString: String = sessionId.toString()
-        if (seekersNumber.isBlank() || hidersNumber.isBlank() || gameTime.isBlank()) {
+        if (updateInterval.isBlank() || hidingTime.isBlank() || gameTime.isBlank()) {
             Toast.makeText(this@NewGameSettings, "All fields are required", Toast.LENGTH_SHORT).show()
-        } else if (seekersNumber.toInt() < 1 || hidersNumber.toInt() < 1 || gameTime.toInt() < 1){
+        } else if (updateInterval.toInt() < 1 || hidingTime.toInt() < 1 || gameTime.toInt() < 1){
             Toast.makeText(this@NewGameSettings, "Input values have to be more than 0", Toast.LENGTH_SHORT).show()
         } else {
-            val newGameSession = GameSessionClass(sessionIdString, "ongoing", players, gameTime.toInt(), seekersNumber.toInt() ,hidersNumber.toInt(), geofenceRadius.toInt())
+            val newGameSession = GameSessionClass(sessionIdString, "ongoing", players, gameTime.toInt(), hidingTime.toInt() ,updateInterval.toInt(), geofenceRadius.toInt())
             gameSessionRef.setValue(newGameSession)
 
             val intent = Intent(this, Lobby::class.java)
