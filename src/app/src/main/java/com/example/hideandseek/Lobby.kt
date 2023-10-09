@@ -160,16 +160,30 @@ class Lobby : AppCompatActivity() {
                     val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
 
                     if (gameSession != null) {
-                        val updatedPlayers = gameSession.players.toMutableList()
-                        updatedPlayers.removeIf { it.userName == username}
+                        val playerIsHost = gameSession.players.find { it.userName == username }?.host == true
 
-                        gameSession.players = updatedPlayers
-                        gameSessionSnapshot.ref.setValue(gameSession).addOnFailureListener {
-                            Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
+                        if (playerIsHost) {
+                            gameSessionSnapshot.ref.removeValue().addOnSuccessListener {
+                                Toast.makeText(this@Lobby, "Game session ended", Toast.LENGTH_SHORT).show()
+                                val intent = Intent(this@Lobby, HomeScreen::class.java)
+                                intent.putExtra("lobby_key", lobbyCode)
+                                startActivity(intent)
+                            }.addOnFailureListener {
+                                Toast.makeText(this@Lobby, "Error deleting session", Toast.LENGTH_SHORT).show()
+                            }
+                        } else {
+                            val updatedPlayers = gameSession.players.toMutableList()
+                            updatedPlayers.removeIf { it.userName == username}
+
+                            gameSession.players = updatedPlayers
+                            gameSessionSnapshot.ref.setValue(gameSession).addOnFailureListener {
+                                Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
+                            }
+                            val intent = Intent(this@Lobby, HomeScreen::class.java)
+                            intent.putExtra("lobby_key", lobbyCode)
+                            startActivity(intent)
                         }
-                        val intent = Intent(this@Lobby, HomeScreen::class.java)
-                        intent.putExtra("lobby_key", lobbyCode)
-                        startActivity(intent)
+
                     } else {
                         Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
                     }
