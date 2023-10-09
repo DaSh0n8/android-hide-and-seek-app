@@ -128,8 +128,8 @@ class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
                     val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
 
                     gameSession?.let {
-                        hidersNumberInput.setText(it.hidersNumber.toString())
-                        seekersNumberInput.setText(it.seekersNumber.toString())
+                        hidersNumberInput.setText(it.hidingTime.toString())
+                        seekersNumberInput.setText(it.updateInterval.toString())
                         gameTimeInput.setText(it.gameLength.toString())
                         radiusInput.value = it.radius.toFloat()
                     }
