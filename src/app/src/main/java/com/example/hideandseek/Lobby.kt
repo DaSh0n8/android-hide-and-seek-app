@@ -47,6 +47,7 @@ class Lobby : AppCompatActivity() {
         updateGameSettings.setOnClickListener {
             val intent = Intent(this@Lobby, LobbySettings::class.java)
             intent.putExtra("lobby_code_key", receivedLobbyCode)
+            intent.putExtra("username_key", receivedUsername)
             startActivity(intent)
         }
 
