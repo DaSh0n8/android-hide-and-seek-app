@@ -162,7 +162,7 @@
             app:layout_constraintTop_toBottomOf="@+id/divider1" />
 
         <EditText
-            android:id="@+id/editHiders"
+            android:id="@+id/editHidingTime"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
@@ -181,7 +181,7 @@
             android:background="#E0E0E0"
             app:layout_constraintEnd_toEndOf="@+id/frameLayout"
             app:layout_constraintStart_toStartOf="@+id/frameLayout"
-            app:layout_constraintTop_toBottomOf="@+id/editHiders" />
+            app:layout_constraintTop_toBottomOf="@+id/editHidingTime" />
 
         <TextView
             android:id="@+id/seekersTextView"
@@ -196,7 +196,7 @@
             app:layout_constraintTop_toBottomOf="@+id/divider2" />
 
         <EditText
-            android:id="@+id/editSeekers"
+            android:id="@+id/editUpdateInterval"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
@@ -216,7 +216,7 @@
             android:background="#E0E0E0"
             app:layout_constraintEnd_toEndOf="@+id/frameLayout"
             app:layout_constraintStart_toStartOf="@+id/frameLayout"
-            app:layout_constraintTop_toBottomOf="@+id/editSeekers" />
+            app:layout_constraintTop_toBottomOf="@+id/editUpdateInterval" />
 
         <TextView
             android:id="@+id/timeTextView"

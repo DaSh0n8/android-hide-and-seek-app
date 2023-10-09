@@ -114,10 +114,10 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
         if (username == null){
             return
         }
-        val hidersNumberInput: EditText = findViewById(R.id.editHiders)
+        val hidersNumberInput: EditText = findViewById(R.id.editHidingTime)
         val hidersNumber: String = hidersNumberInput.text.toString().trim()
 
-        val seekersNumberInput: EditText = findViewById(R.id.editSeekers)
+        val seekersNumberInput: EditText = findViewById(R.id.editUpdateInterval)
         val seekersNumber: String = seekersNumberInput.text.toString().trim()
 
         val gameTimeInput: EditText = findViewById(R.id.editGameTime)

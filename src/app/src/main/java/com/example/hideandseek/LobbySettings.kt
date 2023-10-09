@@ -38,7 +38,6 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
-import java.util.Random
 
 class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var map: GoogleMap
@@ -113,8 +112,8 @@ class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
         if (lobbyCode == null){
             return
         }
-        val hidersNumberInput: EditText = findViewById(R.id.editHiders)
-        val seekersNumberInput: EditText = findViewById(R.id.editSeekers)
+        val hidingTimeInput: EditText = findViewById(R.id.editHidingTime)
+        val updateIntervalInput: EditText = findViewById(R.id.editUpdateInterval)
         val gameTimeInput: EditText = findViewById(R.id.editGameTime)
         val radiusInput: Slider = findViewById(R.id.discreteSlider)
 
@@ -128,8 +127,8 @@ class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
                     val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
 
                     gameSession?.let {
-                        hidersNumberInput.setText(it.hidingTime.toString())
-                        seekersNumberInput.setText(it.updateInterval.toString())
+                        hidingTimeInput.setText(it.hidingTime.toString())
+                        updateIntervalInput.setText(it.updateInterval.toString())
                         gameTimeInput.setText(it.gameLength.toString())
                         radiusInput.value = it.radius.toFloat()
                     }
@@ -149,11 +148,11 @@ class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
         if (receivedLobbyCode == null) {
             return
         }
-        val hidersNumberInput: EditText = findViewById(R.id.editHiders)
-        val hidersNumber: String = hidersNumberInput.text.toString().trim()
+        val hidingTimeInput: EditText = findViewById(R.id.editHidingTime)
+        val hidingTime: String = hidingTimeInput.text.toString().trim()
 
-        val seekersNumberInput: EditText = findViewById(R.id.editSeekers)
-        val seekersNumber: String = seekersNumberInput.text.toString().trim()
+        val updateIntervalInput: EditText = findViewById(R.id.editUpdateInterval)
+        val updateInterval: String = updateIntervalInput.text.toString().trim()
 
         val gameTimeInput: EditText = findViewById(R.id.editGameTime)
         val gameTime: String = gameTimeInput.text.toString().trim()
@@ -161,10 +160,10 @@ class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
         val radiusInput: Slider = findViewById(R.id.discreteSlider)
         val geofenceRadius: Float = radiusInput.value
 
-        if (seekersNumber.isBlank() || hidersNumber.isBlank() || gameTime.isBlank()) {
+        if (updateInterval.isBlank() || hidingTime.isBlank() || gameTime.isBlank()) {
             Toast.makeText(this@LobbySettings, "All fields are required", Toast.LENGTH_SHORT).show()
             return
-        } else if (seekersNumber.toInt() < 1 || hidersNumber.toInt() < 1 || gameTime.toInt() < 1){
+        } else if (updateInterval.toInt() < 1 || hidingTime.toInt() < 1 || gameTime.toInt() < 1){
             Toast.makeText(this@LobbySettings, "Input values have to be more than 0", Toast.LENGTH_SHORT).show()
             return
         }
@@ -178,8 +177,8 @@ class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
                     val updatedGameSession = mapOf(
                         "gameStatus" to "ongoing",
                         "gameLength" to gameTime.toInt(),
-                        "seekersNumber" to seekersNumber.toInt(),
-                        "hidersNumber" to hidersNumber.toInt(),
+                        "updateInterval" to updateInterval.toInt(),
+                        "hidingTime" to hidingTime.toInt(),
                         "radius" to geofenceRadius.toInt()
                     )
 
