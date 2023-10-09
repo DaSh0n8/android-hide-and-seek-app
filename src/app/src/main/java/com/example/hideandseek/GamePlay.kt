@@ -2,6 +2,7 @@ package com.example.hideandseek
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -10,7 +11,9 @@ import android.location.Location
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
-import android.widget.ImageView
+import android.view.View.GONE
+import android.view.View.INVISIBLE
+import android.view.View.VISIBLE
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -38,17 +41,17 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.Query
 import com.google.firebase.database.ValueEventListener
-import java.text.SimpleDateFormat
-import java.util.Date
+import java.util.Timer
+import java.util.TimerTask
 
 
 class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
     // need to fetch from "Lobby" activity
-    private var lobbycode = "4407"
+    private var lobbyCode = "475460"
     private var userName = "Yao"
-    private var gameTime = (10 * 60 * 1000).toLong()
-    private var hideTime = (1 * 60 * 1000).toLong()
+    private var gameTime = (0.1 * 60 * 1000).toLong()
+    private var hideTime = (0.1 * 60 * 1000).toLong()
     private var initLat = -37.809105
     private var initLon = 144.9609933
     private var geofenceRadius = 200
@@ -56,6 +59,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var map: GoogleMap
     private lateinit var binding: GamePlayBinding
     private lateinit var database: FirebaseDatabase
+    private lateinit var gameplayListener: ValueEventListener
 
     // Google's API for location services
     private var fusedLocationClient: FusedLocationProviderClient? = null
@@ -81,7 +85,9 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
         // query the db to get the user's session
         val reference = database.getReference("gameSessions")
-        val query = reference.orderByChild("sessionId").equalTo(lobbycode)
+        val query = reference.orderByChild("sessionId").equalTo(lobbyCode)
+        var lastUpdate: TextView = findViewById(R.id.lastUpdate)
+        lastUpdate.visibility = INVISIBLE
 
         // location API settings
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
@@ -108,8 +114,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         // hiding time for hiders
         var countDown: TextView = findViewById(R.id.playTime)
         var countDownValue: TextView = findViewById(R.id.playTimeValue)
-        var overlay: ImageView = findViewById(R.id.hidingOverlay)
-        overlay.alpha = 0.8F
+        var hidingText: TextView = findViewById(R.id.hidingText)
         val hideTimer = object: CountDownTimer(hideTime, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 val seconds = (millisUntilFinished / 1000) % 60
@@ -122,13 +127,11 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 countDown.text = "Play Time: "
 
                 // remove overlay
-                overlay.setImageDrawable(null)
+                hidingText.visibility = GONE
+                lastUpdate.visibility = VISIBLE
 
-                // start showing the hiders location
-                showUserLocation(query)
-
-                // start the game by counting down
-                val timer = object: CountDownTimer(gameTime, 1000) {
+                // count down timer for game play
+                val gameTimer = object: CountDownTimer(gameTime, 1000) {
                     override fun onTick(millisUntilFinished: Long) {
                         val seconds = (millisUntilFinished / 1000) % 60
                         val minutes = (millisUntilFinished / 1000) / 60
@@ -136,10 +139,14 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                     }
 
                     override fun onFinish() {
-                        TODO()
+                        endGame()
                     }
                 }
-                timer.start()
+                // start the game by counting down
+                gameTimer.start()
+
+                // start showing the hiders location
+                showUserLocation(query, gameTimer)
             }
         }
         hideTimer.start()
@@ -148,21 +155,37 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     /**
      * Show users' locations on the map.
      */
-    private fun showUserLocation(query: Query) {
+    private fun showUserLocation(query: Query, gameTimer: CountDownTimer) {
         // convert the drawable user icon to a Bitmap
         val userIconBitmap = getBitmapFromVectorDrawable(this, R.drawable.self_user_icon)
         val hiderIconBitmap = getBitmapFromVectorDrawable(this, R.drawable.user_icon)
         val eliminatedIcon = getBitmapFromVectorDrawable(this, R.drawable.eliminated)
         var lastUpdate: TextView = findViewById(R.id.lastUpdateValue)
+        val timer = Timer()
+        var minutePassed = -1
 
-        query.addValueEventListener(object : ValueEventListener {
+        // update the last update time
+        timer.scheduleAtFixedRate(object : TimerTask() {
+            override fun run() {
+                runOnUiThread {
+                    // Add 1 to the variable every minute
+                    minutePassed++
+                    lastUpdate.text = "$minutePassed minute(s) ago"
+                }
+            }
+        }, 0, 60 * 1000)
+
+        gameplayListener = query.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 // get the game session
                 val gameSessionSnapshot = dataSnapshot.children.first()
                 val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+                var hidersAvailable = false
 
                 // reset the map before reflecting users' latest location
                 map.clear()
+                minutePassed = 0
+                lastUpdate.text = "$minutePassed minute(s) ago"
 
                 // draw geofence
                 map.addCircle(
@@ -176,39 +199,34 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 if (gameSession != null) {
                     // get the players in the game session
                     val players = gameSession.players
-
                     // reflect hiders' latest locations on map
-                    players.forEach{
-                        val coordinates = LatLng(it.latitude!!, it.longitude!!)
-                        if (!it.seeker) {
-                            // check if user has been eliminated
-                            if (it.eliminated) {
-                                map.addMarker(
-                                    MarkerOptions()
-                                        .position(coordinates)
-                                        .icon(BitmapDescriptorFactory.fromBitmap(eliminatedIcon))
-                                )
+                    players.forEach{ player ->
+                        val coordinates = LatLng(player.latitude!!, player.longitude!!)
+                        val markerOptions = MarkerOptions().position(coordinates)
+
+                        if (!player.seeker) {
+                            if (player.eliminated) {
+                                markerOptions.icon(BitmapDescriptorFactory.fromBitmap(eliminatedIcon))
                             } else {
-                                map.addMarker(
-                                    MarkerOptions()
-                                        .position(coordinates)
-                                        .icon(BitmapDescriptorFactory.fromBitmap(hiderIconBitmap))
-                                )
+                                markerOptions.icon(BitmapDescriptorFactory.fromBitmap(
+                                    if (player.userName == userName) userIconBitmap
+                                    else hiderIconBitmap))
+                                hidersAvailable = true
                             }
-                        } else if (it.userName == userName) {
-                            map.addMarker(
-                                MarkerOptions()
-                                    .position(coordinates)
-                                    .icon(BitmapDescriptorFactory.fromBitmap(userIconBitmap))
-                            )
+                        } else if (player.userName == userName) {
+                            markerOptions.icon(BitmapDescriptorFactory.fromBitmap(userIconBitmap))
                         }
+
+                        map.addMarker(markerOptions)
                     }
                 }
 
-                // update the last update time
-                val sdf = SimpleDateFormat("dd/M/yyyy hh:mm:ss")
-                val currentDate = sdf.format(Date())
-                lastUpdate.text = currentDate
+                // end the game if all hiders are eliminated
+                if (!hidersAvailable) {
+                    timer.cancel()
+                    gameTimer.cancel()
+                    endGame()
+                }
             }
 
             override fun onCancelled(error: DatabaseError) {
@@ -335,5 +353,54 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         drawable.setBounds(0, 0, canvas.width, canvas.height)
         drawable.draw(canvas)
         return bitmap
+    }
+
+    /**
+     * Calculate the results and initiate result page
+     */
+    private fun endGame() {
+        // query the db to get the user's session
+        val reference = database.getReference("gameSessions")
+        val query = reference.orderByChild("sessionId").equalTo(lobbyCode)
+
+        query.get().addOnSuccessListener{
+            // get the game session
+            var host = false
+            val gameSessionSnapshot = it.children.first()
+            val sessionId = gameSessionSnapshot.key.toString()
+            val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+            var seekerWonGame = true
+
+            if (gameSession != null) {
+                val players = gameSession.players.toMutableList()
+                for (p in players) {
+                    // check if all players have been eliminated
+                    if (!p.eliminated && !p.seeker) {
+                        seekerWonGame = false
+
+                    }
+
+                    if (p.userName == userName) {
+                        host = p.host
+                    }
+                }
+                val result: String = if (seekerWonGame) {
+                    "Seekers Won!"
+                } else {
+                    "Hiders Won!"
+                }
+                val gameOver = Intent(this@GamePlay, GameOver::class.java)
+                gameOver.putExtra("result", result)
+                gameOver.putExtra("lobbyCode", lobbyCode)
+                gameOver.putExtra("sessionId", sessionId)
+                gameOver.putExtra("username", userName)
+                gameOver.putExtra("host", host)
+                startActivity(gameOver)
+
+                // turn off game play listener
+                reference.removeEventListener(gameplayListener)
+                finish()
+            }
+        }
     }
 }

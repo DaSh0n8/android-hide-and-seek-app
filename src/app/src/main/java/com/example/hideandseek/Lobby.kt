@@ -21,7 +21,8 @@ class Lobby : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.lobby)
 
-
+        val receivedUsername: String? = intent.getStringExtra("username_key")
+        val receivedUserIcon: ByteArray? = intent.getByteArrayExtra("userIcon")
         val receivedLobbyCode: String? = intent.getStringExtra("lobby_key")
         val lobbyHeader = findViewById<TextView>(R.id.lobbyHeader)
         val lobbyCode = "Lobby #$receivedLobbyCode"
@@ -37,6 +38,11 @@ class Lobby : AppCompatActivity() {
         // YOUR OWN DATABASE URL
         val databaseUrl = "https://db-demo-26f0a-default-rtdb.asia-southeast1.firebasedatabase.app/"
         database = FirebaseDatabase.getInstance(databaseUrl)
+
+        // upload user icon if available
+        if (receivedUserIcon != null) {
+            uploadIcon(receivedUserIcon, receivedLobbyCode, receivedUsername)
+        }
 
         val updateGameSettings: FrameLayout = findViewById(R.id.settingsPlaceholder)
         updateGameSettings.setOnClickListener {
@@ -125,6 +131,16 @@ class Lobby : AppCompatActivity() {
                 Toast.makeText(this@Lobby, "Error updating team", Toast.LENGTH_SHORT).show()
             }
         })
+    }
+
+    private fun uploadIcon(userIcon: ByteArray?, lobbyCode: String?, username: String?) {
+        // get storage path
+        var storage = FirebaseStorage.getInstance("gs://hide-and-seek-4983f.appspot.com")
+        var storageRef = storage.reference
+        val pathRef = storageRef.child("$lobbyCode/$username.jpg")
+
+        // Upload user icon
+        pathRef.putBytes(userIcon!!)
     }
 
 }
