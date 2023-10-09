@@ -99,6 +99,11 @@ class Lobby : AppCompatActivity() {
             removePlayer(receivedLobbyCode,receivedUsername)
         }
 
+        val startGameButton: Button = findViewById(R.id.startGameButton)
+        startGameButton.setOnClickListener {
+            startButtonClicked(receivedLobbyCode,receivedUsername)
+        }
+
 
     }
 
@@ -187,6 +192,39 @@ class Lobby : AppCompatActivity() {
                     } else {
                         Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
                     }
+                }
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                Toast.makeText(this@Lobby, "Error fetching data", Toast.LENGTH_SHORT)
+                    .show()
+            }
+        })
+    }
+
+    private fun startButtonClicked(lobbyCode: String?, username: String?){
+        val query = database.getReference("gameSessions")
+            .orderByChild("sessionId")
+            .equalTo(lobbyCode)
+
+        query.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    val gameSessionSnapshot = dataSnapshot.children.first()
+                    val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+
+                    gameSession?.let {
+                        val intent = Intent(this@Lobby, GamePlay::class.java)
+                        intent.putExtra("lobbyCode", lobbyCode)
+                        intent.putExtra("username", username)
+                        intent.putExtra("gameLength", it.gameLength)
+                        intent.putExtra("hidingTime", it.hidingTime)
+                        intent.putExtra("updateInterval", it.updateInterval)
+                        intent.putExtra("radius",it.radius)
+                        startActivity(intent)
+                    } ?: Toast.makeText(this@Lobby, "Error retrieving session data", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this@Lobby, "Game session not found", Toast.LENGTH_SHORT).show()
                 }
             }
 
