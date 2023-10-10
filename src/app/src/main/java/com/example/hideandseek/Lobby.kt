@@ -20,6 +20,7 @@ import com.google.firebase.storage.FirebaseStorage
 
 class Lobby : AppCompatActivity() {
     private lateinit var database: FirebaseDatabase
+    private lateinit var lobbyListener: ValueEventListener
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.lobby)
@@ -60,12 +61,20 @@ class Lobby : AppCompatActivity() {
         val seekersList = mutableListOf<String>()
         val hidersList = mutableListOf<String>()
 
-        query.addValueEventListener(object : ValueEventListener {
+        lobbyListener = query.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 seekersList.clear()
                 hidersList.clear()
 
                 for (sessionSnapshot in dataSnapshot.children) {
+                    // check if host has started the game
+                    val gameSessionSnapshot = dataSnapshot.children.first()
+                    val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+                    if (gameSession!!.gameStatus == "started") {
+                        startGameIntent(receivedLobbyCode, receivedUsername, gameSession)
+                    }
+
+                    // update player list
                     val players = sessionSnapshot.child("players").children
                     for (playerSnapshot in players) {
                         val playerName = playerSnapshot.child("userName").value.toString()
@@ -210,7 +219,7 @@ class Lobby : AppCompatActivity() {
         })
     }
 
-    private fun startButtonClicked(lobbyCode: String?, username: String?){
+    private fun startButtonClicked(lobbyCode: String?, username: String?) {
         val query = database.getReference("gameSessions")
             .orderByChild("sessionId")
             .equalTo(lobbyCode)
@@ -223,30 +232,31 @@ class Lobby : AppCompatActivity() {
 
                     // validate the eligibility to start a game
                     if (validateGame(gameSession!!.players)) {
+                        // Update the local GameSession object
+                        gameSession?.gameStatus = "started"
 
-                        gameSession?.let {
-                            val intent = Intent(this@Lobby, GamePlay::class.java)
-                            intent.putExtra("lobbyCode", lobbyCode)
-                            intent.putExtra("username", username)
-                            intent.putExtra("gameLength", it.gameLength)
-                            intent.putExtra("hidingTime", it.hidingTime)
-                            intent.putExtra("updateInterval", it.updateInterval)
-                            intent.putExtra("radius", it.radius)
-                            startActivity(intent)
-                            finish()
-                        } ?: Toast.makeText(
-                            this@Lobby,
-                            "Error retrieving session data",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        // Save the updated GameSession back to Firebase
+                        gameSessionSnapshot.ref.setValue(gameSession)
+                            .addOnSuccessListener {
+                                // If the update is successful, start the game
+                                startGameIntent(lobbyCode, username, gameSession)
+                            }
+                            .addOnFailureListener {
+                                // If there is an error updating Firebase, show an error message
+                                Toast.makeText(
+                                    this@Lobby,
+                                    "Error updating game status in Firebase",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
                     } else {
                         Toast.makeText(this@Lobby, "At least 1 seeker and 1 hider required!", Toast.LENGTH_SHORT)
                             .show()
                     }
-                    } else {
-                        Toast.makeText(this@Lobby, "Game session not found", Toast.LENGTH_SHORT)
-                            .show()
-                    }
+                } else {
+                    Toast.makeText(this@Lobby, "Game session not found", Toast.LENGTH_SHORT)
+                        .show()
+                }
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
@@ -254,6 +264,25 @@ class Lobby : AppCompatActivity() {
                     .show()
             }
         })
+    }
+
+    private fun startGameIntent(lobbyCode: String?, username: String?, gameSession: GameSessionClass?) {
+        gameSession?.let {
+            val intent = Intent(this@Lobby, GamePlay::class.java)
+            intent.putExtra("lobbyCode", lobbyCode)
+            intent.putExtra("username", username)
+            intent.putExtra("gameLength", it.gameLength)
+            intent.putExtra("hidingTime", it.hidingTime)
+            intent.putExtra("updateInterval", it.updateInterval)
+            intent.putExtra("radius", it.radius)
+            startActivity(intent)
+            removeLobbyListener(lobbyCode!!)
+            finish()
+        } ?: Toast.makeText(
+            this@Lobby,
+            "Error retrieving session data",
+            Toast.LENGTH_SHORT
+        ).show()
     }
 
     /**
@@ -273,4 +302,14 @@ class Lobby : AppCompatActivity() {
 
         return (numHiders > 0 && numSeekers > 0)
     }
+
+    private fun removeLobbyListener(lobbyCode: String) {
+        val query = database.getReference("gameSessions")
+            .orderByChild("sessionId")
+            .equalTo(lobbyCode)
+
+        query.removeEventListener(lobbyListener)
+    }
+
+
 }
