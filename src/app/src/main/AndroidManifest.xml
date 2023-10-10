@@ -14,6 +14,7 @@
         android:maxSdkVersion="28" />
 
     <application
+        android:name=".HideAndSeek"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -73,7 +74,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".MainActivity"
+            android:name=".HideAndSeek"
             android:exported="true" />
     </application>
 

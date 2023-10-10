@@ -6,7 +6,6 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.google.firebase.FirebaseApp
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -22,10 +21,10 @@ class JoinGame : AppCompatActivity() {
         joinGameButton.setOnClickListener {
             joinButtonClicked()
         }
-        FirebaseApp.initializeApp(this)
-        // YOUR OWN DATABASE URL
-        val databaseUrl = "https://db-demo-26f0a-default-rtdb.asia-southeast1.firebasedatabase.app/"
-        database = FirebaseDatabase.getInstance(databaseUrl)
+
+        // get firebase real time db
+        val application = application as HideAndSeek
+        database = application.getRealtimeDb()
     }
 
     private fun joinButtonClicked() {

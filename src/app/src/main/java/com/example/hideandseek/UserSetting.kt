@@ -11,7 +11,6 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.firebase.FirebaseApp
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -19,12 +18,6 @@ import com.google.firebase.database.ValueEventListener
 import java.io.ByteArrayOutputStream
 
 class UserSetting : AppCompatActivity() {
-    /**
-     *  1) Get Lobby Code DONE
-     *  2) Recursive passing of host value (to selfie segmentation and back) DONE
-     *  3) Check unique username
-     *  4) Add user to the game session in db
-     */
     private var host: Boolean = false
     private var lobbyCode: String? = null
     private var userIcon: Bitmap? = null
@@ -34,9 +27,9 @@ class UserSetting : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.user_setting)
 
-        FirebaseApp.initializeApp(this)
-        val databaseUrl = "https://db-demo-26f0a-default-rtdb.asia-southeast1.firebasedatabase.app/"
-        database = FirebaseDatabase.getInstance(databaseUrl)
+        // get firebase real time db
+        val application = application as HideAndSeek
+        database = application.getRealtimeDb()
 
         // receive the info and user icon if any value sent from previous activity
         host = intent.getBooleanExtra("host", false)
