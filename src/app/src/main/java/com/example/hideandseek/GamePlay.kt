@@ -1,6 +1,5 @@
 package com.example.hideandseek
 
-import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -17,15 +16,8 @@ import android.view.View.VISIBLE
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.hideandseek.databinding.GamePlayBinding
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationResult
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -60,19 +52,13 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private var hideTime = defaultHideTime
     private var updateInterval = defaultInterval
     private var geofenceRadius = defaultRadius
+    private lateinit var userLatLng: LatLng
 
     private lateinit var map: GoogleMap
     private lateinit var binding: GamePlayBinding
     private lateinit var database: FirebaseDatabase
+    private lateinit var locationHelper: LocationHelper
     private lateinit var gameplayListener: ValueEventListener
-
-    // Google's API for location services
-    private var fusedLocationClient: FusedLocationProviderClient? = null
-
-    // configuration of all settings of FusedLocationProviderClient
-    private var locationRequest: LocationRequest? = null
-    private var locationCallBack: LocationCallback? = null
-    private val Request_Code_Location = 22
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -98,21 +84,12 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         var lastUpdate: TextView = findViewById(R.id.lastUpdate)
         lastUpdate.visibility = INVISIBLE
 
-        // location API settings
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-        locationRequest = LocationRequest.Builder(
-            Priority.PRIORITY_HIGH_ACCURACY,
-            updateInterval).build()
-        locationCallBack = object : LocationCallback() {
-            override fun onLocationResult(locationResult: LocationResult) {
-                super.onLocationResult(locationResult)
-                if (locationResult != null) {
-                    Log.d("LocationTest", "Location updates")
-                    locationResult.lastLocation?.let { uploadLoc(it, query) }
-                } else {
-                    Log.d("LocationTest", "Location updates fail: null")
-                }
-            }
+        // Request location updates
+        locationHelper = LocationHelper(this)
+        locationHelper.requestLocationUpdates { location ->
+            Log.d("LocationTest", "Location updates")
+            userLatLng = LatLng(location.latitude, location.longitude)
+            uploadLoc(location, query)
         }
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -252,50 +229,11 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         })
     }
 
-
     /**
      * Manipulates the map once available.
      */
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
-        updateLocation()
-    }
-
-    /**
-     * Obtain the last location of the user and perform update.
-     */
-    private fun updateLocation() {
-        //if user grants permission
-        if (ActivityCompat.checkSelfPermission(
-                this@GamePlay,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            fusedLocationClient!!.requestLocationUpdates(
-                locationRequest!!,
-                locationCallBack!!,
-                null
-            )
-
-            // get the last location
-            fusedLocationClient!!.lastLocation
-                .addOnSuccessListener(
-                    this
-                ) { location ->
-                    if (location == null) {
-                        Log.d("LocationTest", "null")
-                    } else {
-                        Log.d("LocationTest", "Success")
-                    }
-                }
-        } else {
-            //if user hasn't granted permission, ask for it explicitly
-            ActivityCompat.requestPermissions(
-                this@GamePlay,
-                arrayOf<String>(Manifest.permission.ACCESS_FINE_LOCATION),
-                Request_Code_Location
-            )
-        }
     }
 
     /**
@@ -345,13 +283,16 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
-        permissions: Array<String?>,
+        permissions: Array<String>,
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == Request_Code_Location) {
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                updateLocation()
+        if (requestCode == LocationHelper.LOCATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted, start location updates
+            } else {
+                // Permission denied, handle accordingly
+                Toast.makeText(this, "Location permission denied", Toast.LENGTH_SHORT).show()
             }
         }
     }

@@ -162,7 +162,6 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
                 .strokeColor(Color.RED) // Circle border color
                 .fillColor(Color.argb(60, 220, 0, 0)) // Fill color with transparency
         )
-
     }
 
     override fun onRequestPermissionsResult(
