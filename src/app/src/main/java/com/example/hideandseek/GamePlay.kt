@@ -46,15 +46,21 @@ import java.util.TimerTask
 
 
 class GamePlay : AppCompatActivity(), OnMapReadyCallback {
+    // default values
+    private val defaultGameTime = minToMilli(1)
+    private val defaultHideTime = minToMilli(1)
+    private val defaultInterval = minToMilli(1)
+    private val defaultRadius = 100
 
-    // need to fetch from "Lobby" activity
-    private var lobbyCode = "475460"
-    private var userName = "Yao"
-    private var gameTime = (0.1 * 60 * 1000).toLong()
-    private var hideTime = (0.1 * 60 * 1000).toLong()
+    // game play variables
     private var initLat = -37.809105
     private var initLon = 144.9609933
-    private var geofenceRadius = 200
+    private lateinit var userName: String
+    private lateinit var lobbyCode: String
+    private var gameTime = defaultGameTime
+    private var hideTime = defaultHideTime
+    private var updateInterval = defaultInterval
+    private var geofenceRadius = defaultRadius
 
     private lateinit var map: GoogleMap
     private lateinit var binding: GamePlayBinding
@@ -65,18 +71,23 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private var fusedLocationClient: FusedLocationProviderClient? = null
 
     // configuration of all settings of FusedLocationProviderClient
-    var locationRequest: LocationRequest? = null
-    var locationCallBack: LocationCallback? = null
+    private var locationRequest: LocationRequest? = null
+    private var locationCallBack: LocationCallback? = null
     private val Request_Code_Location = 22
-
-    // interval in milliseconds for location updates
-    private var updateInterval: Long = 1 * 60 * 1000
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = GamePlayBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // receive data from previous activity
+        lobbyCode = intent.getStringExtra("lobbyCode")!!
+        userName = intent.getStringExtra("username")!!
+        gameTime = minToMilli(intent.getIntExtra("gameLength", 1))
+        hideTime = minToMilli(intent.getIntExtra("hidingTime", 1))
+        updateInterval = minToMilli(intent.getIntExtra("updateInterval", 1))
+        geofenceRadius = intent.getIntExtra("radius", defaultRadius)
 
         // start the firebase
         FirebaseApp.initializeApp(this)
@@ -150,6 +161,13 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
             }
         }
         hideTimer.start()
+    }
+
+    /**
+     * Convert minute to milliseconds
+     */
+    private fun minToMilli(minute: Int): Long {
+        return (minute * 60 * 1000).toLong()
     }
 
     /**

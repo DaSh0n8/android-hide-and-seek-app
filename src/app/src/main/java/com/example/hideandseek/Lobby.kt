@@ -2,7 +2,10 @@ package com.example.hideandseek
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View.GONE
+import android.view.View.VISIBLE
 import android.widget.ArrayAdapter
+import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ListView
 import android.widget.TextView
@@ -15,12 +18,9 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.storage.FirebaseStorage
 
-
-
-
 class Lobby : AppCompatActivity() {
     private lateinit var database: FirebaseDatabase
-
+    private lateinit var lobbyListener: ValueEventListener
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.lobby)
@@ -28,14 +28,17 @@ class Lobby : AppCompatActivity() {
         val receivedUsername: String? = intent.getStringExtra("username_key")
         val receivedUserIcon: ByteArray? = intent.getByteArrayExtra("userIcon")
         val receivedLobbyCode: String? = intent.getStringExtra("lobby_key")
+        val host = intent.getBooleanExtra("host", false)
         val lobbyHeader = findViewById<TextView>(R.id.lobbyHeader)
         val lobbyCode = "Lobby #$receivedLobbyCode"
         lobbyHeader.text = lobbyCode
+
 
         val hidersListView = findViewById<ListView>(R.id.hiderListView)
         val seekersListView = findViewById<ListView>(R.id.seekerListView)
 
         FirebaseApp.initializeApp(this)
+        // YOUR OWN DATABASE URL
         val databaseUrl = "https://db-demo-26f0a-default-rtdb.asia-southeast1.firebasedatabase.app/"
         database = FirebaseDatabase.getInstance(databaseUrl)
 
@@ -48,6 +51,7 @@ class Lobby : AppCompatActivity() {
         updateGameSettings.setOnClickListener {
             val intent = Intent(this@Lobby, LobbySettings::class.java)
             intent.putExtra("lobby_code_key", receivedLobbyCode)
+            intent.putExtra("username_key", receivedUsername)
             startActivity(intent)
         }
 
@@ -57,9 +61,20 @@ class Lobby : AppCompatActivity() {
         val seekersList = mutableListOf<String>()
         val hidersList = mutableListOf<String>()
 
-        query.addValueEventListener(object : ValueEventListener {
+        lobbyListener = query.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
+                seekersList.clear()
+                hidersList.clear()
+
                 for (sessionSnapshot in dataSnapshot.children) {
+                    // check if host has started the game
+                    val gameSessionSnapshot = dataSnapshot.children.first()
+                    val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+                    if (gameSession!!.gameStatus == "started") {
+                        startGameIntent(receivedLobbyCode, receivedUsername, gameSession)
+                    }
+
+                    // update player list
                     val players = sessionSnapshot.child("players").children
                     for (playerSnapshot in players) {
                         val playerName = playerSnapshot.child("userName").value.toString()
@@ -85,6 +100,64 @@ class Lobby : AppCompatActivity() {
                     .show()
             }
         })
+
+        val switchTeamButton: Button = findViewById(R.id.switchTeamButton)
+        switchTeamButton.setOnClickListener {
+            switchTeamClicked(receivedUsername, receivedLobbyCode)
+        }
+
+        val leaveLobbyButton: Button = findViewById(R.id.leaveLobbyButton)
+        leaveLobbyButton.setOnClickListener {
+            removePlayer(receivedLobbyCode,receivedUsername)
+        }
+
+        val startGameButton: Button = findViewById(R.id.startGameButton)
+        startGameButton.setOnClickListener {
+            startButtonClicked(receivedLobbyCode,receivedUsername)
+        }
+        // hide the start game button for non host users
+        if (!host) {
+            startGameButton.visibility = GONE
+            val waitHost: TextView = findViewById(R.id.waitHost)
+            waitHost.visibility = VISIBLE
+        }
+
+    }
+
+    private fun switchTeamClicked(username: String?, lobbyCode: String?){
+        if (username == null || lobbyCode == null){
+            return
+        }
+        val gameSessionRef = database.getReference("gameSessions")
+            .orderByChild("sessionId")
+            .equalTo(lobbyCode)
+
+        gameSessionRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                for (sessionSnapshot in dataSnapshot.children) {
+                    val players = sessionSnapshot.child("players").children
+                    for (playerSnapshot in players) {
+                        val playerName = playerSnapshot.child("userName").value.toString()
+                        if (playerName == username) {
+                            // Get the current seeker status
+                            val isSeeker = playerSnapshot.child("seeker").getValue(Boolean::class.java) ?: false
+
+                            if (isSeeker) {
+                                playerSnapshot.ref.child("seeker").setValue(false)
+                            } else{
+                                playerSnapshot.ref.child("seeker").setValue(true)
+                            }
+
+                            return
+                        }
+                    }
+                }
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                Toast.makeText(this@Lobby, "Error updating team", Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
     private fun uploadIcon(userIcon: ByteArray?, lobbyCode: String?, username: String?) {
@@ -97,6 +170,146 @@ class Lobby : AppCompatActivity() {
         pathRef.putBytes(userIcon!!)
     }
 
+    private fun removePlayer(lobbyCode: String?, username: String?) {
+        val query = database.getReference("gameSessions")
+            .orderByChild("sessionId")
+            .equalTo(lobbyCode)
+
+        query.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    val gameSessionSnapshot = dataSnapshot.children.first()
+                    val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+
+                    if (gameSession != null) {
+                        val playerIsHost = gameSession.players.find { it.userName == username }?.host == true
+
+                        if (playerIsHost) {
+                            gameSessionSnapshot.ref.removeValue().addOnSuccessListener {
+                                Toast.makeText(this@Lobby, "Game session ended", Toast.LENGTH_SHORT).show()
+                                val intent = Intent(this@Lobby, HomeScreen::class.java)
+                                intent.putExtra("lobby_key", lobbyCode)
+                                startActivity(intent)
+                            }.addOnFailureListener {
+                                Toast.makeText(this@Lobby, "Error deleting session", Toast.LENGTH_SHORT).show()
+                            }
+                        } else {
+                            val updatedPlayers = gameSession.players.toMutableList()
+                            updatedPlayers.removeIf { it.userName == username}
+
+                            gameSession.players = updatedPlayers
+                            gameSessionSnapshot.ref.setValue(gameSession).addOnFailureListener {
+                                Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
+                            }
+                            val intent = Intent(this@Lobby, HomeScreen::class.java)
+                            intent.putExtra("lobby_key", lobbyCode)
+                            startActivity(intent)
+                        }
+
+                    } else {
+                        Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                Toast.makeText(this@Lobby, "Error fetching data", Toast.LENGTH_SHORT)
+                    .show()
+            }
+        })
+    }
+
+    private fun startButtonClicked(lobbyCode: String?, username: String?) {
+        val query = database.getReference("gameSessions")
+            .orderByChild("sessionId")
+            .equalTo(lobbyCode)
+
+        query.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    val gameSessionSnapshot = dataSnapshot.children.first()
+                    val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+
+                    // validate the eligibility to start a game
+                    if (validateGame(gameSession!!.players)) {
+                        // Update the local GameSession object
+                        gameSession?.gameStatus = "started"
+
+                        // Save the updated GameSession back to Firebase
+                        gameSessionSnapshot.ref.setValue(gameSession)
+                            .addOnSuccessListener {
+                                // If the update is successful, start the game
+                                startGameIntent(lobbyCode, username, gameSession)
+                            }
+                            .addOnFailureListener {
+                                // If there is an error updating Firebase, show an error message
+                                Toast.makeText(
+                                    this@Lobby,
+                                    "Error updating game status in Firebase",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                    } else {
+                        Toast.makeText(this@Lobby, "At least 1 seeker and 1 hider required!", Toast.LENGTH_SHORT)
+                            .show()
+                    }
+                } else {
+                    Toast.makeText(this@Lobby, "Game session not found", Toast.LENGTH_SHORT)
+                        .show()
+                }
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                Toast.makeText(this@Lobby, "Error fetching data", Toast.LENGTH_SHORT)
+                    .show()
+            }
+        })
+    }
+
+    private fun startGameIntent(lobbyCode: String?, username: String?, gameSession: GameSessionClass?) {
+        gameSession?.let {
+            val intent = Intent(this@Lobby, GamePlay::class.java)
+            intent.putExtra("lobbyCode", lobbyCode)
+            intent.putExtra("username", username)
+            intent.putExtra("gameLength", it.gameLength)
+            intent.putExtra("hidingTime", it.hidingTime)
+            intent.putExtra("updateInterval", it.updateInterval)
+            intent.putExtra("radius", it.radius)
+            startActivity(intent)
+            removeLobbyListener(lobbyCode!!)
+            finish()
+        } ?: Toast.makeText(
+            this@Lobby,
+            "Error retrieving session data",
+            Toast.LENGTH_SHORT
+        ).show()
+    }
+
+    /**
+     * Validate the minimum 1 player in each hider and seeker before starting the game
+     */
+    private fun validateGame(playerList: List<PlayerClass>): Boolean {
+        var numHiders = 0
+        var numSeekers = 0
+
+        playerList.forEach {
+            if (it.seeker) {
+                numSeekers += 1
+            } else {
+                numHiders += 1
+            }
+        }
+
+        return (numHiders > 0 && numSeekers > 0)
+    }
+
+    private fun removeLobbyListener(lobbyCode: String) {
+        val query = database.getReference("gameSessions")
+            .orderByChild("sessionId")
+            .equalTo(lobbyCode)
+
+        query.removeEventListener(lobbyListener)
+    }
 
 
 }
