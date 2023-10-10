@@ -221,20 +221,32 @@ class Lobby : AppCompatActivity() {
                     val gameSessionSnapshot = dataSnapshot.children.first()
                     val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
 
-                    gameSession?.let {
-                        val intent = Intent(this@Lobby, GamePlay::class.java)
-                        intent.putExtra("lobbyCode", lobbyCode)
-                        intent.putExtra("username", username)
-                        intent.putExtra("gameLength", it.gameLength)
-                        intent.putExtra("hidingTime", it.hidingTime)
-                        intent.putExtra("updateInterval", it.updateInterval)
-                        intent.putExtra("radius",it.radius)
-                        startActivity(intent)
-                        finish()
-                    } ?: Toast.makeText(this@Lobby, "Error retrieving session data", Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(this@Lobby, "Game session not found", Toast.LENGTH_SHORT).show()
-                }
+                    // validate the eligibility to start a game
+                    if (validateGame(gameSession!!.players)) {
+
+                        gameSession?.let {
+                            val intent = Intent(this@Lobby, GamePlay::class.java)
+                            intent.putExtra("lobbyCode", lobbyCode)
+                            intent.putExtra("username", username)
+                            intent.putExtra("gameLength", it.gameLength)
+                            intent.putExtra("hidingTime", it.hidingTime)
+                            intent.putExtra("updateInterval", it.updateInterval)
+                            intent.putExtra("radius", it.radius)
+                            startActivity(intent)
+                            finish()
+                        } ?: Toast.makeText(
+                            this@Lobby,
+                            "Error retrieving session data",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    } else {
+                        Toast.makeText(this@Lobby, "At least 1 seeker and 1 hider required!", Toast.LENGTH_SHORT)
+                            .show()
+                    }
+                    } else {
+                        Toast.makeText(this@Lobby, "Game session not found", Toast.LENGTH_SHORT)
+                            .show()
+                    }
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
@@ -244,4 +256,21 @@ class Lobby : AppCompatActivity() {
         })
     }
 
+    /**
+     * Validate the minimum 1 player in each hider and seeker before starting the game
+     */
+    private fun validateGame(playerList: List<PlayerClass>): Boolean {
+        var numHiders = 0
+        var numSeekers = 0
+
+        playerList.forEach {
+            if (it.seeker) {
+                numSeekers += 1
+            } else {
+                numHiders += 1
+            }
+        }
+
+        return (numHiders > 0 && numSeekers > 0)
+    }
 }
