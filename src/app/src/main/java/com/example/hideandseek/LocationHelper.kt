@@ -19,7 +19,7 @@ class LocationHelper(private val context: Context) {
     private val fusedLocationClient: FusedLocationProviderClient =
         LocationServices.getFusedLocationProviderClient(context)
 
-    private val locationRequest = LocationRequest.Builder(
+    private var locationRequest = LocationRequest.Builder(
         Priority.PRIORITY_HIGH_ACCURACY,
         updateInterval).build()
 
@@ -41,6 +41,14 @@ class LocationHelper(private val context: Context) {
                 LOCATION_PERMISSION_REQUEST_CODE
             )
         }
+    }
+
+    fun setUpdateInterval(interval: Long) {
+        this.updateInterval = interval
+        locationRequest = LocationRequest.Builder(
+            Priority.PRIORITY_HIGH_ACCURACY,
+            updateInterval
+        ).build()
     }
 
     companion object {
