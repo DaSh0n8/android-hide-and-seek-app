@@ -19,7 +19,9 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import com.example.hideandseek.databinding.GameOverBinding
 import com.example.hideandseek.databinding.GamePlayBinding
+import com.example.hideandseek.databinding.GamePlayHiderBinding
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -51,6 +53,8 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private var initLon = 144.9609933
     private lateinit var userName: String
     private lateinit var lobbyCode: String
+    private lateinit var playerCode: String
+    private var isSeeker: Boolean = false
     private var gameTime = defaultGameTime
     private var hideTime = defaultHideTime
     private var updateInterval = defaultInterval
@@ -59,23 +63,34 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var map: GoogleMap
     private lateinit var binding: GamePlayBinding
+    private lateinit var bindingHiders: GamePlayHiderBinding
     private lateinit var database: FirebaseDatabase
     private lateinit var locationHelper: LocationHelper
     private lateinit var gameplayListener: ValueEventListener
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        isSeeker = intent.getBooleanExtra("isSeeker", false)
+        if (isSeeker){
+            binding = GamePlayBinding.inflate(layoutInflater)
+            setContentView(binding.root)
+        }
+        else{
+            bindingHiders = GamePlayHiderBinding.inflate(layoutInflater)
+            setContentView(bindingHiders.root)
+        }
 
-        binding = GamePlayBinding.inflate(layoutInflater)
-        setContentView(binding.root)
 
         // receive data from previous activity
         lobbyCode = intent.getStringExtra("lobbyCode")!!
         userName = intent.getStringExtra("username")!!
+        playerCode= intent.getStringExtra("playerCode")!!
         gameTime = minToMilli(intent.getIntExtra("gameLength", 1))
         hideTime = minToMilli(intent.getIntExtra("hidingTime", 1))
         updateInterval = minToMilli(intent.getIntExtra("updateInterval", 1))
         geofenceRadius = intent.getIntExtra("radius", defaultRadius)
+
+
 
         // get firebase real time db
         val application = application as HideAndSeek
@@ -143,12 +158,18 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         }
         hideTimer.start()
 
-        //eliminate player
-        val code: TextInputEditText = findViewById(R.id.textInputEditText)
-        val eliminate: Button = findViewById(R.id.eliminateBtn)
-        eliminate.setOnClickListener{
-            eliminatePlayer(code.text.toString())
-            code.text?.clear()
+        if (isSeeker){
+            //eliminate player
+            val code: TextInputEditText = findViewById(R.id.textInputEditText)
+            val eliminate: Button = findViewById(R.id.eliminateBtn)
+            eliminate.setOnClickListener{
+                eliminatePlayer(code.text.toString())
+                code.text?.clear()
+            }
+        }
+        else{
+            val code: TextView = findViewById(R.id.textCode)
+            code.text = playerCode
         }
     }
 

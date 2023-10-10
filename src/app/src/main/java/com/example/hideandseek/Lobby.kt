@@ -21,6 +21,8 @@ class Lobby : AppCompatActivity() {
     private lateinit var realtimeDb: FirebaseDatabase
     private lateinit var storageDb: FirebaseStorage
     private lateinit var lobbyListener: ValueEventListener
+
+    private var seeker: Boolean = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.lobby)
@@ -28,6 +30,8 @@ class Lobby : AppCompatActivity() {
         val receivedUsername: String? = intent.getStringExtra("username_key")
         val receivedUserIcon: ByteArray? = intent.getByteArrayExtra("userIcon")
         val receivedLobbyCode: String? = intent.getStringExtra("lobby_key")
+        val receivedPlayerCode: String? = intent.getStringExtra("playerCode")
+        seeker = intent.getBooleanExtra("isSeeker", false)
 
         val host = intent.getBooleanExtra("host", false)
         val lobbyHeader = findViewById<TextView>(R.id.lobbyHeader)
@@ -72,7 +76,7 @@ class Lobby : AppCompatActivity() {
                     val gameSessionSnapshot = dataSnapshot.children.first()
                     val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
                     if (gameSession!!.gameStatus == "started") {
-                        startGameIntent(receivedLobbyCode, receivedUsername, gameSession)
+                        startGameIntent(receivedLobbyCode, receivedUsername, gameSession, receivedPlayerCode)
                     }
 
                     // update player list
@@ -114,7 +118,7 @@ class Lobby : AppCompatActivity() {
 
         val startGameButton: Button = findViewById(R.id.startGameButton)
         startGameButton.setOnClickListener {
-            startButtonClicked(receivedLobbyCode,receivedUsername)
+            startButtonClicked(receivedLobbyCode,receivedUsername, receivedPlayerCode)
         }
         // hide the start game button for non host users
         if (!host) {
@@ -145,8 +149,10 @@ class Lobby : AppCompatActivity() {
 
                             if (isSeeker) {
                                 playerSnapshot.ref.child("seeker").setValue(false)
+                                seeker = false
                             } else{
                                 playerSnapshot.ref.child("seeker").setValue(true)
+                                seeker = true
                             }
 
                             return
@@ -219,7 +225,7 @@ class Lobby : AppCompatActivity() {
         })
     }
 
-    private fun startButtonClicked(lobbyCode: String?, username: String?) {
+    private fun startButtonClicked(lobbyCode: String?, username: String?, playerCode: String?) {
         val query = realtimeDb.getReference("gameSessions")
             .orderByChild("sessionId")
             .equalTo(lobbyCode)
@@ -239,7 +245,7 @@ class Lobby : AppCompatActivity() {
                         gameSessionSnapshot.ref.setValue(gameSession)
                             .addOnSuccessListener {
                                 // If the update is successful, start the game
-                                startGameIntent(lobbyCode, username, gameSession)
+                                startGameIntent(lobbyCode, username, gameSession, playerCode)
                             }
                             .addOnFailureListener {
                                 // If there is an error updating Firebase, show an error message
@@ -266,7 +272,7 @@ class Lobby : AppCompatActivity() {
         })
     }
 
-    private fun startGameIntent(lobbyCode: String?, username: String?, gameSession: GameSessionClass?) {
+    private fun startGameIntent(lobbyCode: String?, username: String?, gameSession: GameSessionClass?, playerCode: String?) {
         gameSession?.let {
             val intent = Intent(this@Lobby, GamePlay::class.java)
             intent.putExtra("lobbyCode", lobbyCode)
@@ -275,6 +281,8 @@ class Lobby : AppCompatActivity() {
             intent.putExtra("hidingTime", it.hidingTime)
             intent.putExtra("updateInterval", it.updateInterval)
             intent.putExtra("radius", it.radius)
+            intent.putExtra("isSeeker", seeker)
+            intent.putExtra("playerCode", playerCode)
             startActivity(intent)
             removeLobbyListener(lobbyCode!!)
             finish()

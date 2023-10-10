@@ -94,7 +94,8 @@ class UserSetting : AppCompatActivity() {
                                 val intent = Intent(this@UserSetting, Lobby::class.java)
                                 intent.putExtra("lobby_key", lobbyCode)
                                 intent.putExtra("username_key", username)
-
+                                intent.putExtra("isSeeker", false)
+                                intent.putExtra("playerCode", playerCode)
 
                                 if (userIcon != null) {
                                     // compress the bitmap

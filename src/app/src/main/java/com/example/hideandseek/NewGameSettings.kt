@@ -120,6 +120,8 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
             intent.putExtra("lobby_key", sessionIdString)
             intent.putExtra("username_key", username)
             intent.putExtra("host", true)
+            intent.putExtra("isSeeker", true)
+            intent.putExtra("playerCode", playerCode)
 
             startActivity(intent)
         }
