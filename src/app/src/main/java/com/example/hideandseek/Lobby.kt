@@ -1,14 +1,16 @@
 package com.example.hideandseek
 
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.View.GONE
+import android.view.View.VISIBLE
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.FirebaseApp
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -25,6 +27,7 @@ class Lobby : AppCompatActivity() {
         val receivedUsername: String? = intent.getStringExtra("username_key")
         val receivedUserIcon: ByteArray? = intent.getByteArrayExtra("userIcon")
         val receivedLobbyCode: String? = intent.getStringExtra("lobby_key")
+        val host = intent.getBooleanExtra("host", false)
         val lobbyHeader = findViewById<TextView>(R.id.lobbyHeader)
         val lobbyCode = "Lobby #$receivedLobbyCode"
         lobbyHeader.text = lobbyCode
@@ -50,7 +53,6 @@ class Lobby : AppCompatActivity() {
             intent.putExtra("username_key", receivedUsername)
             startActivity(intent)
         }
-
 
         val query = database.getReference("gameSessions")
             .orderByChild("sessionId")
@@ -104,7 +106,12 @@ class Lobby : AppCompatActivity() {
         startGameButton.setOnClickListener {
             startButtonClicked(receivedLobbyCode,receivedUsername)
         }
-
+        // hide the start game button for non host users
+        if (!host) {
+            startGameButton.visibility = GONE
+            val waitHost: TextView = findViewById(R.id.waitHost)
+            waitHost.visibility = VISIBLE
+        }
 
     }
 
@@ -223,6 +230,7 @@ class Lobby : AppCompatActivity() {
                         intent.putExtra("updateInterval", it.updateInterval)
                         intent.putExtra("radius",it.radius)
                         startActivity(intent)
+                        finish()
                     } ?: Toast.makeText(this@Lobby, "Error retrieving session data", Toast.LENGTH_SHORT).show()
                 } else {
                     Toast.makeText(this@Lobby, "Game session not found", Toast.LENGTH_SHORT).show()
