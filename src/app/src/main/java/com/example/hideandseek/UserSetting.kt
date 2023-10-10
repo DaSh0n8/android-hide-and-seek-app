@@ -61,6 +61,9 @@ class UserSetting : AppCompatActivity() {
         val usernameInput: EditText = findViewById(R.id.username_input)
         val username: String = usernameInput.text.toString()
 
+        val randomNum = ((0..9999).random())
+        val playerCode = String.format("%04d",randomNum)
+
         if (username.isBlank()) {
             Toast.makeText(this@UserSetting, "Please enter a username", Toast.LENGTH_SHORT).show()
         } else {
@@ -81,7 +84,7 @@ class UserSetting : AppCompatActivity() {
                                     return
                                 }
                             }
-                            val newPlayer = PlayerClass(username, false, 0.0, 0.0, false, false)
+                            val newPlayer = PlayerClass(username, false, 0.0, 0.0, false, false, playerCode)
                             val updatedPlayers = gameSession.players.toMutableList()
                             updatedPlayers.add(newPlayer)
 
@@ -91,6 +94,7 @@ class UserSetting : AppCompatActivity() {
                                 val intent = Intent(this@UserSetting, Lobby::class.java)
                                 intent.putExtra("lobby_key", lobbyCode)
                                 intent.putExtra("username_key", username)
+
 
                                 if (userIcon != null) {
                                     // compress the bitmap

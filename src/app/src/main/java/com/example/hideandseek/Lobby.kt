@@ -28,6 +28,7 @@ class Lobby : AppCompatActivity() {
         val receivedUsername: String? = intent.getStringExtra("username_key")
         val receivedUserIcon: ByteArray? = intent.getByteArrayExtra("userIcon")
         val receivedLobbyCode: String? = intent.getStringExtra("lobby_key")
+
         val host = intent.getBooleanExtra("host", false)
         val lobbyHeader = findViewById<TextView>(R.id.lobbyHeader)
         val lobbyCode = "Lobby #$receivedLobbyCode"

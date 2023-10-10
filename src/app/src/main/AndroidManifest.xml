@@ -61,7 +61,7 @@
         -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="${MAPS_API_KEY}" />
+            android:value="AIzaSyDL9-UKCOaEhFR7oPdW_Y4QTIzMpKy-qaQ" />
 
         <activity
             android:name=".HomeScreen"
