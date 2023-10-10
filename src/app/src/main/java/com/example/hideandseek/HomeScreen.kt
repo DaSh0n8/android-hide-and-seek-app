@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.google.firebase.FirebaseApp
 import com.google.firebase.database.FirebaseDatabase
 
 class HomeScreen : AppCompatActivity() {
@@ -30,8 +29,5 @@ class HomeScreen : AppCompatActivity() {
             val intent = Intent(this@HomeScreen, JoinGame::class.java)
             startActivity(intent)
         }
-        FirebaseApp.initializeApp(this)
-        val databaseUrl = "https://db-demo-26f0a-default-rtdb.asia-southeast1.firebasedatabase.app/"
-        database = FirebaseDatabase.getInstance(databaseUrl)
     }
 }

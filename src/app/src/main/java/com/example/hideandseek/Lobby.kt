@@ -11,7 +11,6 @@ import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.google.firebase.FirebaseApp
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -19,7 +18,8 @@ import com.google.firebase.database.ValueEventListener
 import com.google.firebase.storage.FirebaseStorage
 
 class Lobby : AppCompatActivity() {
-    private lateinit var database: FirebaseDatabase
+    private lateinit var realtimeDb: FirebaseDatabase
+    private lateinit var storageDb: FirebaseStorage
     private lateinit var lobbyListener: ValueEventListener
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,10 +37,10 @@ class Lobby : AppCompatActivity() {
         val hidersListView = findViewById<ListView>(R.id.hiderListView)
         val seekersListView = findViewById<ListView>(R.id.seekerListView)
 
-        FirebaseApp.initializeApp(this)
-        // YOUR OWN DATABASE URL
-        val databaseUrl = "https://db-demo-26f0a-default-rtdb.asia-southeast1.firebasedatabase.app/"
-        database = FirebaseDatabase.getInstance(databaseUrl)
+        // get firebase real time db and storage db
+        val application = application as HideAndSeek
+        realtimeDb = application.getRealtimeDb()
+        storageDb = application.getStorageDb()
 
         // upload user icon if available
         if (receivedUserIcon != null) {
@@ -55,7 +55,7 @@ class Lobby : AppCompatActivity() {
             startActivity(intent)
         }
 
-        val query = database.getReference("gameSessions")
+        val query = realtimeDb.getReference("gameSessions")
             .orderByChild("sessionId")
             .equalTo(receivedLobbyCode)
         val seekersList = mutableListOf<String>()
@@ -128,7 +128,7 @@ class Lobby : AppCompatActivity() {
         if (username == null || lobbyCode == null){
             return
         }
-        val gameSessionRef = database.getReference("gameSessions")
+        val gameSessionRef = realtimeDb.getReference("gameSessions")
             .orderByChild("sessionId")
             .equalTo(lobbyCode)
 
@@ -162,8 +162,7 @@ class Lobby : AppCompatActivity() {
 
     private fun uploadIcon(userIcon: ByteArray?, lobbyCode: String?, username: String?) {
         // get storage path
-        var storage = FirebaseStorage.getInstance("gs://hide-and-seek-4983f.appspot.com")
-        var storageRef = storage.reference
+        var storageRef = storageDb.reference
         val pathRef = storageRef.child("$lobbyCode/$username.jpg")
 
         // Upload user icon
@@ -171,7 +170,7 @@ class Lobby : AppCompatActivity() {
     }
 
     private fun removePlayer(lobbyCode: String?, username: String?) {
-        val query = database.getReference("gameSessions")
+        val query = realtimeDb.getReference("gameSessions")
             .orderByChild("sessionId")
             .equalTo(lobbyCode)
 
@@ -220,7 +219,7 @@ class Lobby : AppCompatActivity() {
     }
 
     private fun startButtonClicked(lobbyCode: String?, username: String?) {
-        val query = database.getReference("gameSessions")
+        val query = realtimeDb.getReference("gameSessions")
             .orderByChild("sessionId")
             .equalTo(lobbyCode)
 
@@ -304,7 +303,7 @@ class Lobby : AppCompatActivity() {
     }
 
     private fun removeLobbyListener(lobbyCode: String) {
-        val query = database.getReference("gameSessions")
+        val query = realtimeDb.getReference("gameSessions")
             .orderByChild("sessionId")
             .equalTo(lobbyCode)
 

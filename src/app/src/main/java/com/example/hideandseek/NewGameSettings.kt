@@ -33,7 +33,6 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.slider.Slider
-import com.google.firebase.FirebaseApp
 import com.google.firebase.database.FirebaseDatabase
 import java.util.Random
 
@@ -81,10 +80,9 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
             }
         }
 
-        // start the firebase
-        FirebaseApp.initializeApp(this)
-        val databaseUrl = "https://db-demo-26f0a-default-rtdb.asia-southeast1.firebasedatabase.app/"
-        database = FirebaseDatabase.getInstance(databaseUrl)
+        // get firebase real time db
+        val application = application as HideAndSeek
+        database = application.getRealtimeDb()
 
         // obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager

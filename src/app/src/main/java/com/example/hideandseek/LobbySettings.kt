@@ -8,13 +8,13 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.location.Location
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.hideandseek.databinding.NewGameSettingsBinding
@@ -33,7 +33,6 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.slider.Slider
-import com.google.firebase.FirebaseApp
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -82,10 +81,9 @@ class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
             }
         }
 
-        // start the firebase
-        FirebaseApp.initializeApp(this)
-        val databaseUrl = "https://db-demo-26f0a-default-rtdb.asia-southeast1.firebasedatabase.app/"
-        database = FirebaseDatabase.getInstance(databaseUrl)
+        // get firebase real time db
+        val application = application as HideAndSeek
+        database = application.getRealtimeDb()
 
         // obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager
