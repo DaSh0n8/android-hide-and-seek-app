@@ -13,11 +13,13 @@ import android.util.Log
 import android.view.View.GONE
 import android.view.View.INVISIBLE
 import android.view.View.VISIBLE
+import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.example.hideandseek.databinding.GamePlayBinding
+import com.example.hideandseek.databinding.GamePlayHiderBinding
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -27,6 +29,7 @@ import com.google.android.gms.maps.model.CircleOptions
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.material.textfield.TextInputEditText
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -48,6 +51,8 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private var initLon = 144.9609933
     private lateinit var userName: String
     private lateinit var lobbyCode: String
+    private lateinit var playerCode: String
+    private var isSeeker: Boolean = false
     private var gameTime = defaultGameTime
     private var hideTime = defaultHideTime
     private var updateInterval = defaultInterval
@@ -56,6 +61,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var map: GoogleMap
     private lateinit var binding: GamePlayBinding
+    private lateinit var bindingHiders: GamePlayHiderBinding
     private lateinit var database: FirebaseDatabase
     private lateinit var locationHelper: LocationHelper
     private lateinit var gameplayListener: ValueEventListener
@@ -63,12 +69,20 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        binding = GamePlayBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        isSeeker = intent.getBooleanExtra("isSeeker", false)
+        if (isSeeker){
+            binding = GamePlayBinding.inflate(layoutInflater)
+            setContentView(binding.root)
+        }
+        else{
+            bindingHiders = GamePlayHiderBinding.inflate(layoutInflater)
+            setContentView(bindingHiders.root)
+        }
 
         // receive data from previous activity
         lobbyCode = intent.getStringExtra("lobbyCode")!!
         userName = intent.getStringExtra("username")!!
+        playerCode= intent.getStringExtra("playerCode")!!
         gameTime = minToMilli(intent.getIntExtra("gameLength", 1))
         hideTime = minToMilli(intent.getIntExtra("hidingTime", 1))
         updateInterval = minToMilli(intent.getIntExtra("updateInterval", 1))
@@ -139,6 +153,20 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
             }
         }
         hideTimer.start()
+
+        if (isSeeker){
+            //eliminate player
+            val code: TextInputEditText = findViewById(R.id.textInputEditText)
+            val eliminate: Button = findViewById(R.id.eliminateBtn)
+            eliminate.setOnClickListener{
+                eliminatePlayer(code.text.toString())
+                code.text?.clear()
+            }
+        }
+        else{
+            val code: TextView = findViewById(R.id.textCode)
+            code.text = playerCode
+        }
     }
 
     /**
@@ -377,5 +405,63 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 finish()
             }
         }
+    }
+    /**
+     * Eliminate a player from the game
+     */
+    private fun eliminatePlayer(code: String){
+        if (code.isBlank()){
+            Toast.makeText(this@GamePlay, "Please enter a code", Toast.LENGTH_SHORT).show()
+        }
+        val reference = database.getReference("gameSessions")
+        val query = reference.orderByChild("sessionId").equalTo(lobbyCode)
+        query.addListenerForSingleValueEvent(object : ValueEventListener{
+            override fun onDataChange(datasnapshot: DataSnapshot) {
+                if (datasnapshot.exists()){
+                    val gameSessionSnapshot = datasnapshot.children.first()
+                    var existPlayer = false
+                    var eliminatedUsername = ""
+                    val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+                    if (gameSession != null) {
+                        val newPlayers = listOf<PlayerClass>().toMutableList()
+                        for (player in gameSession.players){
+                            if (code.equals(player.playerCode)) {
+                                eliminatedUsername = player.userName;
+                                if(player.seeker){
+                                    Toast.makeText(this@GamePlay,
+                                        "$eliminatedUsername is a seeker and cannot be eliminated", Toast.LENGTH_SHORT).show()
+                                }
+                                else if (!player.eliminated){
+                                    player.eliminated = true;
+                                    existPlayer = true
+                                }
+                                else{
+                                    Toast.makeText(this@GamePlay, "$eliminatedUsername has already been Eliminated", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                            newPlayers.add(player)
+                        }
+                        if(existPlayer){
+                            gameSession.players = newPlayers
+                            gameSessionSnapshot.ref.setValue(gameSession).addOnSuccessListener {
+                                Toast.makeText(this@GamePlay, "$eliminatedUsername has successfully been Eliminated", Toast.LENGTH_SHORT).show()
+
+                            }.addOnFailureListener{
+                                Toast.makeText(this@GamePlay, "Error updating database", Toast.LENGTH_SHORT).show()
+                            }
+                        }else{
+                            Toast.makeText(this@GamePlay, "This user does not exist", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }else{
+                    Toast.makeText(this@GamePlay, "Database Error", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("Firebase", "Data retrieval error: ${error.message}")
+            }
+
+        })
     }
 }

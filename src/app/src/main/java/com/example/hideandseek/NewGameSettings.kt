@@ -98,8 +98,11 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
 
         val gameSessionRef = database.getReference("gameSessions").push()
 
+        val randomNum = ((0..9999).random())
+        val playerCode = String.format("%04d",randomNum)
+
         val players = listOf(
-            PlayerClass(username, true, null, null, false, true)
+            PlayerClass(username, true, null, null, false, true, playerCode)
         )
 
         val sessionId: Int = Random().nextInt(999999 - 100000 + 1) + 100000
@@ -117,6 +120,9 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
             intent.putExtra("lobby_key", sessionIdString)
             intent.putExtra("username_key", username)
             intent.putExtra("host", true)
+            intent.putExtra("isSeeker", true)
+            intent.putExtra("playerCode", playerCode)
+
             startActivity(intent)
         }
 

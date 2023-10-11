@@ -7,6 +7,7 @@ class PlayerClass() {
     var longitude: Double? = 0.0
     var eliminated: Boolean = false
     var host: Boolean = false
+    var playerCode: String = ""
 
     constructor(
         userName: String,
@@ -14,7 +15,8 @@ class PlayerClass() {
         latitude: Double?,
         longitude: Double?,
         eliminated: Boolean,
-        host: Boolean
+        host: Boolean,
+        playerCode: String,
     ) : this() {
         this.userName = userName
         this.seeker = seeker
@@ -22,6 +24,7 @@ class PlayerClass() {
         this.longitude = longitude
         this.eliminated = eliminated
         this.host = host
+        this.playerCode = playerCode
     }
 }
 
