@@ -2,6 +2,7 @@ package com.example.hideandseek
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.widget.ArrayAdapter
@@ -28,7 +29,7 @@ class Lobby : AppCompatActivity() {
         setContentView(R.layout.lobby)
 
         val receivedUsername: String? = intent.getStringExtra("username_key")
-        val receivedUserIcon: ByteArray? = intent.getByteArrayExtra("userIcon")
+        var receivedUserIcon: ByteArray? = intent.getByteArrayExtra("userIcon")
         val receivedLobbyCode: String? = intent.getStringExtra("lobby_key")
         val receivedPlayerCode: String? = intent.getStringExtra("playerCode")
         seeker = intent.getBooleanExtra("isSeeker", false)
@@ -37,7 +38,6 @@ class Lobby : AppCompatActivity() {
         val lobbyHeader = findViewById<TextView>(R.id.lobbyHeader)
         val lobbyCode = "Lobby #$receivedLobbyCode"
         lobbyHeader.text = lobbyCode
-
 
         val hidersListView = findViewById<ListView>(R.id.hiderListView)
         val seekersListView = findViewById<ListView>(R.id.seekerListView)
@@ -50,6 +50,8 @@ class Lobby : AppCompatActivity() {
         // upload user icon if available
         if (receivedUserIcon != null) {
             uploadIcon(receivedUserIcon, receivedLobbyCode, receivedUsername)
+        } else {
+            receivedUserIcon = retrieveIcon(receivedLobbyCode, receivedUsername)
         }
 
         val updateGameSettings: FrameLayout = findViewById(R.id.settingsPlaceholder)
@@ -173,7 +175,9 @@ class Lobby : AppCompatActivity() {
         val pathRef = storageRef.child("$lobbyCode/$username.jpg")
 
         // Upload user icon
-        pathRef.putBytes(userIcon!!)
+        pathRef.putBytes(userIcon!!).addOnFailureListener{
+            Log.e("ICON FAILURE", it.toString())
+        }
     }
 
     private fun removePlayer(lobbyCode: String?, username: String?) {
@@ -317,6 +321,22 @@ class Lobby : AppCompatActivity() {
             .equalTo(lobbyCode)
 
         query.removeEventListener(lobbyListener)
+    }
+
+    /**
+     * Retrieve player icon if available
+     */
+    private fun retrieveIcon(lobbyCode: String?, username: String?): ByteArray? {
+        // get storage path
+        var storageRef = storageDb.reference
+        val pathRef = storageRef.child("$lobbyCode/$username.jpg")
+        var userIcon: ByteArray? = null
+
+        pathRef.getBytes(1000000)
+            .addOnSuccessListener {
+                userIcon = it
+        }
+        return  userIcon
     }
 
 

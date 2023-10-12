@@ -15,7 +15,7 @@ class HideAndSeek : Application() {
         // firebase initialization
         FirebaseApp.initializeApp(this)
         val realtimeUrl = "https://db-demo-26f0a-default-rtdb.asia-southeast1.firebasedatabase.app/"
-        val storageUrl = "gs://hide-and-seek-4983f.appspot.com"
+        val storageUrl = "gs://db-demo-26f0a.appspot.com"
         realtimeDb = FirebaseDatabase.getInstance(realtimeUrl)
         storageDb = FirebaseStorage.getInstance(storageUrl)
     }
