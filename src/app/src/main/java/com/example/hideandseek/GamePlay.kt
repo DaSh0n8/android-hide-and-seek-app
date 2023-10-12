@@ -1,6 +1,5 @@
 package com.example.hideandseek
 
-import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -19,7 +18,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import com.example.hideandseek.databinding.GameOverBinding
 import com.example.hideandseek.databinding.GamePlayBinding
 import com.example.hideandseek.databinding.GamePlayHiderBinding
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -70,6 +68,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         isSeeker = intent.getBooleanExtra("isSeeker", false)
         if (isSeeker){
             binding = GamePlayBinding.inflate(layoutInflater)
@@ -80,7 +79,6 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
             setContentView(bindingHiders.root)
         }
 
-
         // receive data from previous activity
         lobbyCode = intent.getStringExtra("lobbyCode")!!
         userName = intent.getStringExtra("username")!!
@@ -89,8 +87,6 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         hideTime = minToMilli(intent.getIntExtra("hidingTime", 1))
         updateInterval = minToMilli(intent.getIntExtra("updateInterval", 1))
         geofenceRadius = intent.getIntExtra("radius", defaultRadius)
-
-
 
         // get firebase real time db
         val application = application as HideAndSeek
@@ -399,9 +395,8 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
      * Eliminate a player from the game
      */
     private fun eliminatePlayer(code: String){
-        if (code == ""){
+        if (code.isBlank()){
             Toast.makeText(this@GamePlay, "Please enter a code", Toast.LENGTH_SHORT).show()
-            return
         }
         val reference = database.getReference("gameSessions")
         val query = reference.orderByChild("sessionId").equalTo(lobbyCode)
@@ -420,7 +415,6 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                                 if(player.seeker){
                                     Toast.makeText(this@GamePlay,
                                         "$eliminatedUsername is a seeker and cannot be eliminated", Toast.LENGTH_SHORT).show()
-                                    return
                                 }
                                 else if (!player.eliminated){
                                     player.eliminated = true;
@@ -428,7 +422,6 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                                 }
                                 else{
                                     Toast.makeText(this@GamePlay, "$eliminatedUsername has already been Eliminated", Toast.LENGTH_SHORT).show()
-                                    return
                                 }
                             }
                             newPlayers.add(player)
