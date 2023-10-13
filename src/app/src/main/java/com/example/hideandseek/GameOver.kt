@@ -26,6 +26,7 @@ class GameOver : AppCompatActivity() {
         val username: String? = intent.getStringExtra("username")
         val sessionId: String? = intent.getStringExtra("sessionId")
         val lobbyCode: String? = intent.getStringExtra("lobbyCode")
+        val playerCode: String? = intent.getStringExtra("playerCode")
         val host: Boolean? = intent.getBooleanExtra("host", false)
 
         // set the result text
@@ -48,7 +49,7 @@ class GameOver : AppCompatActivity() {
 
         // back to lobby
         var backToLobbyBtn: Button = findViewById(R.id.btnPlayAgain)
-        backToLobbyBtn.setOnClickListener { returnLobby(username, lobbyCode, host) }
+        backToLobbyBtn.setOnClickListener { returnLobby(username, playerCode, lobbyCode, host) }
     }
 
     /**
@@ -104,7 +105,7 @@ class GameOver : AppCompatActivity() {
     /**
      * Return to lobby
      */
-    private fun returnLobby(username: String?, lobbyCode: String?, host: Boolean?) {
+    private fun returnLobby(username: String?, playerCode: String?, lobbyCode: String?, host: Boolean?) {
         val intent = Intent(this@GameOver, Lobby::class.java)
         intent.putExtra("username_key", username)
         intent.putExtra("lobby_key", lobbyCode)

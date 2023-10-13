@@ -2,6 +2,7 @@ package com.example.hideandseek
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.widget.ArrayAdapter
@@ -28,7 +29,7 @@ class Lobby : AppCompatActivity() {
         setContentView(R.layout.lobby)
 
         val receivedUsername: String? = intent.getStringExtra("username_key")
-        val receivedUserIcon: ByteArray? = intent.getByteArrayExtra("userIcon")
+        var receivedUserIcon: ByteArray? = intent.getByteArrayExtra("userIcon")
         val receivedLobbyCode: String? = intent.getStringExtra("lobby_key")
         val receivedPlayerCode: String? = intent.getStringExtra("playerCode")
         seeker = intent.getBooleanExtra("isSeeker", false)
@@ -37,7 +38,6 @@ class Lobby : AppCompatActivity() {
         val lobbyHeader = findViewById<TextView>(R.id.lobbyHeader)
         val lobbyCode = "Lobby #$receivedLobbyCode"
         lobbyHeader.text = lobbyCode
-
 
         val hidersListView = findViewById<ListView>(R.id.hiderListView)
         val seekersListView = findViewById<ListView>(R.id.seekerListView)
@@ -50,6 +50,8 @@ class Lobby : AppCompatActivity() {
         // upload user icon if available
         if (receivedUserIcon != null) {
             uploadIcon(receivedUserIcon, receivedLobbyCode, receivedUsername)
+        } else {
+            receivedUserIcon = retrieveIcon(receivedLobbyCode, receivedUsername)
         }
 
         val updateGameSettings: FrameLayout = findViewById(R.id.settingsPlaceholder)
@@ -173,7 +175,9 @@ class Lobby : AppCompatActivity() {
         val pathRef = storageRef.child("$lobbyCode/$username.jpg")
 
         // Upload user icon
-        pathRef.putBytes(userIcon!!)
+        pathRef.putBytes(userIcon!!).addOnFailureListener{
+            Log.e("ICON FAILURE", it.toString())
+        }
     }
 
     private fun removePlayer(lobbyCode: String?, username: String?) {
@@ -281,11 +285,23 @@ class Lobby : AppCompatActivity() {
             intent.putExtra("hidingTime", it.hidingTime)
             intent.putExtra("updateInterval", it.updateInterval)
             intent.putExtra("radius", it.radius)
-            intent.putExtra("isSeeker", seeker)
-            intent.putExtra("playerCode", playerCode)
-            startActivity(intent)
-            removeLobbyListener(lobbyCode!!)
-            finish()
+
+            // retrieve player info
+            retrievePlayerInfo(lobbyCode, username) { player ->
+                if (player != null) {
+                    Log.e("PlayerInfo", player.playerCode.toString())
+                    intent.putExtra("playerCode", player.playerCode)
+                    intent.putExtra("isSeeker", player.seeker)
+
+                    // start game
+                    startActivity(intent)
+                    removeLobbyListener(lobbyCode!!)
+                    finish()
+                } else {
+                    Log.e("PlayerInfo", "Player not found or an error occurred.")
+                }
+            }
+
         } ?: Toast.makeText(
             this@Lobby,
             "Error retrieving session data",
@@ -318,6 +334,58 @@ class Lobby : AppCompatActivity() {
 
         query.removeEventListener(lobbyListener)
     }
+
+    /**
+     * Retrieve player icon if available
+     */
+    private fun retrieveIcon(lobbyCode: String?, username: String?): ByteArray? {
+        // get storage path
+        var storageRef = storageDb.reference
+        val pathRef = storageRef.child("$lobbyCode/$username.jpg")
+        var userIcon: ByteArray? = null
+
+        pathRef.getBytes(1000000)
+            .addOnSuccessListener {
+                userIcon = it
+        }
+        return  userIcon
+    }
+
+    /**
+     * Retrieve player and game
+     */
+    private fun retrievePlayerInfo(lobbyCode: String?, username: String?, callback: (PlayerClass?) -> Unit) {
+        // query the db to get the user's session
+        val query = realtimeDb.getReference("gameSessions")
+            .orderByChild("sessionId")
+            .equalTo(lobbyCode)
+
+        query.get().addOnSuccessListener { snapshot ->
+            // get the game session
+            val gameSessionSnapshot = snapshot.children.first()
+            val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+
+            if (gameSession != null) {
+                val players = gameSession.players.toMutableList()
+
+                for (p in players) {
+                    if (p.userName == username) {
+                        // Invoke the callback with the player object
+                        callback(p)
+                        return@addOnSuccessListener
+                    }
+                }
+            }
+
+            // If player is not found, invoke the callback with null
+            callback(null)
+        }.addOnFailureListener { exception ->
+            Log.e("Error Player", exception.toString())
+            // Invoke the callback with null in case of failure
+            callback(null)
+        }
+    }
+
 
 
 }

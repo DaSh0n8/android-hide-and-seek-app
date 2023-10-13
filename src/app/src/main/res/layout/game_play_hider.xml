@@ -91,11 +91,11 @@
         android:layout_marginStart="114dp"
         android:layout_marginTop="24dp"
         android:layout_marginEnd="115dp"
-        android:text="Unique Hider Code: "
+        android:text="Your Hider Code: "
         android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/lastUpdateValue" />
 
@@ -106,17 +106,13 @@
         android:layout_marginStart="77dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="77dp"
-        android:textSize="40sp"
-
         android:gravity="center_horizontal"
+
+        android:textSize="40sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/eliminateText" />
-
-
-
-
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

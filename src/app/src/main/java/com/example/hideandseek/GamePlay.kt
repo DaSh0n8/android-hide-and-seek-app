@@ -371,12 +371,17 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                     if (p.userName == userName) {
                         host = p.host
                     }
+
+                    // reset status
+                    p.eliminated = false
                 }
+
                 val result: String = if (seekerWonGame) {
                     "Seekers Won!"
                 } else {
                     "Hiders Won!"
                 }
+
                 val gameOver = Intent(this@GamePlay, GameOver::class.java)
                 gameOver.putExtra("result", result)
                 gameOver.putExtra("lobbyCode", lobbyCode)
@@ -389,6 +394,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 reference.removeEventListener(gameplayListener)
 
                 // Update the local GameSession object
+                gameSession.players = players
                 gameSession?.gameStatus = "ongoing"
 
                 // Save the updated GameSession back to Firebase
@@ -406,6 +412,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
             }
         }
     }
+
     /**
      * Eliminate a player from the game
      */
@@ -425,7 +432,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                     if (gameSession != null) {
                         val newPlayers = listOf<PlayerClass>().toMutableList()
                         for (player in gameSession.players){
-                            if (code.equals(player.playerCode)) {
+                            if (code == player.playerCode) {
                                 eliminatedUsername = player.userName;
                                 if(player.seeker){
                                     Toast.makeText(this@GamePlay,
