@@ -387,6 +387,21 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
                 // turn off game play listener
                 reference.removeEventListener(gameplayListener)
+
+                // Update the local GameSession object
+                gameSession?.gameStatus = "ongoing"
+
+                // Save the updated GameSession back to Firebase
+                gameSessionSnapshot.ref.setValue(gameSession)
+                    .addOnFailureListener {
+                        // If there is an error updating Firebase, show an error message
+                        Toast.makeText(
+                            this@GamePlay,
+                            "Error updating game status in Firebase",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+
                 finish()
             }
         }
