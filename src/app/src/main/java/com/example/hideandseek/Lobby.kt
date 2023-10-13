@@ -285,11 +285,23 @@ class Lobby : AppCompatActivity() {
             intent.putExtra("hidingTime", it.hidingTime)
             intent.putExtra("updateInterval", it.updateInterval)
             intent.putExtra("radius", it.radius)
-            intent.putExtra("isSeeker", seeker)
-            intent.putExtra("playerCode", playerCode)
-            startActivity(intent)
-            removeLobbyListener(lobbyCode!!)
-            finish()
+
+            // retrieve player info
+            retrievePlayerInfo(lobbyCode, username) { player ->
+                if (player != null) {
+                    Log.e("PlayerInfo", player.playerCode.toString())
+                    intent.putExtra("playerCode", player.playerCode)
+                    intent.putExtra("isSeeker", player.seeker)
+
+                    // start game
+                    startActivity(intent)
+                    removeLobbyListener(lobbyCode!!)
+                    finish()
+                } else {
+                    Log.e("PlayerInfo", "Player not found or an error occurred.")
+                }
+            }
+
         } ?: Toast.makeText(
             this@Lobby,
             "Error retrieving session data",
@@ -338,6 +350,42 @@ class Lobby : AppCompatActivity() {
         }
         return  userIcon
     }
+
+    /**
+     * Retrieve player and game
+     */
+    private fun retrievePlayerInfo(lobbyCode: String?, username: String?, callback: (PlayerClass?) -> Unit) {
+        // query the db to get the user's session
+        val query = realtimeDb.getReference("gameSessions")
+            .orderByChild("sessionId")
+            .equalTo(lobbyCode)
+
+        query.get().addOnSuccessListener { snapshot ->
+            // get the game session
+            val gameSessionSnapshot = snapshot.children.first()
+            val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+
+            if (gameSession != null) {
+                val players = gameSession.players.toMutableList()
+
+                for (p in players) {
+                    if (p.userName == username) {
+                        // Invoke the callback with the player object
+                        callback(p)
+                        return@addOnSuccessListener
+                    }
+                }
+            }
+
+            // If player is not found, invoke the callback with null
+            callback(null)
+        }.addOnFailureListener { exception ->
+            Log.e("Error Player", exception.toString())
+            // Invoke the callback with null in case of failure
+            callback(null)
+        }
+    }
+
 
 
 }
