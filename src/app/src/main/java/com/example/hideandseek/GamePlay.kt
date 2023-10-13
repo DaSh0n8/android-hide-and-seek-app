@@ -35,6 +35,7 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.Query
 import com.google.firebase.database.ValueEventListener
+import com.google.firebase.storage.FirebaseStorage
 import java.util.Timer
 import java.util.TimerTask
 
@@ -58,11 +59,13 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private var updateInterval = defaultInterval
     private var geofenceRadius = defaultRadius
     private lateinit var userLatLng: LatLng
+    private var inGamePlayers: List<String>? = null
 
     private lateinit var map: GoogleMap
     private lateinit var binding: GamePlayBinding
     private lateinit var bindingHiders: GamePlayHiderBinding
-    private lateinit var database: FirebaseDatabase
+    private lateinit var realtimeDb: FirebaseDatabase
+    private lateinit var storageDb: FirebaseStorage
     private lateinit var locationHelper: LocationHelper
     private lateinit var gameplayListener: ValueEventListener
 
@@ -79,6 +82,11 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
             setContentView(bindingHiders.root)
         }
 
+        // get firebase real time db
+        val application = application as HideAndSeek
+        realtimeDb = application.getRealtimeDb()
+        storageDb = application.getStorageDb()
+
         // receive data from previous activity
         lobbyCode = intent.getStringExtra("lobbyCode")!!
         userName = intent.getStringExtra("username")!!
@@ -88,12 +96,16 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         updateInterval = minToMilli(intent.getIntExtra("updateInterval", 1))
         geofenceRadius = intent.getIntExtra("radius", defaultRadius)
 
-        // get firebase real time db
-        val application = application as HideAndSeek
-        database = application.getRealtimeDb()
+        // get the players in the game
+        retrievePlayers(lobbyCode) {
+            inGamePlayers = it
+        }
+
+        // get user icons
+
 
         // query the db to get the user's session
-        val reference = database.getReference("gameSessions")
+        val reference = realtimeDb.getReference("gameSessions")
         val query = reference.orderByChild("sessionId").equalTo(lobbyCode)
         var lastUpdate: TextView = findViewById(R.id.lastUpdate)
         lastUpdate.visibility = INVISIBLE
@@ -348,7 +360,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
      */
     private fun endGame() {
         // query the db to get the user's session
-        val reference = database.getReference("gameSessions")
+        val reference = realtimeDb.getReference("gameSessions")
         val query = reference.orderByChild("sessionId").equalTo(lobbyCode)
 
         query.get().addOnSuccessListener{
@@ -420,7 +432,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         if (code.isBlank()){
             Toast.makeText(this@GamePlay, "Please enter a code", Toast.LENGTH_SHORT).show()
         }
-        val reference = database.getReference("gameSessions")
+        val reference = realtimeDb.getReference("gameSessions")
         val query = reference.orderByChild("sessionId").equalTo(lobbyCode)
         query.addListenerForSingleValueEvent(object : ValueEventListener{
             override fun onDataChange(datasnapshot: DataSnapshot) {
@@ -471,4 +483,57 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
         })
     }
+
+    /**
+     * Retrieve all user icons
+     */
+    private fun retrieveUserIcons(lobbyCode: String, playerList: MutableList<String>, callback: (List<String>, List<ByteArray>) -> Unit) {
+        // get storage path
+        var storageRef = storageDb.reference
+        var usersWithIcons = mutableListOf<String>()
+        var userIcons = mutableListOf<ByteArray>()
+
+        playerList.forEach{ username ->
+            var pathRef = storageRef.child("$lobbyCode/$username.jpg")
+
+            pathRef.getBytes(1000000)
+                .addOnSuccessListener { icons ->
+                    userIcons.add(icons)
+                    usersWithIcons.add(username)
+                }
+        }
+        callback(usersWithIcons, userIcons)
+    }
+
+    /**
+     * Retrieve all players usernames
+     */
+    private fun retrievePlayers(lobbyCode: String, callback: (List<String>) -> Unit) {
+        // query the db to get the user's session
+        val query = realtimeDb.getReference("gameSessions")
+            .orderByChild("sessionId")
+            .equalTo(lobbyCode)
+        var playerList = mutableListOf<String>()
+
+        query.get().addOnSuccessListener {
+            // get the game session
+            val gameSessionSnapshot = it.children.first()
+            val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+
+            if (gameSession != null) {
+                for (p in gameSession.players) {
+                    playerList.add(p.userName)
+                }
+            }
+
+            callback(playerList)
+            return@addOnSuccessListener
+        }
+            .addOnFailureListener{
+                Log.e("Retrieve Player Failed", it.toString())
+                callback(emptyList())
+            }
+    }
+
+
 }
