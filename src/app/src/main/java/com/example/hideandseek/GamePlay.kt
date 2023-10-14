@@ -382,7 +382,6 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
             // get the game session
             var host = false
             val gameSessionSnapshot = it.children.first()
-            val sessionId = gameSessionSnapshot.key.toString()
             val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
             var seekerWonGame = true
 
@@ -412,7 +411,6 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 val gameOver = Intent(this@GamePlay, GameOver::class.java)
                 gameOver.putExtra("result", result)
                 gameOver.putExtra("lobbyCode", lobbyCode)
-                gameOver.putExtra("sessionId", sessionId)
                 gameOver.putExtra("username", userName)
                 gameOver.putExtra("host", host)
                 startActivity(gameOver)
