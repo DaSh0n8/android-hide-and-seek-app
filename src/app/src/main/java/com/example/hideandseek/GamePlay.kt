@@ -3,13 +3,16 @@ package com.example.hideandseek
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Resources
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
+import android.util.TypedValue
 import android.view.View.GONE
 import android.view.View.INVISIBLE
 import android.view.View.VISIBLE
@@ -102,6 +105,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
             inGamePlayers = players
             retrieveUserIcons(lobbyCode, inGamePlayers!!) { result ->
                 playersIcons = result
+                Log.d("Checking Iconsss", playersIcons.keys.toString())
             }
         }
 
@@ -244,12 +248,23 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                         if (!player.seeker) {
                             if (player.eliminated) {
                                 markerOptions.icon(BitmapDescriptorFactory.fromBitmap(eliminatedIcon))
+
                             } else {
-                                markerOptions.icon(BitmapDescriptorFactory.fromBitmap(
-                                    if (player.userName == userName) userIconBitmap
-                                    else hiderIconBitmap))
                                 hidersAvailable = true
+                                if (playersIcons.containsKey(player.userName)) {
+                                    Log.d("GT la", player.userName)
+                                    val byteArray = playersIcons[player.userName]
+                                    val userIcon = BitmapFactory.decodeByteArray(byteArray, 0, byteArray?.size ?:0)
+                                    var result = makeBlackPixelsTransparent(userIcon!!)
+                                    markerOptions.icon(BitmapDescriptorFactory.fromBitmap(scaleBitmap(result, 40)))
+
+                                } else {
+                                    markerOptions.icon(BitmapDescriptorFactory.fromBitmap(
+                                        if (player.userName == userName) userIconBitmap
+                                        else hiderIconBitmap))
+                                }
                             }
+                        // only show the icon if seeker is the user himself
                         } else if (player.userName == userName) {
                             markerOptions.icon(BitmapDescriptorFactory.fromBitmap(userIconBitmap))
                         }
@@ -498,12 +513,24 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
         playerList.forEach { username ->
             val pathRef = storageRef.child("$lobbyCode/$username.jpg")
+            // Check if the file exists before attempting to get bytes
+            pathRef.downloadUrl.addOnSuccessListener {
+                pathRef.getBytes(1_000_000)
+                    .addOnSuccessListener { icons ->
+                        userIcons[username] = icons
 
-            pathRef.getBytes(1000000)
-                .addOnSuccessListener { icons ->
-                    userIcons[username] = icons
+                        // Decrement the counter
+                        countDownLatch--
 
-                    // Decrement the counter
+                        // Check if all async calls are completed
+                        if (countDownLatch == 0) {
+                            // All async calls are done, invoke the callback
+                            callback(userIcons)
+                        }
+                    }
+            }.addOnFailureListener {
+                    // File doesn't exist
+                    // Decrement the counter even if the file doesn't exist
                     countDownLatch--
 
                     // Check if all async calls are completed
@@ -511,9 +538,10 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                         // All async calls are done, invoke the callback
                         callback(userIcons)
                     }
-                }
+            }
         }
     }
+
 
     /**
      * Retrieve all players usernames
@@ -556,6 +584,55 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 Log.e("Retrieve Player Failed", exception.toString())
                 callback(emptyList())
             }
+    }
+
+    private fun makeBlackPixelsTransparent(bitmap: Bitmap): Bitmap {
+        val width = bitmap.width
+        val height = bitmap.height
+        val resultBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+
+        for (x in 0 until width) {
+            for (y in 0 until height) {
+                val pixelColor = bitmap.getPixel(x, y)
+
+                // Check if the pixel is fully black (R = 0, G = 0, B = 0)
+                if (Color.red(pixelColor) == 0 && Color.green(pixelColor) == 0 && Color.blue(pixelColor) == 0) {
+                    // Set the alpha channel to 0 (fully transparent)
+                    resultBitmap.setPixel(x, y, Color.TRANSPARENT)
+                } else {
+                    // Copy the pixel as it is
+                    resultBitmap.setPixel(x, y, pixelColor)
+                }
+            }
+        }
+
+        return resultBitmap
+    }
+
+
+    fun scaleBitmap(originalBitmap: Bitmap, targetSizeDp: Int): Bitmap {
+        val resources = Resources.getSystem()
+        val density = resources.displayMetrics.density
+
+        // Convert dp to pixels
+        val targetSizePixels = TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            targetSizeDp.toFloat(),
+            resources.displayMetrics
+        ).toInt()
+
+        // Calculate the scale factor
+        val scale = targetSizePixels.toFloat() / originalBitmap.width
+
+        // Create a matrix for the scaling operation
+        val matrix = android.graphics.Matrix()
+        matrix.postScale(scale, scale)
+
+        // Resize the bitmap
+        return Bitmap.createBitmap(
+            originalBitmap, 0, 0,
+            originalBitmap.width, originalBitmap.height, matrix, true
+        )
     }
 
 }
