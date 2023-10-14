@@ -100,10 +100,8 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         // retrieve players icons
         retrievePlayers(lobbyCode) { players ->
             inGamePlayers = players
-            Log.d("Double Check1", inGamePlayers.toString())
             retrieveUserIcons(lobbyCode, inGamePlayers!!) { result ->
                 playersIcons = result
-                Log.d("Double Check2", playersIcons.keys.toString())
             }
         }
 
@@ -492,18 +490,29 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
      */
     private fun retrieveUserIcons(lobbyCode: String, playerList: List<String>, callback: (MutableMap<String, ByteArray>) -> Unit) {
         // get storage path
-        var storageRef = storageDb.reference
-        var userIcons: MutableMap<String, ByteArray> = mutableMapOf()
+        val storageRef = storageDb.reference
+        val userIcons: MutableMap<String, ByteArray> = mutableMapOf()
 
-        playerList.forEach{ username ->
-            var pathRef = storageRef.child("$lobbyCode/$username.jpg")
+        // Counter to keep track of completed async calls
+        var countDownLatch = playerList.size
+
+        playerList.forEach { username ->
+            val pathRef = storageRef.child("$lobbyCode/$username.jpg")
 
             pathRef.getBytes(1000000)
                 .addOnSuccessListener { icons ->
                     userIcons[username] = icons
+
+                    // Decrement the counter
+                    countDownLatch--
+
+                    // Check if all async calls are completed
+                    if (countDownLatch == 0) {
+                        // All async calls are done, invoke the callback
+                        callback(userIcons)
+                    }
                 }
         }
-        callback(userIcons)
     }
 
     /**
