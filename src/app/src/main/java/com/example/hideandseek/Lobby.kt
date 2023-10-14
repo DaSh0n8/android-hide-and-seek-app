@@ -52,14 +52,6 @@ class Lobby : AppCompatActivity() {
             uploadIcon(receivedUserIcon, receivedLobbyCode, receivedUsername)
         }
 
-        val updateGameSettings: FrameLayout = findViewById(R.id.settingsPlaceholder)
-        updateGameSettings.setOnClickListener {
-            val intent = Intent(this@Lobby, LobbySettings::class.java)
-            intent.putExtra("lobby_code_key", receivedLobbyCode)
-            intent.putExtra("username_key", receivedUsername)
-            startActivity(intent)
-        }
-
         val query = realtimeDb.getReference("gameSessions")
             .orderByChild("sessionId")
             .equalTo(receivedLobbyCode)
@@ -72,15 +64,17 @@ class Lobby : AppCompatActivity() {
                 hidersList.clear()
 
                 for (sessionSnapshot in dataSnapshot.children) {
-                    // check if host has started the game
                     val gameSessionSnapshot = dataSnapshot.children.first()
                     val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
-                    if (gameSession!!.gameStatus == "started") {
-                        startGameIntent(receivedLobbyCode, receivedUsername, gameSession, receivedPlayerCode)
+
+                    // check if host has started or ended the game
+                    when (gameSession!!.gameStatus) {
+                        "started" -> startGameIntent(receivedLobbyCode, receivedUsername, gameSession, receivedPlayerCode)
+                        "ended"   -> returnHomeIntent(receivedLobbyCode, host)
                     }
 
-                    // update player list
                     val players = sessionSnapshot.child("players").children
+                    // update player list
                     for (playerSnapshot in players) {
                         val playerName = playerSnapshot.child("userName").value.toString()
                         val isSeeker = playerSnapshot.child("seeker").getValue(Boolean::class.java) ?: false
@@ -113,18 +107,29 @@ class Lobby : AppCompatActivity() {
 
         val leaveLobbyButton: Button = findViewById(R.id.leaveLobbyButton)
         leaveLobbyButton.setOnClickListener {
-            removePlayer(receivedLobbyCode,receivedUsername)
+            leaveLobby(receivedLobbyCode,receivedUsername)
         }
 
         val startGameButton: Button = findViewById(R.id.startGameButton)
         startGameButton.setOnClickListener {
-            startButtonClicked(receivedLobbyCode,receivedUsername, receivedPlayerCode)
+            startButtonClicked(receivedLobbyCode)
         }
+
+        val updateGameSettings: FrameLayout = findViewById(R.id.settingsPlaceholder)
+        updateGameSettings.setOnClickListener {
+            val intent = Intent(this@Lobby, LobbySettings::class.java)
+            intent.putExtra("lobby_code_key", receivedLobbyCode)
+            intent.putExtra("username_key", receivedUsername)
+            intent.putExtra("host", host)
+            startActivity(intent)
+        }
+
         // hide the start game button for non host users
         if (!host) {
             startGameButton.visibility = GONE
             val waitHost: TextView = findViewById(R.id.waitHost)
             waitHost.visibility = VISIBLE
+            updateGameSettings.visibility = GONE
         }
 
     }
@@ -178,7 +183,7 @@ class Lobby : AppCompatActivity() {
         }
     }
 
-    private fun removePlayer(lobbyCode: String?, username: String?) {
+    private fun leaveLobby(lobbyCode: String?, username: String?) {
         val query = realtimeDb.getReference("gameSessions")
             .orderByChild("sessionId")
             .equalTo(lobbyCode)
@@ -193,13 +198,10 @@ class Lobby : AppCompatActivity() {
                         val playerIsHost = gameSession.players.find { it.userName == username }?.host == true
 
                         if (playerIsHost) {
-                            gameSessionSnapshot.ref.removeValue().addOnSuccessListener {
+                            // Update the local GameSession object
+                            gameSession?.gameStatus = "ended"
+                            gameSessionSnapshot.ref.setValue(gameSession).addOnFailureListener {
                                 Toast.makeText(this@Lobby, "Game session ended", Toast.LENGTH_SHORT).show()
-                                val intent = Intent(this@Lobby, HomeScreen::class.java)
-                                intent.putExtra("lobby_key", lobbyCode)
-                                startActivity(intent)
-                            }.addOnFailureListener {
-                                Toast.makeText(this@Lobby, "Error deleting session", Toast.LENGTH_SHORT).show()
                             }
                         } else {
                             val updatedPlayers = gameSession.players.toMutableList()
@@ -209,10 +211,9 @@ class Lobby : AppCompatActivity() {
                             gameSessionSnapshot.ref.setValue(gameSession).addOnFailureListener {
                                 Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
                             }
-                            val intent = Intent(this@Lobby, HomeScreen::class.java)
-                            intent.putExtra("lobby_key", lobbyCode)
-                            startActivity(intent)
                         }
+
+                        returnHomeIntent(lobbyCode, playerIsHost)
 
                     } else {
                         Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
@@ -227,7 +228,7 @@ class Lobby : AppCompatActivity() {
         })
     }
 
-    private fun startButtonClicked(lobbyCode: String?, username: String?, playerCode: String?) {
+    private fun startButtonClicked(lobbyCode: String?) {
         val query = realtimeDb.getReference("gameSessions")
             .orderByChild("sessionId")
             .equalTo(lobbyCode)
@@ -245,15 +246,11 @@ class Lobby : AppCompatActivity() {
 
                         // Save the updated GameSession back to Firebase
                         gameSessionSnapshot.ref.setValue(gameSession)
-                            .addOnSuccessListener {
-                                // If the update is successful, start the game
-                                startGameIntent(lobbyCode, username, gameSession, playerCode)
-                            }
                             .addOnFailureListener {
                                 // If there is an error updating Firebase, show an error message
                                 Toast.makeText(
                                     this@Lobby,
-                                    "Error updating game status in Firebase",
+                                    "Error starting the game",
                                     Toast.LENGTH_SHORT
                                 ).show()
                             }
@@ -366,6 +363,17 @@ class Lobby : AppCompatActivity() {
             // Invoke the callback with null in case of failure
             callback(null)
         }
+    }
+
+    private fun returnHomeIntent(lobbyCode: String?, host: Boolean?) {
+        val intent = Intent(this@Lobby, HomeScreen::class.java)
+        if (!host!!) {
+            Toast.makeText(this@Lobby, "Host have left", Toast.LENGTH_SHORT).show()
+        } else {
+            intent.putExtra("lobby_key", lobbyCode)
+        }
+        startActivity(intent)
+        finish()
     }
 
 

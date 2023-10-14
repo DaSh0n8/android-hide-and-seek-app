@@ -105,7 +105,6 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
             inGamePlayers = players
             retrieveUserIcons(lobbyCode, inGamePlayers!!) { result ->
                 playersIcons = result
-                Log.d("Checking Iconsss", playersIcons.keys.toString())
             }
         }
 
@@ -118,7 +117,6 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         // Request location updates
         locationHelper = LocationHelper(this)
         locationHelper.requestLocationUpdates { location ->
-            Log.d("LocationTest", "Location updates")
             userLatLng = LatLng(location.latitude, location.longitude)
             uploadLoc(location, query)
         }
@@ -198,7 +196,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
      */
     private fun showUserLocation(query: Query, gameTimer: CountDownTimer) {
         // convert the drawable user icon to a Bitmap
-        val userIconBitmap = getBitmapFromVectorDrawable(this, R.drawable.self_user_icon)
+        val userIconBitmap = scaleBitmap(BitmapFactory.decodeResource(resources, R.drawable.usericon), 24)
         val hiderIconBitmap = getBitmapFromVectorDrawable(this, R.drawable.user_icon)
         val eliminatedIcon = getBitmapFromVectorDrawable(this, R.drawable.eliminated)
         var lastUpdate: TextView = findViewById(R.id.lastUpdateValue)
@@ -244,6 +242,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                     players.forEach{ player ->
                         val coordinates = LatLng(player.latitude!!, player.longitude!!)
                         val markerOptions = MarkerOptions().position(coordinates)
+                        markerOptions.title(player.userName)
 
                         if (!player.seeker) {
                             if (player.eliminated) {
