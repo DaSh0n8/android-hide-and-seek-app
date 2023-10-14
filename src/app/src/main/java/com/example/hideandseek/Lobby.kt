@@ -118,7 +118,7 @@ class Lobby : AppCompatActivity() {
 
         val startGameButton: Button = findViewById(R.id.startGameButton)
         startGameButton.setOnClickListener {
-            startButtonClicked(receivedLobbyCode,receivedUsername, receivedPlayerCode)
+            startButtonClicked(receivedLobbyCode)
         }
         // hide the start game button for non host users
         if (!host) {
@@ -227,7 +227,7 @@ class Lobby : AppCompatActivity() {
         })
     }
 
-    private fun startButtonClicked(lobbyCode: String?, username: String?, playerCode: String?) {
+    private fun startButtonClicked(lobbyCode: String?) {
         val query = realtimeDb.getReference("gameSessions")
             .orderByChild("sessionId")
             .equalTo(lobbyCode)
@@ -245,15 +245,11 @@ class Lobby : AppCompatActivity() {
 
                         // Save the updated GameSession back to Firebase
                         gameSessionSnapshot.ref.setValue(gameSession)
-                            .addOnSuccessListener {
-                                // If the update is successful, start the game
-                                startGameIntent(lobbyCode, username, gameSession, playerCode)
-                            }
                             .addOnFailureListener {
                                 // If there is an error updating Firebase, show an error message
                                 Toast.makeText(
                                     this@Lobby,
-                                    "Error updating game status in Firebase",
+                                    "Error starting the game",
                                     Toast.LENGTH_SHORT
                                 ).show()
                             }
