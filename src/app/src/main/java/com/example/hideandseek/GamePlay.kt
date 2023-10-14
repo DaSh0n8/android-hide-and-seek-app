@@ -63,7 +63,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private var geofenceRadius = defaultRadius
     private lateinit var userLatLng: LatLng
     private var inGamePlayers: List<String>? = null
-    private var playersIcons: MutableMap<String, ByteArray> = mutableMapOf()
+    private var playersIcons: MutableMap<String, Bitmap> = mutableMapOf()
 
     private lateinit var map: GoogleMap
     private lateinit var binding: GamePlayBinding
@@ -241,32 +241,23 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                     // reflect hiders' latest locations on map
                     players.forEach{ player ->
                         val coordinates = LatLng(player.latitude!!, player.longitude!!)
-                        val markerOptions = MarkerOptions().position(coordinates)
-                        markerOptions.title(player.userName)
+                        val markerOptions = MarkerOptions().position(coordinates).title(player.userName)
 
-                        if (!player.seeker) {
-                            if (player.eliminated) {
-                                markerOptions.icon(BitmapDescriptorFactory.fromBitmap(eliminatedIcon))
+                        val iconBitmap = if (!player.seeker && !player.eliminated) {
+                            hidersAvailable = true
+                            playersIcons[player.userName] ?: userIconBitmap
 
-                            } else {
-                                hidersAvailable = true
-                                if (playersIcons.containsKey(player.userName)) {
-                                    Log.d("GT la", player.userName)
-                                    val byteArray = playersIcons[player.userName]
-                                    val userIcon = BitmapFactory.decodeByteArray(byteArray, 0, byteArray?.size ?:0)
-                                    var result = makeBlackPixelsTransparent(userIcon!!)
-                                    markerOptions.icon(BitmapDescriptorFactory.fromBitmap(scaleBitmap(result, 40)))
+                        } else if (player.seeker && player.userName == userName) {
+                            playersIcons[player.userName] ?: userIconBitmap
 
-                                } else {
-                                    markerOptions.icon(BitmapDescriptorFactory.fromBitmap(
-                                        if (player.userName == userName) userIconBitmap
-                                        else hiderIconBitmap))
-                                }
-                            }
-                        // only show the icon if seeker is the user himself
-                        } else if (player.userName == userName) {
-                            markerOptions.icon(BitmapDescriptorFactory.fromBitmap(userIconBitmap))
+                        } else if (!player.seeker && player.eliminated) {
+                            eliminatedIcon
+
+                        } else {
+                            BitmapFactory.decodeResource(resources, R.drawable.usericon)
                         }
+
+                        iconBitmap?.let { markerOptions.icon(BitmapDescriptorFactory.fromBitmap(it)) }
 
                         map.addMarker(markerOptions)
                     }
@@ -500,10 +491,10 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     /**
      * Retrieve all user icons
      */
-    private fun retrieveUserIcons(lobbyCode: String, playerList: List<String>, callback: (MutableMap<String, ByteArray>) -> Unit) {
+    private fun retrieveUserIcons(lobbyCode: String, playerList: List<String>, callback: (MutableMap<String, Bitmap>) -> Unit) {
         // get storage path
         val storageRef = storageDb.reference
-        val userIcons: MutableMap<String, ByteArray> = mutableMapOf()
+        val userIcons: MutableMap<String, Bitmap> = mutableMapOf()
 
         // Counter to keep track of completed async calls
         var countDownLatch = playerList.size
@@ -514,7 +505,9 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
             pathRef.downloadUrl.addOnSuccessListener {
                 pathRef.getBytes(1_000_000)
                     .addOnSuccessListener { icons ->
-                        userIcons[username] = icons
+                        val userIcon = BitmapFactory.decodeByteArray(icons, 0, icons?.size ?:0)
+                        var result = makeBlackPixelsTransparent(userIcon!!)
+                        userIcons[username] = scaleBitmap(result, 40)
 
                         // Decrement the counter
                         countDownLatch--
