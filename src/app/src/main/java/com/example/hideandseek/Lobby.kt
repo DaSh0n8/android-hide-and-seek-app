@@ -52,14 +52,6 @@ class Lobby : AppCompatActivity() {
             uploadIcon(receivedUserIcon, receivedLobbyCode, receivedUsername)
         }
 
-        val updateGameSettings: FrameLayout = findViewById(R.id.settingsPlaceholder)
-        updateGameSettings.setOnClickListener {
-            val intent = Intent(this@Lobby, LobbySettings::class.java)
-            intent.putExtra("lobby_code_key", receivedLobbyCode)
-            intent.putExtra("username_key", receivedUsername)
-            startActivity(intent)
-        }
-
         val query = realtimeDb.getReference("gameSessions")
             .orderByChild("sessionId")
             .equalTo(receivedLobbyCode)
@@ -120,11 +112,21 @@ class Lobby : AppCompatActivity() {
         startGameButton.setOnClickListener {
             startButtonClicked(receivedLobbyCode)
         }
+
+        val updateGameSettings: FrameLayout = findViewById(R.id.settingsPlaceholder)
+        updateGameSettings.setOnClickListener {
+            val intent = Intent(this@Lobby, LobbySettings::class.java)
+            intent.putExtra("lobby_code_key", receivedLobbyCode)
+            intent.putExtra("username_key", receivedUsername)
+            startActivity(intent)
+        }
+
         // hide the start game button for non host users
         if (!host) {
             startGameButton.visibility = GONE
             val waitHost: TextView = findViewById(R.id.waitHost)
             waitHost.visibility = VISIBLE
+            updateGameSettings.visibility = GONE
         }
 
     }
