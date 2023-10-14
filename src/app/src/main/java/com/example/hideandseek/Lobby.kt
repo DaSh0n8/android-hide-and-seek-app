@@ -50,8 +50,6 @@ class Lobby : AppCompatActivity() {
         // upload user icon if available
         if (receivedUserIcon != null) {
             uploadIcon(receivedUserIcon, receivedLobbyCode, receivedUsername)
-        } else {
-            receivedUserIcon = retrieveIcon(receivedLobbyCode, receivedUsername)
         }
 
         val updateGameSettings: FrameLayout = findViewById(R.id.settingsPlaceholder)
@@ -333,22 +331,6 @@ class Lobby : AppCompatActivity() {
             .equalTo(lobbyCode)
 
         query.removeEventListener(lobbyListener)
-    }
-
-    /**
-     * Retrieve player icon if available
-     */
-    private fun retrieveIcon(lobbyCode: String?, username: String?): ByteArray? {
-        // get storage path
-        var storageRef = storageDb.reference
-        val pathRef = storageRef.child("$lobbyCode/$username.jpg")
-        var userIcon: ByteArray? = null
-
-        pathRef.getBytes(1000000)
-            .addOnSuccessListener {
-                userIcon = it
-        }
-        return  userIcon
     }
 
     /**

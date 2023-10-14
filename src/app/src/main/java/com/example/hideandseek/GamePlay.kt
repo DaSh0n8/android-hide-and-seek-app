@@ -3,13 +3,16 @@ package com.example.hideandseek
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Resources
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
+import android.util.TypedValue
 import android.view.View.GONE
 import android.view.View.INVISIBLE
 import android.view.View.VISIBLE
@@ -35,6 +38,7 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.Query
 import com.google.firebase.database.ValueEventListener
+import com.google.firebase.storage.FirebaseStorage
 import java.util.Timer
 import java.util.TimerTask
 
@@ -58,11 +62,14 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private var updateInterval = defaultInterval
     private var geofenceRadius = defaultRadius
     private lateinit var userLatLng: LatLng
+    private var inGamePlayers: List<String>? = null
+    private var playersIcons: MutableMap<String, ByteArray> = mutableMapOf()
 
     private lateinit var map: GoogleMap
     private lateinit var binding: GamePlayBinding
     private lateinit var bindingHiders: GamePlayHiderBinding
-    private lateinit var database: FirebaseDatabase
+    private lateinit var realtimeDb: FirebaseDatabase
+    private lateinit var storageDb: FirebaseStorage
     private lateinit var locationHelper: LocationHelper
     private lateinit var gameplayListener: ValueEventListener
 
@@ -79,6 +86,11 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
             setContentView(bindingHiders.root)
         }
 
+        // get firebase real time db
+        val application = application as HideAndSeek
+        realtimeDb = application.getRealtimeDb()
+        storageDb = application.getStorageDb()
+
         // receive data from previous activity
         lobbyCode = intent.getStringExtra("lobbyCode")!!
         userName = intent.getStringExtra("username")!!
@@ -88,12 +100,17 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         updateInterval = minToMilli(intent.getIntExtra("updateInterval", 1))
         geofenceRadius = intent.getIntExtra("radius", defaultRadius)
 
-        // get firebase real time db
-        val application = application as HideAndSeek
-        database = application.getRealtimeDb()
+        // retrieve players icons
+        retrievePlayers(lobbyCode) { players ->
+            inGamePlayers = players
+            retrieveUserIcons(lobbyCode, inGamePlayers!!) { result ->
+                playersIcons = result
+                Log.d("Checking Iconsss", playersIcons.keys.toString())
+            }
+        }
 
         // query the db to get the user's session
-        val reference = database.getReference("gameSessions")
+        val reference = realtimeDb.getReference("gameSessions")
         val query = reference.orderByChild("sessionId").equalTo(lobbyCode)
         var lastUpdate: TextView = findViewById(R.id.lastUpdate)
         lastUpdate.visibility = INVISIBLE
@@ -231,12 +248,23 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                         if (!player.seeker) {
                             if (player.eliminated) {
                                 markerOptions.icon(BitmapDescriptorFactory.fromBitmap(eliminatedIcon))
+
                             } else {
-                                markerOptions.icon(BitmapDescriptorFactory.fromBitmap(
-                                    if (player.userName == userName) userIconBitmap
-                                    else hiderIconBitmap))
                                 hidersAvailable = true
+                                if (playersIcons.containsKey(player.userName)) {
+                                    Log.d("GT la", player.userName)
+                                    val byteArray = playersIcons[player.userName]
+                                    val userIcon = BitmapFactory.decodeByteArray(byteArray, 0, byteArray?.size ?:0)
+                                    var result = makeBlackPixelsTransparent(userIcon!!)
+                                    markerOptions.icon(BitmapDescriptorFactory.fromBitmap(scaleBitmap(result, 40)))
+
+                                } else {
+                                    markerOptions.icon(BitmapDescriptorFactory.fromBitmap(
+                                        if (player.userName == userName) userIconBitmap
+                                        else hiderIconBitmap))
+                                }
                             }
+                        // only show the icon if seeker is the user himself
                         } else if (player.userName == userName) {
                             markerOptions.icon(BitmapDescriptorFactory.fromBitmap(userIconBitmap))
                         }
@@ -348,7 +376,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
      */
     private fun endGame() {
         // query the db to get the user's session
-        val reference = database.getReference("gameSessions")
+        val reference = realtimeDb.getReference("gameSessions")
         val query = reference.orderByChild("sessionId").equalTo(lobbyCode)
 
         query.get().addOnSuccessListener{
@@ -420,7 +448,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         if (code.isBlank()){
             Toast.makeText(this@GamePlay, "Please enter a code", Toast.LENGTH_SHORT).show()
         }
-        val reference = database.getReference("gameSessions")
+        val reference = realtimeDb.getReference("gameSessions")
         val query = reference.orderByChild("sessionId").equalTo(lobbyCode)
         query.addListenerForSingleValueEvent(object : ValueEventListener{
             override fun onDataChange(datasnapshot: DataSnapshot) {
@@ -471,4 +499,140 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
         })
     }
+
+    /**
+     * Retrieve all user icons
+     */
+    private fun retrieveUserIcons(lobbyCode: String, playerList: List<String>, callback: (MutableMap<String, ByteArray>) -> Unit) {
+        // get storage path
+        val storageRef = storageDb.reference
+        val userIcons: MutableMap<String, ByteArray> = mutableMapOf()
+
+        // Counter to keep track of completed async calls
+        var countDownLatch = playerList.size
+
+        playerList.forEach { username ->
+            val pathRef = storageRef.child("$lobbyCode/$username.jpg")
+            // Check if the file exists before attempting to get bytes
+            pathRef.downloadUrl.addOnSuccessListener {
+                pathRef.getBytes(1_000_000)
+                    .addOnSuccessListener { icons ->
+                        userIcons[username] = icons
+
+                        // Decrement the counter
+                        countDownLatch--
+
+                        // Check if all async calls are completed
+                        if (countDownLatch == 0) {
+                            // All async calls are done, invoke the callback
+                            callback(userIcons)
+                        }
+                    }
+            }.addOnFailureListener {
+                    // File doesn't exist
+                    // Decrement the counter even if the file doesn't exist
+                    countDownLatch--
+
+                    // Check if all async calls are completed
+                    if (countDownLatch == 0) {
+                        // All async calls are done, invoke the callback
+                        callback(userIcons)
+                    }
+            }
+        }
+    }
+
+
+    /**
+     * Retrieve all players usernames
+     */
+    private fun retrievePlayers(lobbyCode: String, callback: (List<String>) -> Unit) {
+        // query the db to get the user's session
+        val query = realtimeDb.getReference("gameSessions")
+            .orderByChild("sessionId")
+            .equalTo(lobbyCode)
+
+        val playerList = mutableListOf<String>()
+
+        query.get().addOnSuccessListener { snapshot ->
+            // Check if there are any children
+            if (snapshot.hasChildren()) {
+                // get the game session
+                val gameSessionSnapshot = snapshot.children.first()
+                val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+
+                if (gameSession != null) {
+                    // Iterate through players and add to the list
+                    for (p in gameSession.players) {
+                        playerList.add(p.userName)
+                    }
+                    callback(playerList)
+                    return@addOnSuccessListener
+                } else {
+                    // Handle the case where parsing fails
+                    Log.e("Retrieve Player Failed", "Failed to parse GameSession")
+                    callback(emptyList())
+                }
+            } else {
+                // Handle the case where no game session is found
+                Log.e("Retrieve Player Failed", "No game session found for the given code")
+                callback(emptyList())
+            }
+        }
+            .addOnFailureListener { exception ->
+                // Handle the failure case
+                Log.e("Retrieve Player Failed", exception.toString())
+                callback(emptyList())
+            }
+    }
+
+    private fun makeBlackPixelsTransparent(bitmap: Bitmap): Bitmap {
+        val width = bitmap.width
+        val height = bitmap.height
+        val resultBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+
+        for (x in 0 until width) {
+            for (y in 0 until height) {
+                val pixelColor = bitmap.getPixel(x, y)
+
+                // Check if the pixel is fully black (R = 0, G = 0, B = 0)
+                if (Color.red(pixelColor) == 0 && Color.green(pixelColor) == 0 && Color.blue(pixelColor) == 0) {
+                    // Set the alpha channel to 0 (fully transparent)
+                    resultBitmap.setPixel(x, y, Color.TRANSPARENT)
+                } else {
+                    // Copy the pixel as it is
+                    resultBitmap.setPixel(x, y, pixelColor)
+                }
+            }
+        }
+
+        return resultBitmap
+    }
+
+
+    fun scaleBitmap(originalBitmap: Bitmap, targetSizeDp: Int): Bitmap {
+        val resources = Resources.getSystem()
+        val density = resources.displayMetrics.density
+
+        // Convert dp to pixels
+        val targetSizePixels = TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            targetSizeDp.toFloat(),
+            resources.displayMetrics
+        ).toInt()
+
+        // Calculate the scale factor
+        val scale = targetSizePixels.toFloat() / originalBitmap.width
+
+        // Create a matrix for the scaling operation
+        val matrix = android.graphics.Matrix()
+        matrix.postScale(scale, scale)
+
+        // Resize the bitmap
+        return Bitmap.createBitmap(
+            originalBitmap, 0, 0,
+            originalBitmap.width, originalBitmap.height, matrix, true
+        )
+    }
+
 }
