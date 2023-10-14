@@ -60,6 +60,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private var geofenceRadius = defaultRadius
     private lateinit var userLatLng: LatLng
     private var inGamePlayers: List<String>? = null
+    private var playersIcons: MutableMap<String, ByteArray> = mutableMapOf()
 
     private lateinit var map: GoogleMap
     private lateinit var binding: GamePlayBinding
@@ -96,13 +97,15 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         updateInterval = minToMilli(intent.getIntExtra("updateInterval", 1))
         geofenceRadius = intent.getIntExtra("radius", defaultRadius)
 
-        // get the players in the game
-        retrievePlayers(lobbyCode) {
-            inGamePlayers = it
+        // retrieve players icons
+        retrievePlayers(lobbyCode) { players ->
+            inGamePlayers = players
+            Log.d("Double Check1", inGamePlayers.toString())
+            retrieveUserIcons(lobbyCode, inGamePlayers!!) { result ->
+                playersIcons = result
+                Log.d("Double Check2", playersIcons.keys.toString())
+            }
         }
-
-        // get user icons
-
 
         // query the db to get the user's session
         val reference = realtimeDb.getReference("gameSessions")
@@ -487,22 +490,20 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     /**
      * Retrieve all user icons
      */
-    private fun retrieveUserIcons(lobbyCode: String, playerList: MutableList<String>, callback: (List<String>, List<ByteArray>) -> Unit) {
+    private fun retrieveUserIcons(lobbyCode: String, playerList: List<String>, callback: (MutableMap<String, ByteArray>) -> Unit) {
         // get storage path
         var storageRef = storageDb.reference
-        var usersWithIcons = mutableListOf<String>()
-        var userIcons = mutableListOf<ByteArray>()
+        var userIcons: MutableMap<String, ByteArray> = mutableMapOf()
 
         playerList.forEach{ username ->
             var pathRef = storageRef.child("$lobbyCode/$username.jpg")
 
             pathRef.getBytes(1000000)
                 .addOnSuccessListener { icons ->
-                    userIcons.add(icons)
-                    usersWithIcons.add(username)
+                    userIcons[username] = icons
                 }
         }
-        callback(usersWithIcons, userIcons)
+        callback(userIcons)
     }
 
     /**
@@ -513,27 +514,39 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         val query = realtimeDb.getReference("gameSessions")
             .orderByChild("sessionId")
             .equalTo(lobbyCode)
-        var playerList = mutableListOf<String>()
 
-        query.get().addOnSuccessListener {
-            // get the game session
-            val gameSessionSnapshot = it.children.first()
-            val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+        val playerList = mutableListOf<String>()
 
-            if (gameSession != null) {
-                for (p in gameSession.players) {
-                    playerList.add(p.userName)
+        query.get().addOnSuccessListener { snapshot ->
+            // Check if there are any children
+            if (snapshot.hasChildren()) {
+                // get the game session
+                val gameSessionSnapshot = snapshot.children.first()
+                val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+
+                if (gameSession != null) {
+                    // Iterate through players and add to the list
+                    for (p in gameSession.players) {
+                        playerList.add(p.userName)
+                    }
+                    callback(playerList)
+                    return@addOnSuccessListener
+                } else {
+                    // Handle the case where parsing fails
+                    Log.e("Retrieve Player Failed", "Failed to parse GameSession")
+                    callback(emptyList())
                 }
+            } else {
+                // Handle the case where no game session is found
+                Log.e("Retrieve Player Failed", "No game session found for the given code")
+                callback(emptyList())
             }
-
-            callback(playerList)
-            return@addOnSuccessListener
         }
-            .addOnFailureListener{
-                Log.e("Retrieve Player Failed", it.toString())
+            .addOnFailureListener { exception ->
+                // Handle the failure case
+                Log.e("Retrieve Player Failed", exception.toString())
                 callback(emptyList())
             }
     }
-
 
 }
