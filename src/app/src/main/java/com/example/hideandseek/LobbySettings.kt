@@ -62,6 +62,7 @@ class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
 
         val receivedLobbyCode: String? = intent.getStringExtra("lobby_code_key")
         val receivedUsername: String? = intent.getStringExtra("username_key")
+        val host = intent.getBooleanExtra("host", false)
         val lobbyHeader = findViewById<TextView>(R.id.titleText)
         val lobbyCode = "Lobby #$receivedLobbyCode Settings"
         lobbyHeader.text = lobbyCode
@@ -103,7 +104,7 @@ class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
         loadSettingsInFields(receivedLobbyCode)
 
         createGameButton.setOnClickListener {
-            confirmSettingsClicked(receivedLobbyCode, receivedUsername)
+            confirmSettingsClicked(receivedLobbyCode, receivedUsername, host)
         }
     }
 
@@ -143,7 +144,7 @@ class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
     /**
      * Update game session with user input values
      */
-    private fun confirmSettingsClicked(receivedLobbyCode: String?, receivedUsername: String?) {
+    private fun confirmSettingsClicked(receivedLobbyCode: String?, receivedUsername: String?, host: Boolean?) {
         if (receivedLobbyCode == null) {
             return
         }
@@ -187,7 +188,9 @@ class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
                             val intent = Intent(this@LobbySettings, Lobby::class.java)
                             intent.putExtra("lobby_key", receivedLobbyCode)
                             intent.putExtra("username_key", receivedUsername)
+                            intent.putExtra("host", host)
                             startActivity(intent)
+                            finish()
                         }
                         .addOnFailureListener {
                             Toast.makeText(this@LobbySettings, "Error updating game settings", Toast.LENGTH_SHORT).show()
