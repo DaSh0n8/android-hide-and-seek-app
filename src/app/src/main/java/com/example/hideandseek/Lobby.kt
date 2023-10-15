@@ -69,7 +69,7 @@ class Lobby : AppCompatActivity() {
                     // check if host has started or ended the game
                     when (gameSession!!.gameStatus) {
                         "started" -> startGameIntent(receivedLobbyCode, receivedUsername, gameSession)
-                        "ended"   -> returnHomeIntent(receivedLobbyCode, host)
+                        "ended"   -> returnHomeIntent(receivedLobbyCode, host, true)
                     }
 
                     val players = sessionSnapshot.child("players").children
@@ -106,7 +106,7 @@ class Lobby : AppCompatActivity() {
 
         val leaveLobbyButton: Button = findViewById(R.id.leaveLobbyButton)
         leaveLobbyButton.setOnClickListener {
-            leaveLobby(receivedLobbyCode,receivedUsername)
+            leaveLobby(receivedLobbyCode, receivedUsername)
         }
 
         val startGameButton: Button = findViewById(R.id.startGameButton)
@@ -212,7 +212,7 @@ class Lobby : AppCompatActivity() {
                             }
                         }
 
-                        returnHomeIntent(lobbyCode, playerIsHost)
+                        returnHomeIntent(lobbyCode, playerIsHost, true)
 
                     } else {
                         Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
@@ -364,13 +364,14 @@ class Lobby : AppCompatActivity() {
         }
     }
 
-    private fun returnHomeIntent(lobbyCode: String?, host: Boolean?) {
+    private fun returnHomeIntent(lobbyCode: String?, host: Boolean?, voluntary: Boolean) {
         val intent = Intent(this@Lobby, HomeScreen::class.java)
-        if (!host!!) {
+        if (!host!! && !voluntary) {
             Toast.makeText(this@Lobby, "Host have left", Toast.LENGTH_SHORT).show()
         } else {
             intent.putExtra("lobby_key", lobbyCode)
         }
+        removeLobbyListener(lobbyCode!!)
         startActivity(intent)
         finish()
     }
