@@ -69,7 +69,7 @@ class Lobby : AppCompatActivity() {
                     // check if host has started or ended the game
                     when (gameSession!!.gameStatus) {
                         "started" -> startGameIntent(receivedLobbyCode, receivedUsername, gameSession)
-                        "ended"   -> returnHomeIntent(receivedLobbyCode, host, true)
+                        "ended"   -> returnHomeIntent(receivedLobbyCode, host, false)
                     }
 
                     val players = sessionSnapshot.child("players").children
@@ -367,7 +367,7 @@ class Lobby : AppCompatActivity() {
     private fun returnHomeIntent(lobbyCode: String?, host: Boolean?, voluntary: Boolean) {
         val intent = Intent(this@Lobby, HomeScreen::class.java)
         if (!host!! && !voluntary) {
-            Toast.makeText(this@Lobby, "Host have left", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this@Lobby, "Host has left", Toast.LENGTH_SHORT).show()
         } else {
             intent.putExtra("lobby_key", lobbyCode)
         }
