@@ -372,6 +372,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
             val gameSessionSnapshot = it.children.first()
             val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
             var seekerWonGame = true
+            var isSeeker = false
 
             if (gameSession != null) {
                 val players = gameSession.players.toMutableList()
@@ -384,20 +385,16 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
                     if (p.userName == userName) {
                         host = p.host
+                        isSeeker = p.seeker
                     }
 
                     // reset status
                     p.eliminated = false
                 }
 
-                val result: String = if (seekerWonGame) {
-                    "Seekers Won!"
-                } else {
-                    "Hiders Won!"
-                }
-
                 val gameOver = Intent(this@GamePlay, GameOver::class.java)
-                gameOver.putExtra("result", result)
+                gameOver.putExtra("seekerWonGame", seekerWonGame)
+                gameOver.putExtra("isSeeker", isSeeker)
                 gameOver.putExtra("lobbyCode", lobbyCode)
                 gameOver.putExtra("username", userName)
                 gameOver.putExtra("host", host)
@@ -597,7 +594,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     }
 
 
-    fun scaleBitmap(originalBitmap: Bitmap, targetSizeDp: Int): Bitmap {
+    private fun scaleBitmap(originalBitmap: Bitmap, targetSizeDp: Int): Bitmap {
         val resources = Resources.getSystem()
         val density = resources.displayMetrics.density
 
