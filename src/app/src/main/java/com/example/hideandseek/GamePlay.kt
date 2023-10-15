@@ -106,6 +106,21 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
             }
         }
 
+
+        if (isSeeker){
+            //eliminate player
+            val eliminate: Button = findViewById(R.id.eliminateBtn)
+            val code: TextInputEditText = findViewById(R.id.textInputEditText)
+            eliminate.setOnClickListener{
+                eliminatePlayer(code.text.toString())
+                code.text?.clear()
+            }
+        }
+        else{
+            val code: TextView = findViewById(R.id.textCode)
+            code.text = playerCode
+        }
+
         // query the db to get the user's session
         val reference = realtimeDb.getReference("gameSessions")
         val query = reference.orderByChild("sessionId").equalTo(lobbyCode)
@@ -145,6 +160,11 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 // remove overlay
                 hidingText.visibility = GONE
                 lastUpdate.visibility = VISIBLE
+                if (isSeeker) {
+                    val eliminate: Button = findViewById(R.id.eliminateBtn)
+                    eliminate.isEnabled = true
+                    eliminate.setBackgroundColor(Color.parseColor("#005AFF"))
+                }
 
                 // count down timer for game play
                 val gameTimer = object: CountDownTimer(gameTime, 1000) {
@@ -166,20 +186,6 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
             }
         }
         hideTimer.start()
-
-        if (isSeeker){
-            //eliminate player
-            val code: TextInputEditText = findViewById(R.id.textInputEditText)
-            val eliminate: Button = findViewById(R.id.eliminateBtn)
-            eliminate.setOnClickListener{
-                eliminatePlayer(code.text.toString())
-                code.text?.clear()
-            }
-        }
-        else{
-            val code: TextView = findViewById(R.id.textCode)
-            code.text = playerCode
-        }
     }
 
     /**
