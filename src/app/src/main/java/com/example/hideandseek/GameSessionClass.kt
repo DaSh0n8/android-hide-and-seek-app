@@ -8,6 +8,8 @@ class GameSessionClass() {
     var hidingTime: Int = 0
     var updateInterval: Int = 0
     var radius: Int = 100
+    var geofenceLat: Double = 0.0
+    var geofenceLon: Double = 0.0
 
     constructor(
         sessionId: String,
@@ -16,7 +18,9 @@ class GameSessionClass() {
         gameLength: Int,
         hidingTime: Int,
         updateInterval: Int,
-        radius: Int
+        radius: Int,
+        geofenceLat: Double,
+        geofenceLon: Double
     ) : this() {
         this.sessionId = sessionId
         this.gameStatus = gameStatus
@@ -25,5 +29,7 @@ class GameSessionClass() {
         this.hidingTime = hidingTime
         this.updateInterval = updateInterval
         this.radius = radius
+        this.geofenceLat = geofenceLat
+        this.geofenceLon = geofenceLon
     }
 }

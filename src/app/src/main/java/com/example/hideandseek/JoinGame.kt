@@ -38,9 +38,17 @@ class JoinGame : AppCompatActivity() {
         query.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 if (dataSnapshot.exists()) {
-                    val intent = Intent(this@JoinGame, UserSetting::class.java)
-                    intent.putExtra("lobbyCode", lobbyCode)
-                    startActivity(intent)
+                    // get the game session
+                    val gameSessionSnapshot = dataSnapshot.children.first()
+                    val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+                    if (gameSession!!.gameStatus != "ongoing") {
+                        Toast.makeText(this@JoinGame, "Invalid Lobby Code", Toast.LENGTH_SHORT).show()
+
+                    } else {
+                        val intent = Intent(this@JoinGame, UserSetting::class.java)
+                        intent.putExtra("lobbyCode", lobbyCode)
+                        startActivity(intent)
+                    }
 
                 } else {
                     Toast.makeText(this@JoinGame, "Invalid Lobby Code", Toast.LENGTH_SHORT).show()

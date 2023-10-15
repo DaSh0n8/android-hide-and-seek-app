@@ -51,8 +51,6 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private val defaultRadius = 100
 
     // game play variables
-    private var initLat = -37.809105
-    private var initLon = 144.9609933
     private lateinit var userName: String
     private lateinit var lobbyCode: String
     private lateinit var playerCode: String
@@ -63,7 +61,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private var geofenceRadius = defaultRadius
     private lateinit var userLatLng: LatLng
     private var inGamePlayers: List<String>? = null
-    private var playersIcons: MutableMap<String, ByteArray> = mutableMapOf()
+    private var playersIcons: MutableMap<String, Bitmap> = mutableMapOf()
 
     private lateinit var map: GoogleMap
     private lateinit var binding: GamePlayBinding
@@ -197,7 +195,6 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private fun showUserLocation(query: Query, gameTimer: CountDownTimer) {
         // convert the drawable user icon to a Bitmap
         val userIconBitmap = scaleBitmap(BitmapFactory.decodeResource(resources, R.drawable.usericon), 24)
-        val hiderIconBitmap = getBitmapFromVectorDrawable(this, R.drawable.user_icon)
         val eliminatedIcon = getBitmapFromVectorDrawable(this, R.drawable.eliminated)
         var lastUpdate: TextView = findViewById(R.id.lastUpdateValue)
         val timer = Timer()
@@ -229,7 +226,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 // draw geofence
                 map.addCircle(
                     CircleOptions()
-                        .center(LatLng(initLat, initLon))
+                        .center(LatLng(gameSession!!.geofenceLat, gameSession!!.geofenceLon))
                         .radius(geofenceRadius.toDouble()) // Radius in meters
                         .strokeColor(Color.RED) // Circle border color
                         .fillColor(Color.argb(60, 220, 0, 0)) // Fill color with transparency
@@ -241,32 +238,23 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                     // reflect hiders' latest locations on map
                     players.forEach{ player ->
                         val coordinates = LatLng(player.latitude!!, player.longitude!!)
-                        val markerOptions = MarkerOptions().position(coordinates)
-                        markerOptions.title(player.userName)
+                        val markerOptions = MarkerOptions().position(coordinates).title(player.userName)
 
-                        if (!player.seeker) {
-                            if (player.eliminated) {
-                                markerOptions.icon(BitmapDescriptorFactory.fromBitmap(eliminatedIcon))
+                        val iconBitmap = if (!player.seeker && !player.eliminated) {
+                            hidersAvailable = true
+                            playersIcons[player.userName] ?: userIconBitmap
 
-                            } else {
-                                hidersAvailable = true
-                                if (playersIcons.containsKey(player.userName)) {
-                                    Log.d("GT la", player.userName)
-                                    val byteArray = playersIcons[player.userName]
-                                    val userIcon = BitmapFactory.decodeByteArray(byteArray, 0, byteArray?.size ?:0)
-                                    var result = makeBlackPixelsTransparent(userIcon!!)
-                                    markerOptions.icon(BitmapDescriptorFactory.fromBitmap(scaleBitmap(result, 40)))
+                        } else if (player.seeker && player.userName == userName) {
+                            playersIcons[player.userName] ?: userIconBitmap
 
-                                } else {
-                                    markerOptions.icon(BitmapDescriptorFactory.fromBitmap(
-                                        if (player.userName == userName) userIconBitmap
-                                        else hiderIconBitmap))
-                                }
-                            }
-                        // only show the icon if seeker is the user himself
-                        } else if (player.userName == userName) {
-                            markerOptions.icon(BitmapDescriptorFactory.fromBitmap(userIconBitmap))
+                        } else if (!player.seeker && player.eliminated) {
+                            eliminatedIcon
+
+                        } else {
+                            BitmapFactory.decodeResource(resources, R.drawable.usericon)
                         }
+
+                        iconBitmap?.let { markerOptions.icon(BitmapDescriptorFactory.fromBitmap(it)) }
 
                         map.addMarker(markerOptions)
                     }
@@ -382,7 +370,6 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
             // get the game session
             var host = false
             val gameSessionSnapshot = it.children.first()
-            val sessionId = gameSessionSnapshot.key.toString()
             val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
             var seekerWonGame = true
 
@@ -412,7 +399,6 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 val gameOver = Intent(this@GamePlay, GameOver::class.java)
                 gameOver.putExtra("result", result)
                 gameOver.putExtra("lobbyCode", lobbyCode)
-                gameOver.putExtra("sessionId", sessionId)
                 gameOver.putExtra("username", userName)
                 gameOver.putExtra("host", host)
                 startActivity(gameOver)
@@ -502,10 +488,10 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     /**
      * Retrieve all user icons
      */
-    private fun retrieveUserIcons(lobbyCode: String, playerList: List<String>, callback: (MutableMap<String, ByteArray>) -> Unit) {
+    private fun retrieveUserIcons(lobbyCode: String, playerList: List<String>, callback: (MutableMap<String, Bitmap>) -> Unit) {
         // get storage path
         val storageRef = storageDb.reference
-        val userIcons: MutableMap<String, ByteArray> = mutableMapOf()
+        val userIcons: MutableMap<String, Bitmap> = mutableMapOf()
 
         // Counter to keep track of completed async calls
         var countDownLatch = playerList.size
@@ -516,7 +502,9 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
             pathRef.downloadUrl.addOnSuccessListener {
                 pathRef.getBytes(1_000_000)
                     .addOnSuccessListener { icons ->
-                        userIcons[username] = icons
+                        val userIcon = BitmapFactory.decodeByteArray(icons, 0, icons?.size ?:0)
+                        var result = makeBlackPixelsTransparent(userIcon!!)
+                        userIcons[username] = scaleBitmap(result, 40)
 
                         // Decrement the counter
                         countDownLatch--

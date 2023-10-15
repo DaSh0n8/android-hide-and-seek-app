@@ -1,9 +1,7 @@
 package com.example.hideandseek
 
-import android.content.ContentValues.TAG
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
@@ -24,7 +22,6 @@ class GameOver : AppCompatActivity() {
         database = application.getRealtimeDb()
 
         val username: String? = intent.getStringExtra("username")
-        val sessionId: String? = intent.getStringExtra("sessionId")
         val lobbyCode: String? = intent.getStringExtra("lobbyCode")
         val playerCode: String? = intent.getStringExtra("playerCode")
         val host: Boolean? = intent.getBooleanExtra("host", false)
@@ -37,7 +34,7 @@ class GameOver : AppCompatActivity() {
         var backToHomeBtn: Button = findViewById(R.id.btnHome)
         backToHomeBtn.setOnClickListener {
             if (host!!) {
-                removeGame(username, sessionId, host)
+                endGame(lobbyCode)
             } else {
                 removePlayer(lobbyCode, username)
             }
@@ -53,18 +50,37 @@ class GameOver : AppCompatActivity() {
     }
 
     /**
-     * Remove game session from database and return home
+     * End the game session and return home
      */
-    private fun removeGame(playerIndex: String?, sessionId: String?, host: Boolean?) {
-        // delete game session
-        val gameSessionRef = database.getReference("gameSessions").child(sessionId!!)
-        gameSessionRef.removeValue()
-            .addOnSuccessListener {
-                Log.d(TAG, "Game session removed successfully")
+    private fun endGame(lobbyCode: String?) {
+        val query = database.getReference("gameSessions")
+            .orderByChild("sessionId")
+            .equalTo(lobbyCode)
+
+        query.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    val gameSessionSnapshot = dataSnapshot.children.first()
+                    val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+
+                    if (gameSession != null) {
+                        // Update the GameSession object
+                        gameSession?.gameStatus = "ended"
+                        gameSessionSnapshot.ref.setValue(gameSession).addOnFailureListener {
+                            Toast.makeText(this@GameOver, "Game session ended", Toast.LENGTH_SHORT).show()
+                        }
+
+                    } else {
+                        Toast.makeText(this@GameOver, "Unexpected Error", Toast.LENGTH_SHORT).show()
+                    }
+                }
             }
-            .addOnFailureListener { exception ->
-                Log.e(TAG, "Failed to delete session: $exception")
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                Toast.makeText(this@GameOver, "Error fetching data", Toast.LENGTH_SHORT)
+                    .show()
             }
+        })
     }
 
     /**
