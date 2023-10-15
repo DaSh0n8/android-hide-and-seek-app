@@ -4,7 +4,9 @@
     xmlns:map="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:padding="24dp
+">
 
 
     <!-- Map Fragment with margins -->
@@ -13,12 +15,12 @@
         android:id="@+id/playTime"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="90dp"
-        android:layout_marginTop="30dp"
         android:text="Hiding Time: "
         android:textAppearance="@style/TextAppearance.AppCompat.Large"
+        android:textSize="40sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toStartOf="@+id/playTimeValue"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -26,11 +28,12 @@
         android:id="@+id/playTimeValue"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
-        android:layout_marginEnd="113dp"
         android:textAppearance="@style/TextAppearance.AppCompat.Large"
+        android:textSize="40sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/playTime"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="10:00" />
 
@@ -110,7 +113,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textInputEditText" />
+        app:layout_constraintTop_toBottomOf="@+id/textInputEditText"
+        android:backgroundTint="#005AFF"/>
 
     <com.google.android.material.textfield.TextInputEditText
         android:id="@+id/textInputEditText"
@@ -119,8 +123,8 @@
         android:layout_marginStart="77dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="77dp"
-        android:inputType="number"
         android:hint="Enter the code here..."
+        android:inputType="number"
         android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
