@@ -26,28 +26,36 @@
         tools:targetApi="31" >
         <activity
             android:name=".GamePlay"
-            android:exported="false" />
+            android:exported="false"
+            android:launchMode="singleTop"/>
         <activity
             android:name=".SelfieSegmentation"
-            android:exported="false" />
+            android:exported="false"
+            android:launchMode="singleTop"/>
         <activity
             android:name=".UserSetting"
-            android:exported="false" />
+            android:exported="false"
+            android:launchMode="singleTop"/>
         <activity
             android:name=".LobbySettings"
-            android:exported="false" />
+            android:exported="false"
+            android:launchMode="singleTop"/>
         <activity
             android:name=".JoinGame"
-            android:exported="false" />
+            android:exported="false"
+            android:launchMode="singleTop"/>
         <activity
             android:name=".GameOver"
-            android:exported="false" />
+            android:exported="false"
+            android:launchMode="singleTop"/>
         <activity
             android:name=".Lobby"
-            android:exported="false" />
+            android:exported="false"
+            android:launchMode="singleTop"/>
         <activity
             android:name=".NewGameSettings"
-            android:exported="false" />
+            android:exported="false"
+            android:launchMode="singleTop"/>
         <!--
              TODO: Before you run your application, you need a Google Maps API key.
 
@@ -65,7 +73,8 @@
         <activity
             android:name=".HomeScreen"
             android:exported="true"
-            android:label="@string/title_activity_game_play" >
+            android:label="@string/title_activity_game_play"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
