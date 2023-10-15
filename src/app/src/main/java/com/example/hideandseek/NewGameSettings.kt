@@ -109,7 +109,7 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
         } else if (updateInterval.toInt() < 1 || hidingTime.toInt() < 1 || gameTime.toInt() < 1){
             Toast.makeText(this@NewGameSettings, "Input values have to be more than 0", Toast.LENGTH_SHORT).show()
         } else {
-            val newGameSession = GameSessionClass(sessionIdString, "ongoing", players, gameTime.toInt(), hidingTime.toInt() ,updateInterval.toInt(), geofenceRadius.toInt())
+            val newGameSession = GameSessionClass(sessionIdString, "ongoing", players, gameTime.toInt(), hidingTime.toInt() ,updateInterval.toInt(), geofenceRadius.toInt(), userLatLng.latitude, userLatLng.longitude)
             gameSessionRef.setValue(newGameSession)
 
             val intent = Intent(this, Lobby::class.java)
@@ -117,8 +117,6 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
             intent.putExtra("lobby_key", sessionIdString)
             intent.putExtra("username_key", username)
             intent.putExtra("host", true)
-            intent.putExtra("geofenceLat", userLatLng.latitude)
-            intent.putExtra("geofenceLon", userLatLng.longitude)
 
             startActivity(intent)
             finish()

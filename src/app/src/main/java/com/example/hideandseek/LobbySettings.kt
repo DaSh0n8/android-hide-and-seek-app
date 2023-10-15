@@ -157,7 +157,9 @@ class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
                         "gameLength" to gameTime.toInt(),
                         "updateInterval" to updateInterval.toInt(),
                         "hidingTime" to hidingTime.toInt(),
-                        "radius" to geofenceRadius.toInt()
+                        "radius" to geofenceRadius.toInt(),
+                        "geofenceLat" to userLatLng.latitude,
+                        "geofenceLon" to userLatLng.longitude
                     )
 
                     gameSessionSnapshot.ref.updateChildren(updatedGameSession)
@@ -167,8 +169,6 @@ class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
                             intent.putExtra("lobby_key", receivedLobbyCode)
                             intent.putExtra("username_key", receivedUsername)
                             intent.putExtra("host", host)
-                            intent.putExtra("geofenceLat", userLatLng.latitude)
-                            intent.putExtra("geofenceLon", userLatLng.longitude)
                             startActivity(intent)
                             finish()
                         }

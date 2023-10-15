@@ -31,8 +31,6 @@ class Lobby : AppCompatActivity() {
         val receivedUsername: String? = intent.getStringExtra("username_key")
         var receivedUserIcon: ByteArray? = intent.getByteArrayExtra("userIcon")
         val receivedLobbyCode: String? = intent.getStringExtra("lobby_key")
-        val geofenceLat: Double? = intent.getDoubleExtra("geofenceLat", 0.0)
-        val geofenceLon: Double? = intent.getDoubleExtra("geofenceLon", 0.0)
         seeker = intent.getBooleanExtra("isSeeker", false)
 
         val host = intent.getBooleanExtra("host", false)
@@ -70,7 +68,7 @@ class Lobby : AppCompatActivity() {
 
                     // check if host has started or ended the game
                     when (gameSession!!.gameStatus) {
-                        "started" -> startGameIntent(receivedLobbyCode, receivedUsername, gameSession, geofenceLat, geofenceLon)
+                        "started" -> startGameIntent(receivedLobbyCode, receivedUsername, gameSession)
                         "ended"   -> returnHomeIntent(receivedLobbyCode, host)
                     }
 
@@ -272,7 +270,7 @@ class Lobby : AppCompatActivity() {
         })
     }
 
-    private fun startGameIntent(lobbyCode: String?, username: String?, gameSession: GameSessionClass?, geofenceLat: Double?, geofenceLon: Double?) {
+    private fun startGameIntent(lobbyCode: String?, username: String?, gameSession: GameSessionClass?) {
         gameSession?.let {
             val intent = Intent(this@Lobby, GamePlay::class.java)
             intent.putExtra("lobbyCode", lobbyCode)
@@ -281,8 +279,6 @@ class Lobby : AppCompatActivity() {
             intent.putExtra("hidingTime", it.hidingTime)
             intent.putExtra("updateInterval", it.updateInterval)
             intent.putExtra("radius", it.radius)
-            intent.putExtra("geofenceLat",geofenceLat)
-            intent.putExtra("geofenceLon", geofenceLon)
 
             // retrieve player info
             retrievePlayerInfo(lobbyCode, username) { player ->
