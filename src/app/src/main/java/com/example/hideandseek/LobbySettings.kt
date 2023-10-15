@@ -50,8 +50,7 @@ class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
         val receivedUsername: String? = intent.getStringExtra("username_key")
         val host = intent.getBooleanExtra("host", false)
         val lobbyHeader = findViewById<TextView>(R.id.titleText)
-        val lobbyCode = "Lobby #$receivedLobbyCode Settings"
-        lobbyHeader.text = lobbyCode
+        lobbyHeader.text = "Change Game Setting"
 
         // Request location updates
         locationHelper = LocationHelper(this)
