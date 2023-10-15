@@ -3,13 +3,16 @@ package com.example.hideandseek
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Resources
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
+import android.util.TypedValue
 import android.view.View.GONE
 import android.view.View.INVISIBLE
 import android.view.View.VISIBLE
@@ -35,6 +38,7 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.Query
 import com.google.firebase.database.ValueEventListener
+import com.google.firebase.storage.FirebaseStorage
 import java.util.Timer
 import java.util.TimerTask
 
@@ -47,8 +51,6 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private val defaultRadius = 100
 
     // game play variables
-    private var initLat = -37.809105
-    private var initLon = 144.9609933
     private lateinit var userName: String
     private lateinit var lobbyCode: String
     private lateinit var playerCode: String
@@ -58,11 +60,14 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private var updateInterval = defaultInterval
     private var geofenceRadius = defaultRadius
     private lateinit var userLatLng: LatLng
+    private var inGamePlayers: List<String>? = null
+    private var playersIcons: MutableMap<String, Bitmap> = mutableMapOf()
 
     private lateinit var map: GoogleMap
     private lateinit var binding: GamePlayBinding
     private lateinit var bindingHiders: GamePlayHiderBinding
-    private lateinit var database: FirebaseDatabase
+    private lateinit var realtimeDb: FirebaseDatabase
+    private lateinit var storageDb: FirebaseStorage
     private lateinit var locationHelper: LocationHelper
     private lateinit var gameplayListener: ValueEventListener
 
@@ -79,6 +84,11 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
             setContentView(bindingHiders.root)
         }
 
+        // get firebase real time db
+        val application = application as HideAndSeek
+        realtimeDb = application.getRealtimeDb()
+        storageDb = application.getStorageDb()
+
         // receive data from previous activity
         lobbyCode = intent.getStringExtra("lobbyCode")!!
         userName = intent.getStringExtra("username")!!
@@ -88,12 +98,16 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         updateInterval = minToMilli(intent.getIntExtra("updateInterval", 1))
         geofenceRadius = intent.getIntExtra("radius", defaultRadius)
 
-        // get firebase real time db
-        val application = application as HideAndSeek
-        database = application.getRealtimeDb()
+        // retrieve players icons
+        retrievePlayers(lobbyCode) { players ->
+            inGamePlayers = players
+            retrieveUserIcons(lobbyCode, inGamePlayers!!) { result ->
+                playersIcons = result
+            }
+        }
 
         // query the db to get the user's session
-        val reference = database.getReference("gameSessions")
+        val reference = realtimeDb.getReference("gameSessions")
         val query = reference.orderByChild("sessionId").equalTo(lobbyCode)
         var lastUpdate: TextView = findViewById(R.id.lastUpdate)
         lastUpdate.visibility = INVISIBLE
@@ -101,7 +115,6 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         // Request location updates
         locationHelper = LocationHelper(this)
         locationHelper.requestLocationUpdates { location ->
-            Log.d("LocationTest", "Location updates")
             userLatLng = LatLng(location.latitude, location.longitude)
             uploadLoc(location, query)
         }
@@ -181,8 +194,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
      */
     private fun showUserLocation(query: Query, gameTimer: CountDownTimer) {
         // convert the drawable user icon to a Bitmap
-        val userIconBitmap = getBitmapFromVectorDrawable(this, R.drawable.self_user_icon)
-        val hiderIconBitmap = getBitmapFromVectorDrawable(this, R.drawable.user_icon)
+        val userIconBitmap = scaleBitmap(BitmapFactory.decodeResource(resources, R.drawable.usericon), 24)
         val eliminatedIcon = getBitmapFromVectorDrawable(this, R.drawable.eliminated)
         var lastUpdate: TextView = findViewById(R.id.lastUpdateValue)
         val timer = Timer()
@@ -214,7 +226,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 // draw geofence
                 map.addCircle(
                     CircleOptions()
-                        .center(LatLng(initLat, initLon))
+                        .center(LatLng(gameSession!!.geofenceLat, gameSession!!.geofenceLon))
                         .radius(geofenceRadius.toDouble()) // Radius in meters
                         .strokeColor(Color.RED) // Circle border color
                         .fillColor(Color.argb(60, 220, 0, 0)) // Fill color with transparency
@@ -226,20 +238,23 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                     // reflect hiders' latest locations on map
                     players.forEach{ player ->
                         val coordinates = LatLng(player.latitude!!, player.longitude!!)
-                        val markerOptions = MarkerOptions().position(coordinates)
+                        val markerOptions = MarkerOptions().position(coordinates).title(player.userName)
 
-                        if (!player.seeker) {
-                            if (player.eliminated) {
-                                markerOptions.icon(BitmapDescriptorFactory.fromBitmap(eliminatedIcon))
-                            } else {
-                                markerOptions.icon(BitmapDescriptorFactory.fromBitmap(
-                                    if (player.userName == userName) userIconBitmap
-                                    else hiderIconBitmap))
-                                hidersAvailable = true
-                            }
-                        } else if (player.userName == userName) {
-                            markerOptions.icon(BitmapDescriptorFactory.fromBitmap(userIconBitmap))
+                        val iconBitmap = if (!player.seeker && !player.eliminated) {
+                            hidersAvailable = true
+                            playersIcons[player.userName] ?: userIconBitmap
+
+                        } else if (player.seeker && player.userName == userName) {
+                            playersIcons[player.userName] ?: userIconBitmap
+
+                        } else if (!player.seeker && player.eliminated) {
+                            eliminatedIcon
+
+                        } else {
+                            BitmapFactory.decodeResource(resources, R.drawable.usericon)
                         }
+
+                        iconBitmap?.let { markerOptions.icon(BitmapDescriptorFactory.fromBitmap(it)) }
 
                         map.addMarker(markerOptions)
                     }
@@ -348,14 +363,13 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
      */
     private fun endGame() {
         // query the db to get the user's session
-        val reference = database.getReference("gameSessions")
+        val reference = realtimeDb.getReference("gameSessions")
         val query = reference.orderByChild("sessionId").equalTo(lobbyCode)
 
         query.get().addOnSuccessListener{
             // get the game session
             var host = false
             val gameSessionSnapshot = it.children.first()
-            val sessionId = gameSessionSnapshot.key.toString()
             val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
             var seekerWonGame = true
 
@@ -385,7 +399,6 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 val gameOver = Intent(this@GamePlay, GameOver::class.java)
                 gameOver.putExtra("result", result)
                 gameOver.putExtra("lobbyCode", lobbyCode)
-                gameOver.putExtra("sessionId", sessionId)
                 gameOver.putExtra("username", userName)
                 gameOver.putExtra("host", host)
                 startActivity(gameOver)
@@ -420,7 +433,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         if (code.isBlank()){
             Toast.makeText(this@GamePlay, "Please enter a code", Toast.LENGTH_SHORT).show()
         }
-        val reference = database.getReference("gameSessions")
+        val reference = realtimeDb.getReference("gameSessions")
         val query = reference.orderByChild("sessionId").equalTo(lobbyCode)
         query.addListenerForSingleValueEvent(object : ValueEventListener{
             override fun onDataChange(datasnapshot: DataSnapshot) {
@@ -471,4 +484,142 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
         })
     }
+
+    /**
+     * Retrieve all user icons
+     */
+    private fun retrieveUserIcons(lobbyCode: String, playerList: List<String>, callback: (MutableMap<String, Bitmap>) -> Unit) {
+        // get storage path
+        val storageRef = storageDb.reference
+        val userIcons: MutableMap<String, Bitmap> = mutableMapOf()
+
+        // Counter to keep track of completed async calls
+        var countDownLatch = playerList.size
+
+        playerList.forEach { username ->
+            val pathRef = storageRef.child("$lobbyCode/$username.jpg")
+            // Check if the file exists before attempting to get bytes
+            pathRef.downloadUrl.addOnSuccessListener {
+                pathRef.getBytes(1_000_000)
+                    .addOnSuccessListener { icons ->
+                        val userIcon = BitmapFactory.decodeByteArray(icons, 0, icons?.size ?:0)
+                        var result = makeBlackPixelsTransparent(userIcon!!)
+                        userIcons[username] = scaleBitmap(result, 40)
+
+                        // Decrement the counter
+                        countDownLatch--
+
+                        // Check if all async calls are completed
+                        if (countDownLatch == 0) {
+                            // All async calls are done, invoke the callback
+                            callback(userIcons)
+                        }
+                    }
+            }.addOnFailureListener {
+                    // File doesn't exist
+                    // Decrement the counter even if the file doesn't exist
+                    countDownLatch--
+
+                    // Check if all async calls are completed
+                    if (countDownLatch == 0) {
+                        // All async calls are done, invoke the callback
+                        callback(userIcons)
+                    }
+            }
+        }
+    }
+
+
+    /**
+     * Retrieve all players usernames
+     */
+    private fun retrievePlayers(lobbyCode: String, callback: (List<String>) -> Unit) {
+        // query the db to get the user's session
+        val query = realtimeDb.getReference("gameSessions")
+            .orderByChild("sessionId")
+            .equalTo(lobbyCode)
+
+        val playerList = mutableListOf<String>()
+
+        query.get().addOnSuccessListener { snapshot ->
+            // Check if there are any children
+            if (snapshot.hasChildren()) {
+                // get the game session
+                val gameSessionSnapshot = snapshot.children.first()
+                val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+
+                if (gameSession != null) {
+                    // Iterate through players and add to the list
+                    for (p in gameSession.players) {
+                        playerList.add(p.userName)
+                    }
+                    callback(playerList)
+                    return@addOnSuccessListener
+                } else {
+                    // Handle the case where parsing fails
+                    Log.e("Retrieve Player Failed", "Failed to parse GameSession")
+                    callback(emptyList())
+                }
+            } else {
+                // Handle the case where no game session is found
+                Log.e("Retrieve Player Failed", "No game session found for the given code")
+                callback(emptyList())
+            }
+        }
+            .addOnFailureListener { exception ->
+                // Handle the failure case
+                Log.e("Retrieve Player Failed", exception.toString())
+                callback(emptyList())
+            }
+    }
+
+    private fun makeBlackPixelsTransparent(bitmap: Bitmap): Bitmap {
+        val width = bitmap.width
+        val height = bitmap.height
+        val resultBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+
+        for (x in 0 until width) {
+            for (y in 0 until height) {
+                val pixelColor = bitmap.getPixel(x, y)
+
+                // Check if the pixel is fully black (R = 0, G = 0, B = 0)
+                if (Color.red(pixelColor) == 0 && Color.green(pixelColor) == 0 && Color.blue(pixelColor) == 0) {
+                    // Set the alpha channel to 0 (fully transparent)
+                    resultBitmap.setPixel(x, y, Color.TRANSPARENT)
+                } else {
+                    // Copy the pixel as it is
+                    resultBitmap.setPixel(x, y, pixelColor)
+                }
+            }
+        }
+
+        return resultBitmap
+    }
+
+
+    fun scaleBitmap(originalBitmap: Bitmap, targetSizeDp: Int): Bitmap {
+        val resources = Resources.getSystem()
+        val density = resources.displayMetrics.density
+
+        // Convert dp to pixels
+        val targetSizePixels = TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            targetSizeDp.toFloat(),
+            resources.displayMetrics
+        ).toInt()
+
+        // Calculate the scale factor
+        val scale = targetSizePixels.toFloat() / originalBitmap.width
+
+        // Create a matrix for the scaling operation
+        val matrix = android.graphics.Matrix()
+        matrix.postScale(scale, scale)
+
+        // Resize the bitmap
+        return Bitmap.createBitmap(
+            originalBitmap, 0, 0,
+            originalBitmap.width, originalBitmap.height, matrix, true
+        )
+    }
+
 }

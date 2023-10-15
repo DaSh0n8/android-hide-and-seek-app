@@ -31,7 +31,6 @@ class Lobby : AppCompatActivity() {
         val receivedUsername: String? = intent.getStringExtra("username_key")
         var receivedUserIcon: ByteArray? = intent.getByteArrayExtra("userIcon")
         val receivedLobbyCode: String? = intent.getStringExtra("lobby_key")
-        val receivedPlayerCode: String? = intent.getStringExtra("playerCode")
         seeker = intent.getBooleanExtra("isSeeker", false)
 
         val host = intent.getBooleanExtra("host", false)
@@ -50,16 +49,6 @@ class Lobby : AppCompatActivity() {
         // upload user icon if available
         if (receivedUserIcon != null) {
             uploadIcon(receivedUserIcon, receivedLobbyCode, receivedUsername)
-        } else {
-            receivedUserIcon = retrieveIcon(receivedLobbyCode, receivedUsername)
-        }
-
-        val updateGameSettings: FrameLayout = findViewById(R.id.settingsPlaceholder)
-        updateGameSettings.setOnClickListener {
-            val intent = Intent(this@Lobby, LobbySettings::class.java)
-            intent.putExtra("lobby_code_key", receivedLobbyCode)
-            intent.putExtra("username_key", receivedUsername)
-            startActivity(intent)
         }
 
         val query = realtimeDb.getReference("gameSessions")
@@ -74,15 +63,17 @@ class Lobby : AppCompatActivity() {
                 hidersList.clear()
 
                 for (sessionSnapshot in dataSnapshot.children) {
-                    // check if host has started the game
                     val gameSessionSnapshot = dataSnapshot.children.first()
                     val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
-                    if (gameSession!!.gameStatus == "started") {
-                        startGameIntent(receivedLobbyCode, receivedUsername, gameSession, receivedPlayerCode)
+
+                    // check if host has started or ended the game
+                    when (gameSession!!.gameStatus) {
+                        "started" -> startGameIntent(receivedLobbyCode, receivedUsername, gameSession)
+                        "ended"   -> returnHomeIntent(receivedLobbyCode, host, true)
                     }
 
-                    // update player list
                     val players = sessionSnapshot.child("players").children
+                    // update player list
                     for (playerSnapshot in players) {
                         val playerName = playerSnapshot.child("userName").value.toString()
                         val isSeeker = playerSnapshot.child("seeker").getValue(Boolean::class.java) ?: false
@@ -115,18 +106,29 @@ class Lobby : AppCompatActivity() {
 
         val leaveLobbyButton: Button = findViewById(R.id.leaveLobbyButton)
         leaveLobbyButton.setOnClickListener {
-            removePlayer(receivedLobbyCode,receivedUsername)
+            leaveLobby(receivedLobbyCode, receivedUsername)
         }
 
         val startGameButton: Button = findViewById(R.id.startGameButton)
         startGameButton.setOnClickListener {
-            startButtonClicked(receivedLobbyCode,receivedUsername, receivedPlayerCode)
+            startButtonClicked(receivedLobbyCode)
         }
+
+        val updateGameSettings: FrameLayout = findViewById(R.id.settingsPlaceholder)
+        updateGameSettings.setOnClickListener {
+            val intent = Intent(this@Lobby, LobbySettings::class.java)
+            intent.putExtra("lobby_code_key", receivedLobbyCode)
+            intent.putExtra("username_key", receivedUsername)
+            intent.putExtra("host", host)
+            startActivity(intent)
+        }
+
         // hide the start game button for non host users
         if (!host) {
             startGameButton.visibility = GONE
             val waitHost: TextView = findViewById(R.id.waitHost)
             waitHost.visibility = VISIBLE
+            updateGameSettings.visibility = GONE
         }
 
     }
@@ -149,12 +151,12 @@ class Lobby : AppCompatActivity() {
                             // Get the current seeker status
                             val isSeeker = playerSnapshot.child("seeker").getValue(Boolean::class.java) ?: false
 
-                            if (isSeeker) {
+                            seeker = if (isSeeker) {
                                 playerSnapshot.ref.child("seeker").setValue(false)
-                                seeker = false
+                                false
                             } else{
                                 playerSnapshot.ref.child("seeker").setValue(true)
-                                seeker = true
+                                true
                             }
 
                             return
@@ -180,7 +182,7 @@ class Lobby : AppCompatActivity() {
         }
     }
 
-    private fun removePlayer(lobbyCode: String?, username: String?) {
+    private fun leaveLobby(lobbyCode: String?, username: String?) {
         val query = realtimeDb.getReference("gameSessions")
             .orderByChild("sessionId")
             .equalTo(lobbyCode)
@@ -195,13 +197,10 @@ class Lobby : AppCompatActivity() {
                         val playerIsHost = gameSession.players.find { it.userName == username }?.host == true
 
                         if (playerIsHost) {
-                            gameSessionSnapshot.ref.removeValue().addOnSuccessListener {
+                            // Update the local GameSession object
+                            gameSession?.gameStatus = "ended"
+                            gameSessionSnapshot.ref.setValue(gameSession).addOnFailureListener {
                                 Toast.makeText(this@Lobby, "Game session ended", Toast.LENGTH_SHORT).show()
-                                val intent = Intent(this@Lobby, HomeScreen::class.java)
-                                intent.putExtra("lobby_key", lobbyCode)
-                                startActivity(intent)
-                            }.addOnFailureListener {
-                                Toast.makeText(this@Lobby, "Error deleting session", Toast.LENGTH_SHORT).show()
                             }
                         } else {
                             val updatedPlayers = gameSession.players.toMutableList()
@@ -211,10 +210,9 @@ class Lobby : AppCompatActivity() {
                             gameSessionSnapshot.ref.setValue(gameSession).addOnFailureListener {
                                 Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
                             }
-                            val intent = Intent(this@Lobby, HomeScreen::class.java)
-                            intent.putExtra("lobby_key", lobbyCode)
-                            startActivity(intent)
                         }
+
+                        returnHomeIntent(lobbyCode, playerIsHost, true)
 
                     } else {
                         Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
@@ -229,7 +227,7 @@ class Lobby : AppCompatActivity() {
         })
     }
 
-    private fun startButtonClicked(lobbyCode: String?, username: String?, playerCode: String?) {
+    private fun startButtonClicked(lobbyCode: String?) {
         val query = realtimeDb.getReference("gameSessions")
             .orderByChild("sessionId")
             .equalTo(lobbyCode)
@@ -247,15 +245,11 @@ class Lobby : AppCompatActivity() {
 
                         // Save the updated GameSession back to Firebase
                         gameSessionSnapshot.ref.setValue(gameSession)
-                            .addOnSuccessListener {
-                                // If the update is successful, start the game
-                                startGameIntent(lobbyCode, username, gameSession, playerCode)
-                            }
                             .addOnFailureListener {
                                 // If there is an error updating Firebase, show an error message
                                 Toast.makeText(
                                     this@Lobby,
-                                    "Error updating game status in Firebase",
+                                    "Error starting the game",
                                     Toast.LENGTH_SHORT
                                 ).show()
                             }
@@ -276,7 +270,7 @@ class Lobby : AppCompatActivity() {
         })
     }
 
-    private fun startGameIntent(lobbyCode: String?, username: String?, gameSession: GameSessionClass?, playerCode: String?) {
+    private fun startGameIntent(lobbyCode: String?, username: String?, gameSession: GameSessionClass?) {
         gameSession?.let {
             val intent = Intent(this@Lobby, GamePlay::class.java)
             intent.putExtra("lobbyCode", lobbyCode)
@@ -336,22 +330,6 @@ class Lobby : AppCompatActivity() {
     }
 
     /**
-     * Retrieve player icon if available
-     */
-    private fun retrieveIcon(lobbyCode: String?, username: String?): ByteArray? {
-        // get storage path
-        var storageRef = storageDb.reference
-        val pathRef = storageRef.child("$lobbyCode/$username.jpg")
-        var userIcon: ByteArray? = null
-
-        pathRef.getBytes(1000000)
-            .addOnSuccessListener {
-                userIcon = it
-        }
-        return  userIcon
-    }
-
-    /**
      * Retrieve player and game
      */
     private fun retrievePlayerInfo(lobbyCode: String?, username: String?, callback: (PlayerClass?) -> Unit) {
@@ -384,6 +362,18 @@ class Lobby : AppCompatActivity() {
             // Invoke the callback with null in case of failure
             callback(null)
         }
+    }
+
+    private fun returnHomeIntent(lobbyCode: String?, host: Boolean?, voluntary: Boolean) {
+        val intent = Intent(this@Lobby, HomeScreen::class.java)
+        if (!host!! && !voluntary) {
+            Toast.makeText(this@Lobby, "Host have left", Toast.LENGTH_SHORT).show()
+        } else {
+            intent.putExtra("lobby_key", lobbyCode)
+        }
+        removeLobbyListener(lobbyCode!!)
+        startActivity(intent)
+        finish()
     }
 
 
