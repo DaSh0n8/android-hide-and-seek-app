@@ -3,6 +3,7 @@ package com.example.hideandseek
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -13,6 +14,10 @@ import com.google.firebase.database.ValueEventListener
 
 class GameOver : AppCompatActivity() {
     private lateinit var database: FirebaseDatabase
+
+    private val youWon = "Congrats, You Won!!!"
+    private val youLost = "Sorry, You Lost!!!"
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.game_over)
@@ -25,10 +30,27 @@ class GameOver : AppCompatActivity() {
         val lobbyCode: String? = intent.getStringExtra("lobbyCode")
         val playerCode: String? = intent.getStringExtra("playerCode")
         val host: Boolean? = intent.getBooleanExtra("host", false)
+        val isSeeker: Boolean? = intent.getBooleanExtra("isSeeker", false)
+        val seekerWon = intent.getBooleanExtra("seekerWonGame", false)
 
-        // set the result text
-        var resultText: TextView = findViewById(R.id.resultText)
-        resultText.text = intent.getStringExtra("result")
+        // set the result views
+        val resultText: TextView = findViewById(R.id.resultText)
+        val resultImg: ImageView = findViewById(R.id.resultView)
+        if (seekerWon) {
+            resultImg.setImageResource(R.drawable.seekers_win)
+            if (isSeeker!!) {
+                resultText.text = youWon
+            } else {
+                resultText.text = youLost
+            }
+        } else {
+            resultImg.setImageResource(R.drawable.hiders_win)
+            if (isSeeker!!) {
+                resultText.text = youLost
+            } else {
+                resultText.text = youWon
+            }
+        }
 
         // clean db and return to home page
         var backToHomeBtn: Button = findViewById(R.id.btnHome)
