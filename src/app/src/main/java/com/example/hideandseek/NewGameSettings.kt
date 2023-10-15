@@ -7,7 +7,6 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.os.Bundle
-import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
@@ -28,7 +27,6 @@ import com.google.firebase.database.FirebaseDatabase
 import java.util.Random
 
 class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
-
     private lateinit var map: GoogleMap
     private lateinit var binding: NewGameSettingsBinding
     private lateinit var database: FirebaseDatabase
@@ -36,7 +34,7 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
 
     // default geofence radius
     private var geofenceRadius = 100.0
-    private lateinit var userLatLng: LatLng
+    private var userLatLng: LatLng = LatLng(0.0, 0.0)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,7 +45,6 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
         // Request location updates
         locationHelper = LocationHelper(this)
         locationHelper.requestLocationUpdates { location ->
-            Log.d("LocationTest", "Location updates")
             userLatLng = LatLng(location.latitude, location.longitude)
             updateMap(userLatLng, map)
         }
@@ -120,10 +117,11 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
             intent.putExtra("lobby_key", sessionIdString)
             intent.putExtra("username_key", username)
             intent.putExtra("host", true)
-            intent.putExtra("isSeeker", true)
-            intent.putExtra("playerCode", playerCode)
+            intent.putExtra("geofenceLat", userLatLng.latitude)
+            intent.putExtra("geofenceLon", userLatLng.longitude)
 
             startActivity(intent)
+            finish()
         }
 
     }

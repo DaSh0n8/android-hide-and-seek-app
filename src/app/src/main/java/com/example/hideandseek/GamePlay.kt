@@ -51,8 +51,8 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private val defaultRadius = 100
 
     // game play variables
-    private var initLat = -37.809105
-    private var initLon = 144.9609933
+    private var geofenceLat: Double = 0.0
+    private var geofenceLon: Double = 0.0
     private lateinit var userName: String
     private lateinit var lobbyCode: String
     private lateinit var playerCode: String
@@ -99,6 +99,8 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         hideTime = minToMilli(intent.getIntExtra("hidingTime", 1))
         updateInterval = minToMilli(intent.getIntExtra("updateInterval", 1))
         geofenceRadius = intent.getIntExtra("radius", defaultRadius)
+        geofenceLat = intent.getDoubleExtra("geofenceLat", 0.0)
+        geofenceLon = intent.getDoubleExtra("geofenceLon", 0.0)
 
         // retrieve players icons
         retrievePlayers(lobbyCode) { players ->
@@ -229,7 +231,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 // draw geofence
                 map.addCircle(
                     CircleOptions()
-                        .center(LatLng(initLat, initLon))
+                        .center(LatLng(geofenceLat, geofenceLon))
                         .radius(geofenceRadius.toDouble()) // Radius in meters
                         .strokeColor(Color.RED) // Circle border color
                         .fillColor(Color.argb(60, 220, 0, 0)) // Fill color with transparency
