@@ -43,7 +43,7 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
         setContentView(binding.root)
 
         // Request location updates
-        locationHelper = LocationHelper(this)
+        locationHelper = LocationHelper(this, (1*60*1000))
         locationHelper.requestLocationUpdates { location ->
             userLatLng = LatLng(location.latitude, location.longitude)
             updateMap(userLatLng, map)

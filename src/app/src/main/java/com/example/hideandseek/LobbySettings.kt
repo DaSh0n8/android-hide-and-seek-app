@@ -53,7 +53,7 @@ class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
         lobbyHeader.text = "Change Game Setting"
 
         // Request location updates
-        locationHelper = LocationHelper(this)
+        locationHelper = LocationHelper(this, (1*60*1000))
         locationHelper.requestLocationUpdates { location ->
             Log.d("See location", location.toString())
             userLatLng = LatLng(location.latitude, location.longitude)

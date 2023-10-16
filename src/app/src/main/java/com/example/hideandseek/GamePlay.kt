@@ -59,6 +59,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private var gameTime = defaultGameTime
     private var hideTime = defaultHideTime
     private var updateInterval = defaultInterval
+    private var rapidInterval = (0.1 * 60 * 1000).toLong()
     private var geofenceRadius = defaultRadius
     private lateinit var userLatLng: LatLng
     private var inGamePlayers: List<String>? = null
@@ -92,18 +93,6 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         realtimeDb = application.getRealtimeDb()
         storageDb = application.getStorageDb()
 
-        // initialise accelerometer
-        // initialize the acceleration listener
-        accelerationListener = object : LinearAccelerationHelper.LinearAccelerationListener {
-            override fun onRunningDetected() {
-                // Handle running detection here
-                Toast.makeText(this@GamePlay, "Running Detected", Toast.LENGTH_SHORT).show()
-            }
-        }
-
-        accelerationHelper = LinearAccelerationHelper(this, accelerationListener)
-        accelerationHelper.startListening()
-
         // receive data from previous activity
         lobbyCode = intent.getStringExtra("lobbyCode")!!
         userName = intent.getStringExtra("username")!!
@@ -121,9 +110,8 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
             }
         }
 
-
         if (isSeeker){
-            //eliminate player
+            //eliminate player button setup
             val eliminate: Button = findViewById(R.id.eliminateBtn)
             val code: TextInputEditText = findViewById(R.id.textInputEditText)
             eliminate.setOnClickListener{
@@ -143,14 +131,32 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         lastUpdate.visibility = INVISIBLE
 
         // Request location updates
-        locationHelper = LocationHelper(this)
+        locationHelper = LocationHelper(this, updateInterval)
         locationHelper.requestLocationUpdates { location ->
             userLatLng = LatLng(location.latitude, location.longitude)
             uploadLoc(location, query)
         }
 
-        // set the update interval
-        locationHelper.setUpdateInterval(updateInterval)
+        if (!isSeeker) {
+            // initialise accelerometer and acceleration listener
+            accelerationListener = object : LinearAccelerationHelper.LinearAccelerationListener {
+                override fun onRunningDetected() {
+                    Toast.makeText(
+                        this@GamePlay,
+                        "Significant Movement Detected",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    locationHelper.setUpdateInterval(rapidInterval)
+                    locationHelper.requestLocationUpdates { location ->
+                        userLatLng = LatLng(location.latitude, location.longitude)
+                        uploadLoc(location, query)
+                    }
+                    accelerationHelper.stopListening()
+                }
+            }
+            accelerationHelper = LinearAccelerationHelper(this, accelerationListener)
+            accelerationHelper.startListening()
+        }
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager
@@ -640,12 +646,5 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
             originalBitmap.width, originalBitmap.height, matrix, true
         )
     }
-
-    private fun noRunning() {
-
-
-    }
-
-
 
 }
