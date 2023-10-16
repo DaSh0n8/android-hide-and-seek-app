@@ -1,5 +1,6 @@
 package com.example.hideandseek
 
+import LinearAccelerationHelper
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -70,6 +71,8 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var storageDb: FirebaseStorage
     private lateinit var locationHelper: LocationHelper
     private lateinit var gameplayListener: ValueEventListener
+    private lateinit var accelerationHelper: LinearAccelerationHelper
+    private lateinit var accelerationListener: LinearAccelerationHelper.LinearAccelerationListener
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -88,6 +91,18 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         val application = application as HideAndSeek
         realtimeDb = application.getRealtimeDb()
         storageDb = application.getStorageDb()
+
+        // initialise accelerometer
+        // initialize the acceleration listener
+        accelerationListener = object : LinearAccelerationHelper.LinearAccelerationListener {
+            override fun onRunningDetected() {
+                // Handle running detection here
+                Toast.makeText(this@GamePlay, "Running Detected", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        accelerationHelper = LinearAccelerationHelper(this, accelerationListener)
+        accelerationHelper.startListening()
 
         // receive data from previous activity
         lobbyCode = intent.getStringExtra("lobbyCode")!!
@@ -406,8 +421,9 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 gameOver.putExtra("host", host)
                 startActivity(gameOver)
 
-                // turn off game play listener
+                // turn off listener
                 reference.removeEventListener(gameplayListener)
+                accelerationHelper.stopListening()
 
                 // Update the local GameSession object
                 gameSession.players = players
@@ -624,5 +640,12 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
             originalBitmap.width, originalBitmap.height, matrix, true
         )
     }
+
+    private fun noRunning() {
+
+
+    }
+
+
 
 }
