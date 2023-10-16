@@ -1,5 +1,6 @@
 package com.example.hideandseek
 
+import LinearAccelerationHelper
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -58,9 +59,11 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private var gameTime = defaultGameTime
     private var hideTime = defaultHideTime
     private var updateInterval = defaultInterval
+    private var rapidInterval = (5 * 1000).toLong() // 5 seconds
     private var geofenceRadius = defaultRadius
     private lateinit var userLatLng: LatLng
     private var inGamePlayers: List<String>? = null
+    private var hasTriggered: Boolean = false
     private var playersIcons: MutableMap<String, Bitmap> = mutableMapOf()
 
     private lateinit var map: GoogleMap
@@ -70,6 +73,8 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var storageDb: FirebaseStorage
     private lateinit var locationHelper: LocationHelper
     private lateinit var gameplayListener: ValueEventListener
+    private lateinit var accelerationHelper: LinearAccelerationHelper
+    private lateinit var accelerationListener: LinearAccelerationHelper.LinearAccelerationListener
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -94,6 +99,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         userName = intent.getStringExtra("username")!!
         playerCode= intent.getStringExtra("playerCode")!!
         gameTime = minToMilli(intent.getIntExtra("gameLength", 1))
+        val triggerTime = (gameTime * 0.2).toLong()
         hideTime = minToMilli(intent.getIntExtra("hidingTime", 1))
         updateInterval = minToMilli(intent.getIntExtra("updateInterval", 1))
         geofenceRadius = intent.getIntExtra("radius", defaultRadius)
@@ -106,9 +112,8 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
             }
         }
 
-
         if (isSeeker){
-            //eliminate player
+            //eliminate player button setup
             val eliminate: Button = findViewById(R.id.eliminateBtn)
             val code: TextInputEditText = findViewById(R.id.textInputEditText)
             eliminate.setOnClickListener{
@@ -128,14 +133,11 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         lastUpdate.visibility = INVISIBLE
 
         // Request location updates
-        locationHelper = LocationHelper(this)
+        locationHelper = LocationHelper(this, updateInterval)
         locationHelper.requestLocationUpdates { location ->
             userLatLng = LatLng(location.latitude, location.longitude)
             uploadLoc(location, query)
         }
-
-        // set the update interval
-        locationHelper.setUpdateInterval(updateInterval)
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager
@@ -172,6 +174,14 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                         val seconds = (millisUntilFinished / 1000) % 60
                         val minutes = (millisUntilFinished / 1000) / 60
                         countDownValue.text = String.format("%02d:%02d", minutes, seconds)
+
+                        // if only 20% time left, trigger the accelerometer
+                        if (millisUntilFinished < triggerTime && !isSeeker && !hasTriggered) {
+                            Toast.makeText(this@GamePlay, "Game Ending!! Limit Your Movement!!", Toast.LENGTH_LONG).show()
+                            countDownValue.setTextColor(Color.RED)
+                            limitMovement(query)
+                            hasTriggered = true
+                        }
                     }
 
                     override fun onFinish() {
@@ -406,8 +416,10 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 gameOver.putExtra("host", host)
                 startActivity(gameOver)
 
-                // turn off game play listener
+                // turn off listener
                 reference.removeEventListener(gameplayListener)
+                accelerationHelper.stopListening()
+                locationHelper.stopUpdate()
 
                 // Update the local GameSession object
                 gameSession.players = players
@@ -623,6 +635,27 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
             originalBitmap, 0, 0,
             originalBitmap.width, originalBitmap.height, matrix, true
         )
+    }
+
+    private fun limitMovement(query: Query) {
+        // initialise accelerometer and acceleration listener
+        accelerationListener = object : LinearAccelerationHelper.LinearAccelerationListener {
+            override fun onRunningDetected() {
+                Toast.makeText(
+                    this@GamePlay,
+                    "Significant Movement Detected, Your Location Will Be Constantly Exposed!",
+                    Toast.LENGTH_LONG
+                ).show()
+                locationHelper.setUpdateInterval(rapidInterval)
+                locationHelper.requestLocationUpdates { location ->
+                    userLatLng = LatLng(location.latitude, location.longitude)
+                    uploadLoc(location, query)
+                }
+                accelerationHelper.stopListening()
+            }
+        }
+        accelerationHelper = LinearAccelerationHelper(this, accelerationListener)
+        accelerationHelper.startListening()
     }
 
 }
