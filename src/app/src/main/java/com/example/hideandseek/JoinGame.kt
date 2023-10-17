@@ -6,7 +6,6 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.hideandseek.NetworkUtils.Companion.checkForInternet
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -20,9 +19,7 @@ class JoinGame : AppCompatActivity() {
 
         val joinGameButton: Button = findViewById(R.id.btnJoinGameLobby)
         joinGameButton.setOnClickListener {
-            if (!checkForInternet(this)) {
-                Toast.makeText(this, "Make sure you are connected to the internet!", Toast.LENGTH_SHORT).show()
-            } else {
+            NetworkUtils.checkConnectivityAndProceed(this) {
                 joinButtonClicked()
             }
         }

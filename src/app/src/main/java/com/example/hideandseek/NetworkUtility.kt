@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
+import android.widget.Toast
 
 class NetworkUtils {
     companion object {
@@ -28,6 +29,17 @@ class NetworkUtils {
                     connectivityManager.activeNetworkInfo ?: return false
                 @Suppress("DEPRECATION")
                 return networkInfo.isConnected
+            }
+        }
+
+        /**
+         * Check connectivity and execute the provided action if connected.
+         */
+        fun checkConnectivityAndProceed(context: Context, action: () -> Unit) {
+            if (NetworkUtils.checkForInternet(context)) {
+                action.invoke()
+            } else {
+                Toast.makeText(context, "Make sure you are connected to the internet!", Toast.LENGTH_SHORT).show()
             }
         }
     }

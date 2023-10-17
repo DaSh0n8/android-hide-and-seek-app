@@ -50,10 +50,22 @@ class UserSetting : AppCompatActivity() {
         val changeIconIntent = Intent(this@UserSetting, SelfieSegmentation::class.java)
         changeIconIntent.putExtra("host", host)
         changeIconIntent.putExtra("lobbyCode", lobbyCode)
-        changeIcon.setOnClickListener{ startActivity(changeIconIntent) }
+        changeIcon.setOnClickListener{
+            NetworkUtils.checkConnectivityAndProceed(this) {
+                startActivity(changeIconIntent)
+            }
+        }
 
         val confirmBtn: Button = findViewById(R.id.confirmBtn)
-        confirmBtn.setOnClickListener { if (host) { hostConfirm(userIcon) } else { userConfirm(userIcon) }}
+        confirmBtn.setOnClickListener {
+            NetworkUtils.checkConnectivityAndProceed(this) {
+                if (host) {
+                    hostConfirm(userIcon)
+                } else {
+                    userConfirm(userIcon)
+                }
+            }
+        }
 
     }
 

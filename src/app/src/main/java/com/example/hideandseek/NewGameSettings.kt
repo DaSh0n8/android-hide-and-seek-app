@@ -70,7 +70,9 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
         val receivedUsername: String? = intent.getStringExtra("username_key")
         val receivedUserIcon: ByteArray? = intent.getByteArrayExtra("userIcon")
         createGameButton.setOnClickListener {
-            createButtonClicked(receivedUsername, receivedUserIcon)
+            NetworkUtils.checkConnectivityAndProceed(this) {
+                createButtonClicked(receivedUsername, receivedUserIcon)
+            }
         }
     }
 
