@@ -119,6 +119,7 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
             intent.putExtra("host", true)
 
             startActivity(intent)
+            locationHelper.stopUpdate()
             finish()
         }
 

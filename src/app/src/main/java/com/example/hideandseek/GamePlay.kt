@@ -73,8 +73,8 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var storageDb: FirebaseStorage
     private lateinit var locationHelper: LocationHelper
     private lateinit var gameplayListener: ValueEventListener
-    private lateinit var accelerationHelper: LinearAccelerationHelper
-    private lateinit var accelerationListener: LinearAccelerationHelper.LinearAccelerationListener
+    private var accelerationHelper: LinearAccelerationHelper? = null
+    private var accelerationListener: LinearAccelerationHelper.LinearAccelerationListener? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -135,6 +135,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         // Request location updates
         locationHelper = LocationHelper(this, updateInterval)
         locationHelper.requestLocationUpdates { location ->
+            Log.d("Location Updates", "Called")
             userLatLng = LatLng(location.latitude, location.longitude)
             uploadLoc(location, query)
         }
@@ -166,6 +167,8 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                     val eliminate: Button = findViewById(R.id.eliminateBtn)
                     eliminate.isEnabled = true
                     eliminate.setBackgroundColor(Color.parseColor("#005AFF"))
+                    accelerationListener = null
+
                 }
 
                 // count down timer for game play
@@ -267,12 +270,21 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                             eliminatedIcon
 
                         } else {
-                            BitmapFactory.decodeResource(resources, R.drawable.usericon)
+                            null
                         }
 
-                        iconBitmap?.let { markerOptions.icon(BitmapDescriptorFactory.fromBitmap(it)) }
+                        if (iconBitmap != null) {
+                            iconBitmap.let {
+                                markerOptions.icon(
+                                    BitmapDescriptorFactory.fromBitmap(
+                                        it
+                                    )
+                                )
+                            }
 
-                        map.addMarker(markerOptions)
+                            map.addMarker(markerOptions)
+                        }
+
                     }
                 }
 
@@ -418,8 +430,10 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
                 // turn off listener
                 reference.removeEventListener(gameplayListener)
-                accelerationHelper.stopListening()
                 locationHelper.stopUpdate()
+                if (!isSeeker && accelerationHelper != null) {
+                    accelerationHelper!!.stopListening()
+                }
 
                 // Update the local GameSession object
                 gameSession.players = players
@@ -648,14 +662,15 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 ).show()
                 locationHelper.setUpdateInterval(rapidInterval)
                 locationHelper.requestLocationUpdates { location ->
+                    Log.d("Location Updates", "Called")
                     userLatLng = LatLng(location.latitude, location.longitude)
                     uploadLoc(location, query)
                 }
-                accelerationHelper.stopListening()
+                accelerationHelper!!.stopListening()
             }
         }
-        accelerationHelper = LinearAccelerationHelper(this, accelerationListener)
-        accelerationHelper.startListening()
+        accelerationHelper = LinearAccelerationHelper(this, accelerationListener!!)
+        accelerationHelper!!.startListening()
     }
 
 }
