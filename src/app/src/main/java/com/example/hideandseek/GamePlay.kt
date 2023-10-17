@@ -73,8 +73,8 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var storageDb: FirebaseStorage
     private lateinit var locationHelper: LocationHelper
     private lateinit var gameplayListener: ValueEventListener
-    private lateinit var accelerationHelper: LinearAccelerationHelper
-    private lateinit var accelerationListener: LinearAccelerationHelper.LinearAccelerationListener
+    private var accelerationHelper: LinearAccelerationHelper? = null
+    private var accelerationListener: LinearAccelerationHelper.LinearAccelerationListener? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -166,6 +166,8 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                     val eliminate: Button = findViewById(R.id.eliminateBtn)
                     eliminate.isEnabled = true
                     eliminate.setBackgroundColor(Color.parseColor("#005AFF"))
+                    accelerationListener = null
+
                 }
 
                 // count down timer for game play
@@ -418,8 +420,10 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
                 // turn off listener
                 reference.removeEventListener(gameplayListener)
-                accelerationHelper.stopListening()
                 locationHelper.stopUpdate()
+                if (!isSeeker && accelerationHelper != null) {
+                    accelerationHelper!!.stopListening()
+                }
 
                 // Update the local GameSession object
                 gameSession.players = players
@@ -651,11 +655,11 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                     userLatLng = LatLng(location.latitude, location.longitude)
                     uploadLoc(location, query)
                 }
-                accelerationHelper.stopListening()
+                accelerationHelper!!.stopListening()
             }
         }
-        accelerationHelper = LinearAccelerationHelper(this, accelerationListener)
-        accelerationHelper.startListening()
+        accelerationHelper = LinearAccelerationHelper(this, accelerationListener!!)
+        accelerationHelper!!.startListening()
     }
 
 }

@@ -24,7 +24,7 @@ class LinearAccelerationHelper(
     }
 
     private val linearAccelerationEventListener = object : SensorEventListener {
-        private val MOVEMENT_THRESHOLD = 6.0f
+        private val MOVEMENT_THRESHOLD = 5.0f
 
         override fun onSensorChanged(event: SensorEvent) {
             if (event.sensor.type == Sensor.TYPE_LINEAR_ACCELERATION) {
