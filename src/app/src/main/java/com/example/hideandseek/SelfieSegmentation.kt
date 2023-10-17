@@ -254,12 +254,14 @@ class SelfieSegmentation : AppCompatActivity() {
     }
 
     private fun returnUserSetting(byteArray: ByteArray?) {
-        // pass the bitmap to next activity
-        val intent = Intent(this@SelfieSegmentation, UserSetting::class.java)
-        intent.putExtra("host", host)
-        intent.putExtra("lobbyCode", lobbyCode)
-        intent.putExtra("userIcon", byteArray)
-        startActivity(intent)
-        finish()
+        NetworkUtils.checkConnectivityAndProceed(this) {
+            // pass the bitmap to next activity
+            val intent = Intent(this@SelfieSegmentation, UserSetting::class.java)
+            intent.putExtra("host", host)
+            intent.putExtra("lobbyCode", lobbyCode)
+            intent.putExtra("userIcon", byteArray)
+            startActivity(intent)
+            finish()
+        }
     }
 }

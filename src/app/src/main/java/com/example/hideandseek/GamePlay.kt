@@ -174,16 +174,20 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 // count down timer for game play
                 val gameTimer = object: CountDownTimer(gameTime, 1000) {
                     override fun onTick(millisUntilFinished: Long) {
-                        val seconds = (millisUntilFinished / 1000) % 60
-                        val minutes = (millisUntilFinished / 1000) / 60
-                        countDownValue.text = String.format("%02d:%02d", minutes, seconds)
+                        if (NetworkUtils.checkForInternet(this@GamePlay)) {
+                            val seconds = (millisUntilFinished / 1000) % 60
+                            val minutes = (millisUntilFinished / 1000) / 60
+                            countDownValue.text = String.format("%02d:%02d", minutes, seconds)
 
-                        // if only 20% time left, trigger the accelerometer
-                        if (millisUntilFinished < triggerTime && !isSeeker && !hasTriggered) {
-                            Toast.makeText(this@GamePlay, "Game Ending!! Limit Your Movement!!", Toast.LENGTH_LONG).show()
-                            countDownValue.setTextColor(Color.RED)
-                            limitMovement(query)
-                            hasTriggered = true
+                            // if only 20% time left, trigger the accelerometer
+                            if (millisUntilFinished < triggerTime && !isSeeker && !hasTriggered) {
+                                Toast.makeText(this@GamePlay, "Game ending!! Limit your movement!!", Toast.LENGTH_LONG).show()
+                                countDownValue.setTextColor(Color.RED)
+                                limitMovement(query)
+                                hasTriggered = true
+                            }
+                        } else {
+                            returnHome()
                         }
                     }
 
@@ -657,7 +661,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
             override fun onRunningDetected() {
                 Toast.makeText(
                     this@GamePlay,
-                    "Significant Movement Detected, Your Location Will Be Constantly Exposed!",
+                    "Significant movement detected, your location will be constantly exposed!",
                     Toast.LENGTH_LONG
                 ).show()
                 locationHelper.setUpdateInterval(rapidInterval)
@@ -671,6 +675,14 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         }
         accelerationHelper = LinearAccelerationHelper(this, accelerationListener!!)
         accelerationHelper!!.startListening()
+    }
+
+    private fun returnHome() {
+        val errorMessage = "You have been eliminated as you are disconnected from internet!"
+        val intent = Intent(this@GamePlay, HomeScreen::class.java)
+        intent.putExtra("error", errorMessage)
+        startActivity(intent)
+        finish()
     }
 
 }

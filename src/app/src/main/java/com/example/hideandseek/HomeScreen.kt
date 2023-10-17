@@ -20,14 +20,25 @@ class HomeScreen : AppCompatActivity() {
 
         val createGameButton: Button = findViewById(R.id.createGameButton)
         createGameButton.setOnClickListener {
-            val intent = Intent(this@HomeScreen, UserSetting::class.java)
-            intent.putExtra("host", true)
-            startActivity(intent)
+            NetworkUtils.checkConnectivityAndProceed(this) {
+                val intent = Intent(this@HomeScreen, UserSetting::class.java)
+                intent.putExtra("host", true)
+                startActivity(intent)
+            }
         }
+
         val joinGameButton: Button = findViewById(R.id.joinGameButton)
         joinGameButton.setOnClickListener {
-            val intent = Intent(this@HomeScreen, JoinGame::class.java)
-            startActivity(intent)
+            NetworkUtils.checkConnectivityAndProceed(this) {
+                val intent = Intent(this@HomeScreen, JoinGame::class.java)
+                startActivity(intent)
+            }
+        }
+
+        val error = intent.getStringExtra("error")
+        if (error != null) {
+            Toast.makeText(this@HomeScreen, error, Toast.LENGTH_LONG).show()
         }
     }
+
 }

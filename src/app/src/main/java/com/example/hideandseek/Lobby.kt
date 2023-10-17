@@ -101,26 +101,34 @@ class Lobby : AppCompatActivity() {
 
         val switchTeamButton: Button = findViewById(R.id.switchTeamButton)
         switchTeamButton.setOnClickListener {
-            switchTeamClicked(receivedUsername, receivedLobbyCode)
+            NetworkUtils.checkConnectivityAndProceed(this) {
+                switchTeamClicked(receivedUsername, receivedLobbyCode)
+            }
         }
 
         val leaveLobbyButton: Button = findViewById(R.id.leaveLobbyButton)
         leaveLobbyButton.setOnClickListener {
-            leaveLobby(receivedLobbyCode, receivedUsername)
+            NetworkUtils.checkConnectivityAndProceed(this) {
+                leaveLobby(receivedLobbyCode, receivedUsername)
+            }
         }
 
         val startGameButton: Button = findViewById(R.id.startGameButton)
         startGameButton.setOnClickListener {
-            startButtonClicked(receivedLobbyCode)
+            NetworkUtils.checkConnectivityAndProceed(this) {
+                startButtonClicked(receivedLobbyCode)
+            }
         }
 
         val updateGameSettings: FrameLayout = findViewById(R.id.settingsPlaceholder)
         updateGameSettings.setOnClickListener {
-            val intent = Intent(this@Lobby, LobbySettings::class.java)
-            intent.putExtra("lobby_code_key", receivedLobbyCode)
-            intent.putExtra("username_key", receivedUsername)
-            intent.putExtra("host", host)
-            startActivity(intent)
+            NetworkUtils.checkConnectivityAndProceed(this) {
+                val intent = Intent(this@Lobby, LobbySettings::class.java)
+                intent.putExtra("lobby_code_key", receivedLobbyCode)
+                intent.putExtra("username_key", receivedUsername)
+                intent.putExtra("host", host)
+                startActivity(intent)
+            }
         }
 
         // hide the start game button for non host users

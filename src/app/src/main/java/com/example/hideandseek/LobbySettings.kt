@@ -14,6 +14,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import com.example.hideandseek.NetworkUtils.Companion.checkConnectivityAndProceed
 import com.example.hideandseek.databinding.NewGameSettingsBinding
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -79,7 +80,9 @@ class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
 
         val createGameButton: Button = findViewById(R.id.btnStartGame)
         createGameButton.setOnClickListener {
-            confirmSettingsClicked(receivedLobbyCode, receivedUsername, host)
+            checkConnectivityAndProceed(this) {
+                confirmSettingsClicked(receivedLobbyCode, receivedUsername, host)
+            }
         }
 
         loadSettingsInFields(receivedLobbyCode)
