@@ -169,6 +169,7 @@ class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
                             intent.putExtra("username_key", receivedUsername)
                             intent.putExtra("host", host)
                             startActivity(intent)
+                            locationHelper.stopUpdate()
                             finish()
                         }
                         .addOnFailureListener {

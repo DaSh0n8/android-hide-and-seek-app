@@ -135,6 +135,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         // Request location updates
         locationHelper = LocationHelper(this, updateInterval)
         locationHelper.requestLocationUpdates { location ->
+            Log.d("Location Updates", "Called")
             userLatLng = LatLng(location.latitude, location.longitude)
             uploadLoc(location, query)
         }
@@ -661,6 +662,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 ).show()
                 locationHelper.setUpdateInterval(rapidInterval)
                 locationHelper.requestLocationUpdates { location ->
+                    Log.d("Location Updates", "Called")
                     userLatLng = LatLng(location.latitude, location.longitude)
                     uploadLoc(location, query)
                 }
