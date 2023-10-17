@@ -269,12 +269,21 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                             eliminatedIcon
 
                         } else {
-                            BitmapFactory.decodeResource(resources, R.drawable.usericon)
+                            null
                         }
 
-                        iconBitmap?.let { markerOptions.icon(BitmapDescriptorFactory.fromBitmap(it)) }
+                        if (iconBitmap != null) {
+                            iconBitmap.let {
+                                markerOptions.icon(
+                                    BitmapDescriptorFactory.fromBitmap(
+                                        it
+                                    )
+                                )
+                            }
 
-                        map.addMarker(markerOptions)
+                            map.addMarker(markerOptions)
+                        }
+
                     }
                 }
 
