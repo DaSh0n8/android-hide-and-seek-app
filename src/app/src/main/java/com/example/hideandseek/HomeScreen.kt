@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.example.hideandseek.NetworkUtils.Companion.checkForInternet
 import com.google.firebase.database.FirebaseDatabase
 
 class HomeScreen : AppCompatActivity() {
@@ -20,14 +21,24 @@ class HomeScreen : AppCompatActivity() {
 
         val createGameButton: Button = findViewById(R.id.createGameButton)
         createGameButton.setOnClickListener {
-            val intent = Intent(this@HomeScreen, UserSetting::class.java)
-            intent.putExtra("host", true)
-            startActivity(intent)
+            if (!checkForInternet(this)) {
+                Toast.makeText(this, "Make sure you are connected to the internet!", Toast.LENGTH_SHORT).show()
+            } else {
+                val intent = Intent(this@HomeScreen, UserSetting::class.java)
+                intent.putExtra("host", true)
+                startActivity(intent)
+            }
         }
+
         val joinGameButton: Button = findViewById(R.id.joinGameButton)
         joinGameButton.setOnClickListener {
-            val intent = Intent(this@HomeScreen, JoinGame::class.java)
-            startActivity(intent)
+            if (!checkForInternet(this)) {
+                Toast.makeText(this, "Make sure you are connected to the internet!", Toast.LENGTH_SHORT).show()
+            } else {
+                val intent = Intent(this@HomeScreen, JoinGame::class.java)
+                startActivity(intent)
+            }
         }
     }
+
 }
