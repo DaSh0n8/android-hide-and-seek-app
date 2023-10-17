@@ -34,6 +34,11 @@ class HomeScreen : AppCompatActivity() {
                 startActivity(intent)
             }
         }
+
+        val error = intent.getStringExtra("error")
+        if (error != null) {
+            Toast.makeText(this@HomeScreen, error, Toast.LENGTH_LONG).show()
+        }
     }
 
 }
