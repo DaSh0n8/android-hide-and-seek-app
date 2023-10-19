@@ -28,9 +28,9 @@ class Lobby : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.lobby)
 
-        val receivedUsername: String? = intent.getStringExtra("username_key")
-        var receivedUserIcon: ByteArray? = intent.getByteArrayExtra("userIcon")
-        val receivedLobbyCode: String? = intent.getStringExtra("lobby_key")
+        val receivedUserIcon = intent.getByteArrayExtra("userIcon")
+        val receivedUsername = intent.getStringExtra("username_key")!!
+        val receivedLobbyCode = intent.getStringExtra("lobby_key")!!
         seeker = intent.getBooleanExtra("isSeeker", false)
 
         val host = intent.getBooleanExtra("host", false)
@@ -374,6 +374,7 @@ class Lobby : AppCompatActivity() {
 
     private fun returnHomeIntent(lobbyCode: String?, host: Boolean?, voluntary: Boolean) {
         val intent = Intent(this@Lobby, HomeScreen::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
         if (!host!! && !voluntary) {
             Toast.makeText(this@Lobby, "Host has left", Toast.LENGTH_SHORT).show()
         } else {
@@ -384,6 +385,11 @@ class Lobby : AppCompatActivity() {
         finish()
     }
 
+    override fun onBackPressed() {
+        val leaveLobbyButton: Button = findViewById(R.id.leaveLobbyButton)
+        leaveLobbyButton.performClick()
+        super.onBackPressed()
 
+    }
 
 }

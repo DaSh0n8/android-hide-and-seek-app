@@ -685,4 +685,11 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         finish()
     }
 
+    /**
+     * Disallow user from leaving the game by pressing back button during game
+     */
+    override fun onBackPressed() {
+        Toast.makeText(this, "You cannot leave the game midway!", Toast.LENGTH_SHORT).show()
+    }
+
 }
