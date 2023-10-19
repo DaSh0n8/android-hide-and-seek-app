@@ -1,7 +1,6 @@
 package com.example.hideandseek
 
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -167,11 +166,6 @@ class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
                     gameSessionSnapshot.ref.updateChildren(updatedGameSession)
                         .addOnSuccessListener {
                             Toast.makeText(this@LobbySettings, "Game configurations updated", Toast.LENGTH_SHORT).show()
-                            val intent = Intent(this@LobbySettings, Lobby::class.java)
-                            intent.putExtra("lobby_key", receivedLobbyCode)
-                            intent.putExtra("username_key", receivedUsername)
-                            intent.putExtra("host", host)
-                            startActivity(intent)
                             locationHelper.stopUpdate()
                             finish()
                         }

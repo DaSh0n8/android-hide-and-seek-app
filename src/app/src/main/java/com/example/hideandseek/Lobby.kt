@@ -22,15 +22,17 @@ class Lobby : AppCompatActivity() {
     private lateinit var realtimeDb: FirebaseDatabase
     private lateinit var storageDb: FirebaseStorage
     private lateinit var lobbyListener: ValueEventListener
+    private lateinit var receivedLobbyCode: String
+    private lateinit var receivedUsername: String
 
     private var seeker: Boolean = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.lobby)
 
-        val receivedUsername: String? = intent.getStringExtra("username_key")
         var receivedUserIcon: ByteArray? = intent.getByteArrayExtra("userIcon")
-        val receivedLobbyCode: String? = intent.getStringExtra("lobby_key")
+        receivedUsername = intent.getStringExtra("username_key")!!
+        receivedLobbyCode = intent.getStringExtra("lobby_key")!!
         seeker = intent.getBooleanExtra("isSeeker", false)
 
         val host = intent.getBooleanExtra("host", false)
@@ -384,6 +386,9 @@ class Lobby : AppCompatActivity() {
         finish()
     }
 
-
+    override fun onBackPressed() {
+        super.onBackPressed()
+        leaveLobby(receivedLobbyCode, receivedUsername)
+    }
 
 }
