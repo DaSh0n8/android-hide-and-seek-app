@@ -40,8 +40,11 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.Query
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.storage.FirebaseStorage
+import java.time.Duration
+import java.time.LocalTime
 import java.util.Timer
 import java.util.TimerTask
+import kotlin.math.roundToInt
 
 
 class GamePlay : AppCompatActivity(), OnMapReadyCallback {
@@ -117,7 +120,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
             val eliminate: Button = findViewById(R.id.eliminateBtn)
             val code: TextInputEditText = findViewById(R.id.textInputEditText)
             eliminate.setOnClickListener{
-                eliminatePlayer(code.text.toString())
+                eliminatePlayer(code.text.toString(), true)
                 code.text?.clear()
             }
         }
@@ -263,6 +266,16 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                         val coordinates = LatLng(player.latitude!!, player.longitude!!)
                         val markerOptions = MarkerOptions().position(coordinates).title(player.userName)
 
+                        // calculate the last update
+                        val currTime = LocalTime.now()
+                        val duration = minToMilli(Duration.between(LocalTime.parse(player.lastUpdated), currTime).toMinutes().toInt())
+                        Log.d("Checkingggg", duration.toString())
+                        Log.d("Round to int", (updateInterval * 1.5).roundToInt().toString())
+                        if (!player.eliminated && duration >= (updateInterval * 1.5).roundToInt()) {
+                            Log.d("Got", player.playerCode)
+                            eliminatePlayer(player.playerCode, false)
+                        }
+
                         val iconBitmap = if (!player.seeker && !player.eliminated) {
                             hidersAvailable = true
                             playersIcons[player.userName] ?: userIconBitmap
@@ -279,11 +292,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
                         if (iconBitmap != null) {
                             iconBitmap.let {
-                                markerOptions.icon(
-                                    BitmapDescriptorFactory.fromBitmap(
-                                        it
-                                    )
-                                )
+                                markerOptions.icon(BitmapDescriptorFactory.fromBitmap(it))
                             }
 
                             map.addMarker(markerOptions)
@@ -337,6 +346,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                         if (p.userName == userName) {
                             p.latitude = lat
                             p.longitude = lon
+                            p.lastUpdated = LocalTime.now().toString()
                         }
                     }
                     // push to realtime database
@@ -462,7 +472,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     /**
      * Eliminate a player from the game
      */
-    private fun eliminatePlayer(code: String){
+    private fun eliminatePlayer(code: String, voluntary: Boolean){
         if (code.isBlank()){
             Toast.makeText(this@GamePlay, "Please enter a code", Toast.LENGTH_SHORT).show()
         }
@@ -497,7 +507,13 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                         if(existPlayer){
                             gameSession.players = newPlayers
                             gameSessionSnapshot.ref.setValue(gameSession).addOnSuccessListener {
-                                Toast.makeText(this@GamePlay, "$eliminatedUsername has successfully been Eliminated", Toast.LENGTH_SHORT).show()
+                                if (voluntary) {
+                                    Toast.makeText(
+                                        this@GamePlay,
+                                        "$eliminatedUsername has successfully been Eliminated",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
 
                             }.addOnFailureListener{
                                 Toast.makeText(this@GamePlay, "Error updating database", Toast.LENGTH_SHORT).show()
