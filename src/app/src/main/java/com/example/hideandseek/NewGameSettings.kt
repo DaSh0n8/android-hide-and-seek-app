@@ -43,7 +43,7 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
         setContentView(binding.root)
 
         // Request location updates
-        locationHelper = LocationHelper(this)
+        locationHelper = LocationHelper(this, (1*60*1000))
         locationHelper.requestLocationUpdates { location ->
             userLatLng = LatLng(location.latitude, location.longitude)
             updateMap(userLatLng, map)
@@ -70,7 +70,9 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
         val receivedUsername: String? = intent.getStringExtra("username_key")
         val receivedUserIcon: ByteArray? = intent.getByteArrayExtra("userIcon")
         createGameButton.setOnClickListener {
-            createButtonClicked(receivedUsername, receivedUserIcon)
+            NetworkUtils.checkConnectivityAndProceed(this) {
+                createButtonClicked(receivedUsername, receivedUserIcon)
+            }
         }
     }
 
@@ -119,6 +121,7 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
             intent.putExtra("host", true)
 
             startActivity(intent)
+            locationHelper.stopUpdate()
             finish()
         }
 

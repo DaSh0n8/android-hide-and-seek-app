@@ -55,20 +55,27 @@ class GameOver : AppCompatActivity() {
         // clean db and return to home page
         var backToHomeBtn: Button = findViewById(R.id.btnHome)
         backToHomeBtn.setOnClickListener {
-            if (host!!) {
-                endGame(lobbyCode)
-            } else {
-                removePlayer(lobbyCode, username)
+            NetworkUtils.checkConnectivityAndProceed(this) {
+                if (host!!) {
+                    endGame(lobbyCode)
+                } else {
+                    removePlayer(lobbyCode, username)
+                }
+
+                // return to homepage
+                val intent = Intent(this@GameOver, HomeScreen::class.java)
+                startActivity(intent)
+                finish()
             }
-            // return to homepage
-            val intent = Intent(this@GameOver, HomeScreen::class.java)
-            startActivity(intent)
-            finish()
         }
 
         // back to lobby
         var backToLobbyBtn: Button = findViewById(R.id.btnPlayAgain)
-        backToLobbyBtn.setOnClickListener { returnLobby(username, playerCode, lobbyCode, host) }
+        backToLobbyBtn.setOnClickListener {
+            NetworkUtils.checkConnectivityAndProceed(this) {
+                returnLobby(username, playerCode, lobbyCode, host)
+            }
+        }
     }
 
     /**

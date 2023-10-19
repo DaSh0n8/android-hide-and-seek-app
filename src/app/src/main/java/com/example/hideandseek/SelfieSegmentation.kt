@@ -81,6 +81,9 @@ class SelfieSegmentation : AppCompatActivity() {
         // Set up the listeners for take photo and video capture buttons
         viewBinding.imageCaptureButton.setOnClickListener { takePhoto() }
 
+        // cancel button
+        viewBinding.cancelButton.setOnClickListener { finish() }
+
         cameraExecutor = Executors.newSingleThreadExecutor()
     }
 
@@ -168,12 +171,8 @@ class SelfieSegmentation : AppCompatActivity() {
                                     copyBitmap?.compress(Bitmap.CompressFormat.PNG, 100, stream)
                                     val byteArray = stream.toByteArray()
 
-                                    // pass the bitmap to next activity
-                                    val intent = Intent(this@SelfieSegmentation, UserSetting::class.java)
-                                    intent.putExtra("host", host)
-                                    intent.putExtra("lobbyCode", lobbyCode)
-                                    intent.putExtra("userIcon", byteArray)
-                                    startActivity(intent)
+                                    // back to user setting
+                                    returnUserSetting(byteArray)
 
                                 } catch (e: FileNotFoundException) {
                                     Log.e(TAG, "File Absent: $e")
@@ -252,5 +251,17 @@ class SelfieSegmentation : AppCompatActivity() {
                     add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 }
             }.toTypedArray()
+    }
+
+    private fun returnUserSetting(byteArray: ByteArray?) {
+        NetworkUtils.checkConnectivityAndProceed(this) {
+            // pass the bitmap to next activity
+            val intent = Intent(this@SelfieSegmentation, UserSetting::class.java)
+            intent.putExtra("host", host)
+            intent.putExtra("lobbyCode", lobbyCode)
+            intent.putExtra("userIcon", byteArray)
+            startActivity(intent)
+            finish()
+        }
     }
 }
