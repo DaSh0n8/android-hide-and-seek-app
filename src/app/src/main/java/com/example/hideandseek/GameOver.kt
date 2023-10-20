@@ -28,7 +28,6 @@ class GameOver : AppCompatActivity() {
 
         val username: String? = intent.getStringExtra("username")
         val lobbyCode: String? = intent.getStringExtra("lobbyCode")
-        val playerCode: String? = intent.getStringExtra("playerCode")
         val host: Boolean? = intent.getBooleanExtra("host", false)
         val isSeeker: Boolean? = intent.getBooleanExtra("isSeeker", false)
         val seekerWon = intent.getBooleanExtra("seekerWonGame", false)

@@ -102,7 +102,7 @@ class UserSetting : AppCompatActivity() {
                                 }
                             }
 
-                            val newPlayer = PlayerClass(username, false, 0.0, 0.0, false, false, playerCode)
+                            val newPlayer = PlayerClass(username, false, 0.0, 0.0, false, false, playerCode, null)
                             val updatedPlayers = gameSession.players.toMutableList()
                             updatedPlayers.add(newPlayer)
 
