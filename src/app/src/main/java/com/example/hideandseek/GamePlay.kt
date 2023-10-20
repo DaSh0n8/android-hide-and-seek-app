@@ -269,7 +269,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                         // calculate the last update
                         val currTime = LocalTime.now()
                         val duration = minToMilli(Duration.between(LocalTime.parse(player.lastUpdated), currTime).toMinutes().toInt())
-                        if (!player.eliminated && duration >= updateInterval && !player.seeker) {
+                        if (!player.eliminated && duration > updateInterval && !player.seeker) {
                             eliminatePlayer(player.playerCode, false)
                         }
 
@@ -419,7 +419,6 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                     // check if all players have been eliminated
                     if (!p.eliminated && !p.seeker) {
                         seekerWonGame = false
-
                     }
 
                     if (p.userName == userName) {
@@ -732,7 +731,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private fun confirmConnectivity(lobbyCode: String?, username: String?) {
         var tickCounter = 0
         val checkpoint = (updateInterval/1000).toInt() - 3
-        val connectTimer = object: CountDownTimer(gameTime, 1000) {
+        val connectTimer = object: CountDownTimer(hideTime + gameTime, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 if (tickCounter == checkpoint) {
                     acknowledgeOnline(lobbyCode, username)
