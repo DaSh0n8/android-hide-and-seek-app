@@ -18,6 +18,7 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import java.io.ByteArrayOutputStream
+import java.time.LocalTime
 
 class UserSetting : AppCompatActivity() {
     private var host: Boolean = false
@@ -102,7 +103,7 @@ class UserSetting : AppCompatActivity() {
                                 }
                             }
 
-                            val newPlayer = PlayerClass(username, false, 0.0, 0.0, false, false, playerCode, null)
+                            val newPlayer = PlayerClass(username, false, 0.0, 0.0, false, false, playerCode, LocalTime.now().toString())
                             val updatedPlayers = gameSession.players.toMutableList()
                             updatedPlayers.add(newPlayer)
 
