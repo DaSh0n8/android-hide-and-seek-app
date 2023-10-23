@@ -72,7 +72,7 @@
             android:layout_weight="1"
             android:background="@color/white"
             android:scaleType="fitCenter"
-            app:srcCompat="@drawable/close" />
+            app:srcCompat="@drawable/eliminated" />
 
 
     </LinearLayout>
