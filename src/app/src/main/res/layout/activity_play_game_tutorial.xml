@@ -16,7 +16,7 @@
         android:background="@color/white"
         android:gravity="center|bottom">
         <ImageButton
-            android:id="@+id/left_button2"
+            android:id="@+id/left_button4"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_weight="1"
@@ -24,7 +24,7 @@
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/left_arrow" />
         <ImageButton
-            android:id="@+id/right_button2"
+            android:id="@+id/right_button4"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_weight="1"

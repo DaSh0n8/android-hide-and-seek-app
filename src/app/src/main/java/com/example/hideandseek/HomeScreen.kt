@@ -29,5 +29,10 @@ class HomeScreen : AppCompatActivity() {
             val intent = Intent(this@HomeScreen, JoinGame::class.java)
             startActivity(intent)
         }
+        val tutorial: Button = findViewById(R.id.tutorial)
+        tutorial.setOnClickListener{
+            val intent = Intent(this@HomeScreen, TutorialPageMain::class.java)
+            startActivity(intent)
+        }
     }
 }
