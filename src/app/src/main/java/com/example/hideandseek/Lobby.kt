@@ -54,8 +54,8 @@ class Lobby : AppCompatActivity() {
         val query = realtimeDb.getReference("gameSessions")
             .orderByChild("sessionId")
             .equalTo(receivedLobbyCode)
-        val seekersList = mutableListOf<String>()
-        val hidersList = mutableListOf<String>()
+        val seekersList = mutableListOf<PlayerClass>()
+        val hidersList = mutableListOf<PlayerClass>()
 
         lobbyListener = query.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
@@ -75,22 +75,30 @@ class Lobby : AppCompatActivity() {
                     val players = sessionSnapshot.child("players").children
                     // update player list
                     for (playerSnapshot in players) {
-                        val playerName = playerSnapshot.child("userName").value.toString()
-                        val isSeeker = playerSnapshot.child("seeker").getValue(Boolean::class.java) ?: false
+                        val player = playerSnapshot.getValue(PlayerClass::class.java) ?: return
 
-                        if (isSeeker) {
-                            seekersList.add(playerName)
+                        if (player.seeker) {
+                            seekersList.add(player)
                         } else {
-                            hidersList.add(playerName)
+                            hidersList.add(player)
                         }
                     }
                 }
+                if (host) {
+                    val seekersAdapter = PlayersAdapter(this@Lobby, seekersList)
+                    val hidersAdapter = PlayersAdapter(this@Lobby, hidersList)
 
-                val seekersAdapter = ArrayAdapter(this@Lobby, android.R.layout.simple_list_item_1, seekersList)
-                val hidersAdapter = ArrayAdapter(this@Lobby, android.R.layout.simple_list_item_1, hidersList)
+                    seekersListView.adapter = seekersAdapter
+                    hidersListView.adapter = hidersAdapter
+                } else {
+                    val seekersNames = seekersList.map { it.userName }
+                    val hidersNames = hidersList.map { it.userName }
 
-                seekersListView.adapter = seekersAdapter
-                hidersListView.adapter = hidersAdapter
+                    seekersListView.adapter = ArrayAdapter(this@Lobby, android.R.layout.simple_list_item_1, seekersNames)
+                    hidersListView.adapter = ArrayAdapter(this@Lobby, android.R.layout.simple_list_item_1, hidersNames)
+                }
+
+
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
