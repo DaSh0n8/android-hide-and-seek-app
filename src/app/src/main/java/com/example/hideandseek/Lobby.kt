@@ -147,6 +147,14 @@ class Lobby : AppCompatActivity() {
                                 .show()
                         }
                     }
+                    val playerStillInSession = (seekersList + hidersList).any { it.userName == receivedUsername }
+
+                    if (!playerStillInSession) {
+                        Toast.makeText(this@Lobby, "You have been removed from the lobby", Toast.LENGTH_SHORT).show()
+                        finish()
+                        return
+                    }
+
                     if (currentUserIsHost) {
                         seekersAdapter.updateData(seekersList)
                         hidersAdapter.updateData(hidersList)

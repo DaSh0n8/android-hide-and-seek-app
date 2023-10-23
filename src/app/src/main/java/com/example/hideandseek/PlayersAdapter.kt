@@ -44,7 +44,7 @@ class PlayersAdapter(private val context: Context, private var players: List<Pla
         }
 
         btnKick.setOnClickListener {
-            kickPlayer(player.userName)
+            kickPlayer(player.userName, context)
         }
 
         return view
@@ -82,9 +82,37 @@ class PlayersAdapter(private val context: Context, private var players: List<Pla
         })
     }
 
-    private fun kickPlayer(username: String?){
-        if (username == null){
-            return
-        }
+    private fun kickPlayer(playerToKick: String?, context: Context) {
+        val query = realtimeDb.getReference("gameSessions")
+            .orderByChild("sessionId")
+            .equalTo(lobbyCode)
+
+        query.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    val gameSessionSnapshot = dataSnapshot.children.first()
+                    val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+
+                    if (gameSession != null) {
+                        val updatedPlayers = gameSession.players.toMutableList()
+                        updatedPlayers.removeIf { it.userName == playerToKick }
+
+                        gameSession.players = updatedPlayers
+                        gameSessionSnapshot.ref.setValue(gameSession).addOnSuccessListener {
+                            Toast.makeText(context, "$playerToKick was kicked out of the lobby", Toast.LENGTH_SHORT).show()
+                        }.addOnFailureListener {
+                            Toast.makeText(context, "Unexpected Error", Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        Toast.makeText(context, "Unexpected Error", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                Toast.makeText(context, "Error fetching data", Toast.LENGTH_SHORT)
+                    .show()
+            }
+        })
     }
 }
