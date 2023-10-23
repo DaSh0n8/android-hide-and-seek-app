@@ -22,7 +22,10 @@ class Lobby : AppCompatActivity() {
     private lateinit var realtimeDb: FirebaseDatabase
     private lateinit var storageDb: FirebaseStorage
     private lateinit var lobbyListener: ValueEventListener
-
+    private lateinit var seekersAdapter: PlayersAdapter
+    private lateinit var hidersAdapter: PlayersAdapter
+    private lateinit var seekersNameAdapter: ArrayAdapter<String>
+    private lateinit var hidersNameAdapter: ArrayAdapter<String>
     private var seeker: Boolean = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,55 +60,24 @@ class Lobby : AppCompatActivity() {
         val seekersList = mutableListOf<PlayerClass>()
         val hidersList = mutableListOf<PlayerClass>()
 
-        lobbyListener = query.addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                seekersList.clear()
-                hidersList.clear()
+        seekersAdapter = PlayersAdapter(this@Lobby, seekersList, receivedLobbyCode, realtimeDb)
+        hidersAdapter = PlayersAdapter(this@Lobby, hidersList, receivedLobbyCode, realtimeDb)
 
-                for (sessionSnapshot in dataSnapshot.children) {
-                    val gameSessionSnapshot = dataSnapshot.children.first()
-                    val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
-
-                    // check if host has started or ended the game
-                    when (gameSession!!.gameStatus) {
-                        "started" -> startGameIntent(receivedLobbyCode, receivedUsername, gameSession)
-                        "ended"   -> returnHomeIntent(receivedLobbyCode, host, false)
-                    }
-
-                    val players = sessionSnapshot.child("players").children
-                    // update player list
-                    for (playerSnapshot in players) {
-                        val player = playerSnapshot.getValue(PlayerClass::class.java) ?: return
-
-                        if (player.seeker) {
-                            seekersList.add(player)
-                        } else {
-                            hidersList.add(player)
-                        }
-                    }
-                }
-                if (host) {
-                    val seekersAdapter = PlayersAdapter(this@Lobby, seekersList)
-                    val hidersAdapter = PlayersAdapter(this@Lobby, hidersList)
-
-                    seekersListView.adapter = seekersAdapter
-                    hidersListView.adapter = hidersAdapter
-                } else {
-                    val seekersNames = seekersList.map { it.userName }
-                    val hidersNames = hidersList.map { it.userName }
-
-                    seekersListView.adapter = ArrayAdapter(this@Lobby, android.R.layout.simple_list_item_1, seekersNames)
-                    hidersListView.adapter = ArrayAdapter(this@Lobby, android.R.layout.simple_list_item_1, hidersNames)
-                }
+        val seekersNames = mutableListOf<String>()
+        val hidersNames = mutableListOf<String>()
 
 
-            }
+        seekersNameAdapter = ArrayAdapter(this@Lobby, android.R.layout.simple_list_item_1, seekersNames)
+        hidersNameAdapter = ArrayAdapter(this@Lobby, android.R.layout.simple_list_item_1, hidersNames)
 
-            override fun onCancelled(databaseError: DatabaseError) {
-                Toast.makeText(this@Lobby, "Error fetching data", Toast.LENGTH_SHORT)
-                    .show()
-            }
-        })
+
+        if (host) {
+            seekersListView.adapter = seekersAdapter
+            hidersListView.adapter = hidersAdapter
+        } else {
+            seekersListView.adapter = seekersNameAdapter
+            hidersListView.adapter = hidersNameAdapter
+        }
 
         val switchTeamButton: Button = findViewById(R.id.switchTeamButton)
         switchTeamButton.setOnClickListener {
@@ -139,14 +111,88 @@ class Lobby : AppCompatActivity() {
             }
         }
 
-        // hide the start game button for non host users
-        if (!host) {
+        lobbyListener = query.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                seekersList.clear()
+                hidersList.clear()
+
+                var currentUserIsHost = false
+
+                for (sessionSnapshot in dataSnapshot.children) {
+                    seekersAdapter.updateData(seekersList)
+                    hidersAdapter.updateData(hidersList)
+                    val gameSessionSnapshot = dataSnapshot.children.first()
+                    val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+
+                    // check if host has started or ended the game
+                    when (gameSession!!.gameStatus) {
+                        "started" -> startGameIntent(receivedLobbyCode, receivedUsername, gameSession)
+                        "ended"   -> returnHomeIntent(receivedLobbyCode, host, false)
+                    }
+
+                    val players = sessionSnapshot.child("players").children
+                    // update player list
+                    for (playerSnapshot in players) {
+                        val player = playerSnapshot.getValue(PlayerClass::class.java) ?: return
+                        if (player.seeker) {
+                            seekersList.add(player)
+                        } else {
+                            hidersList.add(player)
+                        }
+                        Log.d("Lobby", "Check user : ${player.userName} is host: ${player.host}")
+                        if (player.userName == receivedUsername && player.host) {
+                            currentUserIsHost = true
+                            Log.d("Lobby", "Current user : $receivedUsername is host: $currentUserIsHost")
+                            Toast.makeText(this@Lobby, "You've been made host", Toast.LENGTH_SHORT)
+                                .show()
+                        }
+                    }
+                    if (currentUserIsHost) {
+                        seekersAdapter.updateData(seekersList)
+                        hidersAdapter.updateData(hidersList)
+                    } else {
+                        seekersNameAdapter.clear()
+                        seekersNameAdapter.addAll(seekersList.map { it.userName })
+                        seekersNameAdapter.notifyDataSetChanged()
+
+                        hidersNameAdapter.clear()
+                        hidersNameAdapter.addAll(hidersList.map { it.userName })
+                        hidersNameAdapter.notifyDataSetChanged()
+                    }
+                }
+
+                updateUIBasedOnHostStatus(currentUserIsHost)
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                Toast.makeText(this@Lobby, "Error fetching data", Toast.LENGTH_SHORT)
+                    .show()
+            }
+        })
+    }
+
+    private fun updateUIBasedOnHostStatus(isHost: Boolean) {
+        val startGameButton: Button = findViewById(R.id.startGameButton)
+        val waitHost: TextView = findViewById(R.id.waitHost)
+        val updateGameSettings: FrameLayout = findViewById(R.id.settingsPlaceholder)
+        val hidersListView = findViewById<ListView>(R.id.hiderListView)
+        val seekersListView = findViewById<ListView>(R.id.seekerListView)
+
+        if (isHost) {
+            startGameButton.visibility = VISIBLE
+            waitHost.visibility = GONE
+            updateGameSettings.visibility = VISIBLE
+
+            seekersListView.adapter = seekersAdapter
+            hidersListView.adapter = hidersAdapter
+        } else {
             startGameButton.visibility = GONE
-            val waitHost: TextView = findViewById(R.id.waitHost)
             waitHost.visibility = VISIBLE
             updateGameSettings.visibility = GONE
-        }
 
+            seekersListView.adapter = seekersNameAdapter
+            hidersListView.adapter = hidersNameAdapter
+        }
     }
 
     private fun switchTeamClicked(username: String?, lobbyCode: String?){
