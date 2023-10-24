@@ -2,6 +2,7 @@ package com.example.hideandseek
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.util.Log
 import android.view.View.GONE
 import android.view.View.VISIBLE
@@ -17,11 +18,14 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.storage.FirebaseStorage
+import java.time.LocalTime
 
 class Lobby : AppCompatActivity() {
     private lateinit var realtimeDb: FirebaseDatabase
     private lateinit var storageDb: FirebaseStorage
     private lateinit var lobbyListener: ValueEventListener
+    private lateinit var connectTimer: CountDownTimer
+
     private lateinit var seekersAdapter: PlayersAdapter
     private lateinit var hidersAdapter: PlayersAdapter
     private lateinit var seekersNameAdapter: ArrayAdapter<String>
@@ -57,6 +61,22 @@ class Lobby : AppCompatActivity() {
         if (receivedUserIcon != null) {
             uploadIcon(receivedUserIcon, receivedLobbyCode, receivedUsername)
         }
+
+        // update user's connectivity
+        var tickCounter = 0
+        val interval = 10
+        connectTimer = object: CountDownTimer(Long.MAX_VALUE, 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                if (tickCounter == interval) {
+                    acknowledgeOnline(receivedLobbyCode, receivedUsername)
+                    tickCounter = 0
+                }
+                tickCounter++
+            }
+            override fun onFinish() {
+
+            }
+        }.start()
 
         val query = realtimeDb.getReference("gameSessions")
             .orderByChild("sessionId")
@@ -254,6 +274,7 @@ class Lobby : AppCompatActivity() {
     }
 
     private fun leaveLobby(lobbyCode: String?, username: String?) {
+        connectTimer.cancel()
         val query = realtimeDb.getReference("gameSessions")
             .orderByChild("sessionId")
             .equalTo(lobbyCode)
@@ -353,6 +374,7 @@ class Lobby : AppCompatActivity() {
     }
 
     private fun startGameIntent(lobbyCode: String?, username: String?, gameSession: GameSessionClass?) {
+        connectTimer.cancel()
         gameSession?.let {
             val intent = Intent(this@Lobby, GamePlay::class.java)
             intent.putExtra("lobbyCode", lobbyCode)
@@ -464,6 +486,39 @@ class Lobby : AppCompatActivity() {
         leaveLobbyButton.performClick()
         super.onBackPressed()
 
+    }
+
+    /**
+     * Function to allow user to update their last online time
+     */
+    private fun acknowledgeOnline(lobbyCode: String?, username: String?) {
+        val query = realtimeDb.getReference("gameSessions")
+            .orderByChild("sessionId")
+            .equalTo(lobbyCode)
+
+        query.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                // get the game session
+                val gameSessionSnapshot = dataSnapshot.children.first()
+                val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+                val ref = realtimeDb.getReference("gameSessions").child(gameSessionSnapshot.key!!)
+
+                if (gameSession != null) {
+                    // update user's last update time
+                    val players = gameSession.players.toMutableList()
+                    for ((index, p) in players.withIndex()) {
+                        if (p.userName == username) {
+                            val currTime = LocalTime.now().toString()
+                            ref.child("players").child(index.toString()).child("lastUpdated").setValue(currTime)
+                        }
+                    }
+                }
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                Log.e("Firebase", "Data retrieval error: ${databaseError.message}")
+            }
+        })
     }
 
 //    override fun onStop() {
