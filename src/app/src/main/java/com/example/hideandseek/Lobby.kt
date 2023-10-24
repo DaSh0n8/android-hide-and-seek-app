@@ -143,10 +143,8 @@ class Lobby : AppCompatActivity() {
                         } else {
                             hidersList.add(player)
                         }
-                        Log.d("Lobby", "Check user : ${player.userName} is host: ${player.host}")
                         if (player.userName == receivedUsername && player.host) {
                             currentUserIsHost = true
-                            Log.d("Lobby", "Current user : $receivedUsername is host: $currentUserIsHost")
                             Toast.makeText(this@Lobby, "You've been made host", Toast.LENGTH_SHORT)
                                 .show()
                         }
@@ -310,6 +308,13 @@ class Lobby : AppCompatActivity() {
                 if (dataSnapshot.exists()) {
                     val gameSessionSnapshot = dataSnapshot.children.first()
                     val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+
+                    for (player in gameSession!!.players) {
+                        if (player.playerStatus != "In Lobby") {
+                            Toast.makeText(this@Lobby, "Not all players are in the lobby", Toast.LENGTH_SHORT).show()
+                            return
+                        }
+                    }
 
                     // validate the eligibility to start a game
                     if (validateGame(gameSession!!.players)) {

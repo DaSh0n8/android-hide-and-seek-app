@@ -2,6 +2,7 @@ package com.example.hideandseek
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
@@ -95,6 +96,10 @@ class GameOver : AppCompatActivity() {
                     if (gameSession != null) {
                         // Update the GameSession object
                         gameSession?.gameStatus = "ended"
+
+                        for (player in gameSession.players) {
+                            player.playerStatus = "End Game Screen"
+                        }
                         gameSessionSnapshot.ref.setValue(gameSession).addOnFailureListener {
                             Toast.makeText(this@GameOver, "Game session ended", Toast.LENGTH_SHORT).show()
                         }
@@ -155,6 +160,44 @@ class GameOver : AppCompatActivity() {
         intent.putExtra("username_key", username)
         intent.putExtra("lobby_key", lobbyCode)
         intent.putExtra("host", host)
+        val query = database.getReference("gameSessions")
+            .orderByChild("sessionId")
+            .equalTo(lobbyCode)
+        query.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    val gameSessionSnapshot = dataSnapshot.children.first()
+                    val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+                    if (gameSession != null) {
+                        for (player in gameSession.players){
+                            if (player.userName == username){
+                                player.playerStatus = "In Lobby"
+                                Log.e("Player Found","Setting ${player.userName}'s status to ${player.playerStatus}")
+                            }
+                        }
+
+                        gameSessionSnapshot.ref.setValue(gameSession)
+                            .addOnSuccessListener {
+                                Log.e("GameOver", "Player status updated successfully in Firebase")
+                            }
+                            .addOnFailureListener { exception ->
+                                Log.e("GameOver", "Error updating player status in Firebase", exception)
+                            }
+
+                    } else{
+                        Log.e("GameOver","Can't find Game Session")
+                    }
+                } else {
+                    Toast.makeText(this@GameOver, "Game session not found", Toast.LENGTH_SHORT)
+                        .show()
+                }
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                Toast.makeText(this@GameOver, "Error fetching data", Toast.LENGTH_SHORT)
+                    .show()
+            }
+        })
         startActivity(intent)
     }
 
