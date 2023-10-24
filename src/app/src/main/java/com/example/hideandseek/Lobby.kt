@@ -172,7 +172,6 @@ class Lobby : AppCompatActivity() {
                         hidersNameAdapter.notifyDataSetChanged()
                     }
                 }
-
                 updateUIBasedOnHostStatus(currentUserIsHost)
             }
 
@@ -317,6 +316,10 @@ class Lobby : AppCompatActivity() {
                         // Update the local GameSession object
                         gameSession?.gameStatus = "started"
 
+                        for (player in gameSession.players) {
+                            player.playerStatus = "In game"
+                        }
+
                         // Save the updated GameSession back to Firebase
                         gameSessionSnapshot.ref.setValue(gameSession)
                             .addOnFailureListener {
@@ -458,51 +461,51 @@ class Lobby : AppCompatActivity() {
 
     }
 
-    override fun onStop() {
-        super.onStop()
-        val query = realtimeDb.getReference("gameSessions")
-            .orderByChild("sessionId")
-            .equalTo(currentLobbyCode)
-
-        query.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    val gameSessionSnapshot = dataSnapshot.children.first()
-                    val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
-
-                    if (gameSession != null) {
-                        val playerIsHost = gameSession.players.find { it.userName == currentUserName }?.host == true
-
-                        if (playerIsHost) {
-                            // Update the local GameSession object
-                            gameSession?.gameStatus = "ended"
-                            gameSessionSnapshot.ref.setValue(gameSession).addOnFailureListener {
-                                Toast.makeText(this@Lobby, "Game session ended", Toast.LENGTH_SHORT).show()
-                            }
-                        } else {
-                            val updatedPlayers = gameSession.players.toMutableList()
-                            updatedPlayers.removeIf { it.userName == currentUserName}
-
-                            gameSession.players = updatedPlayers
-                            gameSessionSnapshot.ref.setValue(gameSession).addOnFailureListener {
-                                Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
-                            }
-                        }
-
-                        returnHomeIntent(currentLobbyCode, playerIsHost, true)
-
-                    } else {
-                        Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            }
-
-            override fun onCancelled(databaseError: DatabaseError) {
-                Toast.makeText(this@Lobby, "Error fetching data", Toast.LENGTH_SHORT)
-                    .show()
-            }
-        })
-
-    }
+//    override fun onStop() {
+//        super.onStop()
+//        val query = realtimeDb.getReference("gameSessions")
+//            .orderByChild("sessionId")
+//            .equalTo(currentLobbyCode)
+//
+//        query.addListenerForSingleValueEvent(object : ValueEventListener {
+//            override fun onDataChange(dataSnapshot: DataSnapshot) {
+//                if (dataSnapshot.exists()) {
+//                    val gameSessionSnapshot = dataSnapshot.children.first()
+//                    val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+//
+//                    if (gameSession != null) {
+//                        val playerIsHost = gameSession.players.find { it.userName == currentUserName }?.host == true
+//
+//                        if (playerIsHost) {
+//                            // Update the local GameSession object
+//                            gameSession?.gameStatus = "ended"
+//                            gameSessionSnapshot.ref.setValue(gameSession).addOnFailureListener {
+//                                Toast.makeText(this@Lobby, "Game session ended", Toast.LENGTH_SHORT).show()
+//                            }
+//                        } else {
+//                            val updatedPlayers = gameSession.players.toMutableList()
+//                            updatedPlayers.removeIf { it.userName == currentUserName}
+//
+//                            gameSession.players = updatedPlayers
+//                            gameSessionSnapshot.ref.setValue(gameSession).addOnFailureListener {
+//                                Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
+//                            }
+//                        }
+//
+//                        returnHomeIntent(currentLobbyCode, playerIsHost, true)
+//
+//                    } else {
+//                        Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
+//                    }
+//                }
+//            }
+//
+//            override fun onCancelled(databaseError: DatabaseError) {
+//                Toast.makeText(this@Lobby, "Error fetching data", Toast.LENGTH_SHORT)
+//                    .show()
+//            }
+//        })
+//
+//    }
 
 }
