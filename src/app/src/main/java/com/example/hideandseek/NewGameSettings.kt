@@ -24,6 +24,7 @@ import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.slider.Slider
 import com.google.firebase.database.FirebaseDatabase
+import java.time.LocalTime
 import java.util.Random
 
 class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
@@ -101,7 +102,7 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
         val playerCode = String.format("%04d",randomNum)
 
         val players = listOf(
-            PlayerClass(username, true, null, null, false, true, playerCode, null)
+            PlayerClass(username, true, null, null, false, true, playerCode, LocalTime.now().toString())
         )
 
         val sessionId: Int = Random().nextInt(999999 - 100000 + 1) + 100000
