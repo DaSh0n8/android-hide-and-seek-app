@@ -28,7 +28,6 @@ class GameOver : AppCompatActivity() {
 
         val username: String? = intent.getStringExtra("username")
         val lobbyCode: String? = intent.getStringExtra("lobbyCode")
-        val playerCode: String? = intent.getStringExtra("playerCode")
         val host: Boolean? = intent.getBooleanExtra("host", false)
         val isSeeker: Boolean? = intent.getBooleanExtra("isSeeker", false)
         val seekerWon = intent.getBooleanExtra("seekerWonGame", false)
@@ -64,6 +63,7 @@ class GameOver : AppCompatActivity() {
 
                 // return to homepage
                 val intent = Intent(this@GameOver, HomeScreen::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
                 startActivity(intent)
                 finish()
             }
@@ -73,7 +73,7 @@ class GameOver : AppCompatActivity() {
         var backToLobbyBtn: Button = findViewById(R.id.btnPlayAgain)
         backToLobbyBtn.setOnClickListener {
             NetworkUtils.checkConnectivityAndProceed(this) {
-                returnLobby(username, playerCode, lobbyCode, host)
+                returnLobby(username, lobbyCode, host)
             }
         }
     }
@@ -150,11 +150,17 @@ class GameOver : AppCompatActivity() {
     /**
      * Return to lobby
      */
-    private fun returnLobby(username: String?, playerCode: String?, lobbyCode: String?, host: Boolean?) {
+    private fun returnLobby(username: String?, lobbyCode: String?, host: Boolean?) {
         val intent = Intent(this@GameOver, Lobby::class.java)
         intent.putExtra("username_key", username)
         intent.putExtra("lobby_key", lobbyCode)
         intent.putExtra("host", host)
         startActivity(intent)
+    }
+
+    override fun onBackPressed() {
+        var backToHomeBtn: Button = findViewById(R.id.btnHome)
+        backToHomeBtn.performClick()
+        super.onBackPressed()
     }
 }

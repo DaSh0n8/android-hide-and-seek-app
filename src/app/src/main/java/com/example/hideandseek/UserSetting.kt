@@ -1,5 +1,6 @@
 package com.example.hideandseek
 
+import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -9,6 +10,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.database.DataSnapshot
@@ -34,25 +36,28 @@ class UserSetting : AppCompatActivity() {
         // receive the info and user icon if any value sent from previous activity
         host = intent.getBooleanExtra("host", false)
         lobbyCode = intent.getStringExtra("lobbyCode")
-        val byteArray = intent.getByteArrayExtra("userIcon")
-
-        // show the selfie segmentation if available
-        if (byteArray != null) {
-            val byteArray = intent.getByteArrayExtra("userIcon")
-            userIcon = BitmapFactory.decodeByteArray(byteArray, 0, byteArray?.size ?:0)
-            var result = makeBlackPixelsTransparent(userIcon!!)
-            var profilePic: ImageView = findViewById(R.id.profilePic)
-            profilePic.setImageBitmap(result)
-        }
 
         // enabling changing icon
         val changeIcon: FloatingActionButton = findViewById(R.id.changePic)
-        val changeIconIntent = Intent(this@UserSetting, SelfieSegmentation::class.java)
-        changeIconIntent.putExtra("host", host)
-        changeIconIntent.putExtra("lobbyCode", lobbyCode)
+        val resultLauncher =
+            this.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                if (result.resultCode == Activity.RESULT_OK) {
+                    val byteArray = result.data?.getByteArrayExtra("userIcon")
+
+                    // show the selfie segmentation if available
+                    if (byteArray != null) {
+                        userIcon = BitmapFactory.decodeByteArray(byteArray, 0, byteArray?.size ?:0)
+                        var result = makeBlackPixelsTransparent(userIcon!!)
+                        var profilePic: ImageView = findViewById(R.id.profilePic)
+                        profilePic.setImageBitmap(result)
+                    }
+                }
+            }
+
         changeIcon.setOnClickListener{
             NetworkUtils.checkConnectivityAndProceed(this) {
-                startActivity(changeIconIntent)
+                val changeIconIntent = Intent(this@UserSetting, SelfieSegmentation::class.java)
+                resultLauncher.launch(changeIconIntent)
             }
         }
 
@@ -97,7 +102,7 @@ class UserSetting : AppCompatActivity() {
                                 }
                             }
 
-                            val newPlayer = PlayerClass(username, false, 0.0, 0.0, false, false, playerCode)
+                            val newPlayer = PlayerClass(username, false, 0.0, 0.0, false, false, playerCode, null)
                             val updatedPlayers = gameSession.players.toMutableList()
                             updatedPlayers.add(newPlayer)
 

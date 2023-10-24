@@ -40,6 +40,8 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.Query
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.storage.FirebaseStorage
+import java.time.Duration
+import java.time.LocalTime
 import java.util.Timer
 import java.util.TimerTask
 
@@ -104,6 +106,9 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         updateInterval = minToMilli(intent.getIntExtra("updateInterval", 1))
         geofenceRadius = intent.getIntExtra("radius", defaultRadius)
 
+        // check connectivity
+        confirmConnectivity(lobbyCode, userName)
+
         // retrieve players icons
         retrievePlayers(lobbyCode) { players ->
             inGamePlayers = players
@@ -117,7 +122,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
             val eliminate: Button = findViewById(R.id.eliminateBtn)
             val code: TextInputEditText = findViewById(R.id.textInputEditText)
             eliminate.setOnClickListener{
-                eliminatePlayer(code.text.toString())
+                eliminatePlayer(code.text.toString(), true)
                 code.text?.clear()
             }
         }
@@ -149,6 +154,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         var countDown: TextView = findViewById(R.id.playTime)
         var countDownValue: TextView = findViewById(R.id.playTimeValue)
         var hidingText: TextView = findViewById(R.id.hidingText)
+        val ackTime = 5000
         val hideTimer = object: CountDownTimer(hideTime, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 val seconds = (millisUntilFinished / 1000) % 60
@@ -260,6 +266,13 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                     val players = gameSession.players
                     // reflect hiders' latest locations on map
                     players.forEach{ player ->
+                        // calculate the last update
+                        val currTime = LocalTime.now()
+                        val duration = minToMilli(Duration.between(LocalTime.parse(player.lastUpdated), currTime).toMinutes().toInt())
+                        if (!player.eliminated && duration > updateInterval && !player.seeker) {
+                            eliminatePlayer(player.playerCode, false)
+                        }
+
                         val coordinates = LatLng(player.latitude!!, player.longitude!!)
                         val markerOptions = MarkerOptions().position(coordinates).title(player.userName)
 
@@ -279,11 +292,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
                         if (iconBitmap != null) {
                             iconBitmap.let {
-                                markerOptions.icon(
-                                    BitmapDescriptorFactory.fromBitmap(
-                                        it
-                                    )
-                                )
+                                markerOptions.icon(BitmapDescriptorFactory.fromBitmap(it))
                             }
 
                             map.addMarker(markerOptions)
@@ -329,25 +338,23 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 // get the game session
                 val gameSessionSnapshot = dataSnapshot.children.first()
                 val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+                val ref = realtimeDb.getReference("gameSessions").child(gameSessionSnapshot.key!!)
 
                 if (gameSession != null) {
-                    val players = gameSession.players.toMutableList()
-                    for (p in players) {
-                        // update user's coordinates
+                    // update user's coordinates
+                    val players = gameSession.players
+                    for ((index, p) in players.withIndex()) {
                         if (p.userName == userName) {
-                            p.latitude = lat
-                            p.longitude = lon
+                            val path = ref.child("players").child(index.toString())
+                            path.child("latitude").setValue(lat)
+                            path.child("longitude").setValue(lon)
                         }
                     }
-                    // push to realtime database
-                    gameSession.players = players
-                    gameSessionSnapshot.ref.setValue(gameSession)
                 }
 
+                // update the map accordingly
                 map.setMinZoomPreference(15F)
                 map.moveCamera(CameraUpdateFactory.newLatLng(user))
-
-                // set the map style
                 map.setMapStyle(
                     MapStyleOptions.loadRawResourceStyle(this@GamePlay, R.raw.gamemap_lightmode)
                 )
@@ -407,12 +414,11 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
             var isSeeker = false
 
             if (gameSession != null) {
-                val players = gameSession.players.toMutableList()
+                val players = gameSession.players
                 for (p in players) {
                     // check if all players have been eliminated
                     if (!p.eliminated && !p.seeker) {
                         seekerWonGame = false
-
                     }
 
                     if (p.userName == userName) {
@@ -446,12 +452,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 // Save the updated GameSession back to Firebase
                 gameSessionSnapshot.ref.setValue(gameSession)
                     .addOnFailureListener {
-                        // If there is an error updating Firebase, show an error message
-                        Toast.makeText(
-                            this@GamePlay,
-                            "Error updating game status in Firebase",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        Toast.makeText(this@GamePlay, "Error updating game status in Firebase", Toast.LENGTH_SHORT).show()
                     }
 
                 finish()
@@ -462,7 +463,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     /**
      * Eliminate a player from the game
      */
-    private fun eliminatePlayer(code: String){
+    private fun eliminatePlayer(code: String, voluntary: Boolean){
         if (code.isBlank()){
             Toast.makeText(this@GamePlay, "Please enter a code", Toast.LENGTH_SHORT).show()
         }
@@ -472,12 +473,14 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
             override fun onDataChange(datasnapshot: DataSnapshot) {
                 if (datasnapshot.exists()){
                     val gameSessionSnapshot = datasnapshot.children.first()
+                    val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+                    val ref = realtimeDb.getReference("gameSessions").child(gameSessionSnapshot.key!!)
                     var existPlayer = false
                     var eliminatedUsername = ""
-                    val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+
                     if (gameSession != null) {
-                        val newPlayers = listOf<PlayerClass>().toMutableList()
-                        for (player in gameSession.players){
+                        val players = gameSession.players
+                        for ((index, player) in players.withIndex()) {
                             if (code == player.playerCode) {
                                 eliminatedUsername = player.userName;
                                 if(player.seeker){
@@ -485,22 +488,19 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                                         "$eliminatedUsername is a seeker and cannot be eliminated", Toast.LENGTH_SHORT).show()
                                 }
                                 else if (!player.eliminated){
-                                    player.eliminated = true;
+                                    val path = ref.child("players").child(index.toString())
+                                    path.child("eliminated").setValue(true)
                                     existPlayer = true
+
                                 }
                                 else{
                                     Toast.makeText(this@GamePlay, "$eliminatedUsername has already been Eliminated", Toast.LENGTH_SHORT).show()
                                 }
                             }
-                            newPlayers.add(player)
                         }
                         if(existPlayer){
-                            gameSession.players = newPlayers
-                            gameSessionSnapshot.ref.setValue(gameSession).addOnSuccessListener {
+                            if (voluntary) {
                                 Toast.makeText(this@GamePlay, "$eliminatedUsername has successfully been Eliminated", Toast.LENGTH_SHORT).show()
-
-                            }.addOnFailureListener{
-                                Toast.makeText(this@GamePlay, "Error updating database", Toast.LENGTH_SHORT).show()
                             }
                         }else{
                             Toast.makeText(this@GamePlay, "This user does not exist", Toast.LENGTH_SHORT).show()
@@ -685,4 +685,63 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         finish()
     }
 
+    /**
+     * Disallow user from leaving the game by pressing back button during game
+     */
+    override fun onBackPressed() {
+        Toast.makeText(this, "You cannot leave the game midway!", Toast.LENGTH_SHORT).show()
+    }
+
+    /**
+     * Function to allow user to update their last online time
+     */
+    private fun acknowledgeOnline(lobbyCode: String?, username: String?) {
+        val query = realtimeDb.getReference("gameSessions")
+            .orderByChild("sessionId")
+            .equalTo(lobbyCode)
+
+        query.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                // get the game session
+                val gameSessionSnapshot = dataSnapshot.children.first()
+                val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+                val ref = realtimeDb.getReference("gameSessions").child(gameSessionSnapshot.key!!)
+
+                if (gameSession != null) {
+                    // update user's last update time
+                    val players = gameSession.players.toMutableList()
+                    for ((index, p) in players.withIndex()) {
+                        if (p.userName == username) {
+                            val currTime = LocalTime.now().toString()
+                            ref.child("players").child(index.toString()).child("lastUpdated").setValue(currTime)
+                        }
+                    }
+                }
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                Log.e("Firebase", "Data retrieval error: ${databaseError.message}")
+            }
+        })
+    }
+
+    /**
+     * Function to ensure user connectivity
+     */
+    private fun confirmConnectivity(lobbyCode: String?, username: String?) {
+        var tickCounter = 0
+        val checkpoint = (updateInterval/1000).toInt() - 3
+        val connectTimer = object: CountDownTimer(hideTime + gameTime, 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                if (tickCounter == checkpoint) {
+                    acknowledgeOnline(lobbyCode, username)
+                    tickCounter = 0
+                }
+                tickCounter++
+            }
+            override fun onFinish() {
+
+            }
+        }.start()
+    }
 }

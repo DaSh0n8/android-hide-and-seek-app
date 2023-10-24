@@ -1,6 +1,7 @@
 package com.example.hideandseek
 
 import android.Manifest
+import android.app.Activity
 import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -255,12 +256,12 @@ class SelfieSegmentation : AppCompatActivity() {
 
     private fun returnUserSetting(byteArray: ByteArray?) {
         NetworkUtils.checkConnectivityAndProceed(this) {
-            // pass the bitmap to next activity
-            val intent = Intent(this@SelfieSegmentation, UserSetting::class.java)
-            intent.putExtra("host", host)
-            intent.putExtra("lobbyCode", lobbyCode)
-            intent.putExtra("userIcon", byteArray)
-            startActivity(intent)
+            if (byteArray != null) {
+                // pass the bitmap to next activity
+                val intent = Intent()
+                intent.putExtra("userIcon", byteArray)
+                setResult(Activity.RESULT_OK, intent)
+            }
             finish()
         }
     }
