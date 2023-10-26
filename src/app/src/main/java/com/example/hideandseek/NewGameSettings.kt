@@ -24,6 +24,7 @@ import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.slider.Slider
 import com.google.firebase.database.FirebaseDatabase
+import java.time.LocalTime
 import java.util.Random
 
 class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
@@ -43,7 +44,7 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
         setContentView(binding.root)
 
         // Request location updates
-        locationHelper = LocationHelper(this)
+        locationHelper = LocationHelper(this, (1*60*1000))
         locationHelper.requestLocationUpdates { location ->
             userLatLng = LatLng(location.latitude, location.longitude)
             updateMap(userLatLng, map)
@@ -70,7 +71,9 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
         val receivedUsername: String? = intent.getStringExtra("username_key")
         val receivedUserIcon: ByteArray? = intent.getByteArrayExtra("userIcon")
         createGameButton.setOnClickListener {
-            createButtonClicked(receivedUsername, receivedUserIcon)
+            NetworkUtils.checkConnectivityAndProceed(this) {
+                createButtonClicked(receivedUsername, receivedUserIcon)
+            }
         }
     }
 
@@ -99,7 +102,7 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
         val playerCode = String.format("%04d",randomNum)
 
         val players = listOf(
-            PlayerClass(username, true, null, null, false, true, playerCode)
+            PlayerClass(username, true, null, null, false, true, playerCode, LocalTime.now().toString())
         )
 
         val sessionId: Int = Random().nextInt(999999 - 100000 + 1) + 100000
@@ -119,6 +122,7 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
             intent.putExtra("host", true)
 
             startActivity(intent)
+            locationHelper.stopUpdate()
             finish()
         }
 

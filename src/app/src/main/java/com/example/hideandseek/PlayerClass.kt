@@ -8,6 +8,7 @@ class PlayerClass() {
     var eliminated: Boolean = false
     var host: Boolean = false
     var playerCode: String = ""
+    var lastUpdated: String? = null
 
     constructor(
         userName: String,
@@ -17,6 +18,7 @@ class PlayerClass() {
         eliminated: Boolean,
         host: Boolean,
         playerCode: String,
+        lastUpdated: String?
     ) : this() {
         this.userName = userName
         this.seeker = seeker
@@ -25,6 +27,7 @@ class PlayerClass() {
         this.eliminated = eliminated
         this.host = host
         this.playerCode = playerCode
+        this.lastUpdated = lastUpdated
     }
 }
 

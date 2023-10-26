@@ -1,7 +1,6 @@
 package com.example.hideandseek
 
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -14,6 +13,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import com.example.hideandseek.NetworkUtils.Companion.checkConnectivityAndProceed
 import com.example.hideandseek.databinding.NewGameSettingsBinding
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -53,7 +53,7 @@ class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
         lobbyHeader.text = "Change Game Setting"
 
         // Request location updates
-        locationHelper = LocationHelper(this)
+        locationHelper = LocationHelper(this, (1*60*1000))
         locationHelper.requestLocationUpdates { location ->
             Log.d("See location", location.toString())
             userLatLng = LatLng(location.latitude, location.longitude)
@@ -79,7 +79,9 @@ class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
 
         val createGameButton: Button = findViewById(R.id.btnStartGame)
         createGameButton.setOnClickListener {
-            confirmSettingsClicked(receivedLobbyCode, receivedUsername, host)
+            checkConnectivityAndProceed(this) {
+                confirmSettingsClicked(receivedLobbyCode, receivedUsername, host)
+            }
         }
 
         loadSettingsInFields(receivedLobbyCode)
@@ -164,11 +166,7 @@ class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
                     gameSessionSnapshot.ref.updateChildren(updatedGameSession)
                         .addOnSuccessListener {
                             Toast.makeText(this@LobbySettings, "Game configurations updated", Toast.LENGTH_SHORT).show()
-                            val intent = Intent(this@LobbySettings, Lobby::class.java)
-                            intent.putExtra("lobby_key", receivedLobbyCode)
-                            intent.putExtra("username_key", receivedUsername)
-                            intent.putExtra("host", host)
-                            startActivity(intent)
+                            locationHelper.stopUpdate()
                             finish()
                         }
                         .addOnFailureListener {
