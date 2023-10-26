@@ -18,6 +18,7 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.storage.FirebaseStorage
+import java.time.Duration
 import java.time.LocalTime
 
 class Lobby : AppCompatActivity() {
@@ -69,6 +70,7 @@ class Lobby : AppCompatActivity() {
             override fun onTick(millisUntilFinished: Long) {
                 if (tickCounter == interval) {
                     acknowledgeOnline(receivedLobbyCode, receivedUsername)
+                    checkPlayerActivity(receivedLobbyCode)
                     tickCounter = 0
                 }
                 tickCounter++
@@ -77,6 +79,7 @@ class Lobby : AppCompatActivity() {
 
             }
         }.start()
+
 
         val query = realtimeDb.getReference("gameSessions")
             .orderByChild("sessionId")
@@ -165,8 +168,6 @@ class Lobby : AppCompatActivity() {
                         }
                         if (player.userName == receivedUsername && player.host) {
                             currentUserIsHost = true
-                            Toast.makeText(this@Lobby, "You've been made host", Toast.LENGTH_SHORT)
-                                .show()
                         }
                     }
                     val playerStillInSession = (seekersList + hidersList).any { it.userName == receivedUsername }
@@ -515,6 +516,35 @@ class Lobby : AppCompatActivity() {
                 }
             }
 
+            override fun onCancelled(databaseError: DatabaseError) {
+                Log.e("Firebase", "Data retrieval error: ${databaseError.message}")
+            }
+        })
+    }
+
+    private fun checkPlayerActivity(lobbyCode: String?) {
+        val query = realtimeDb.getReference("gameSessions")
+            .orderByChild("sessionId")
+            .equalTo(lobbyCode)
+
+        query.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    val gameSessionSnapshot = dataSnapshot.children.first()
+                    val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+                    if (gameSession != null) {
+                        val currentTime = LocalTime.now()
+                        for (player in gameSession.players) {
+                            val lastUpdatedTime = LocalTime.parse(player.lastUpdated)
+                            val duration = Duration.between(lastUpdatedTime, currentTime)
+                            if (duration.seconds > 20) {
+                                leaveLobby(lobbyCode, player.userName)
+                                Log.e("checkPlayerActivity", "Kicking the player ${player.userName}")
+                            }
+                        }
+                    }
+                }
+            }
             override fun onCancelled(databaseError: DatabaseError) {
                 Log.e("Firebase", "Data retrieval error: ${databaseError.message}")
             }
