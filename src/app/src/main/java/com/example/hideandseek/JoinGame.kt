@@ -19,7 +19,9 @@ class JoinGame : AppCompatActivity() {
 
         val joinGameButton: Button = findViewById(R.id.btnJoinGameLobby)
         joinGameButton.setOnClickListener {
-            joinButtonClicked()
+            NetworkUtils.checkConnectivityAndProceed(this) {
+                joinButtonClicked()
+            }
         }
 
         // get firebase real time db
