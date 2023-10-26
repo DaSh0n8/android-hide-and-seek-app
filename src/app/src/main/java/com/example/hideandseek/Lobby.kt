@@ -1,5 +1,6 @@
 package com.example.hideandseek
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.os.CountDownTimer
@@ -538,7 +539,7 @@ class Lobby : AppCompatActivity() {
                             val lastUpdatedTime = LocalTime.parse(player.lastUpdated)
                             val duration = Duration.between(lastUpdatedTime, currentTime)
                             if (duration.seconds > 20) {
-                                leaveLobby(lobbyCode, player.userName)
+                                kickPlayer(lobbyCode, player.userName)
                                 Log.e("checkPlayerActivity", "Kicking the player ${player.userName}")
                             }
                         }
@@ -547,6 +548,50 @@ class Lobby : AppCompatActivity() {
             }
             override fun onCancelled(databaseError: DatabaseError) {
                 Log.e("Firebase", "Data retrieval error: ${databaseError.message}")
+            }
+        })
+    }
+
+    private fun kickPlayer(lobbyCode: String?, playerToKick: String?) {
+        val query = realtimeDb.getReference("gameSessions")
+            .orderByChild("sessionId")
+            .equalTo(lobbyCode)
+
+        query.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    val gameSessionSnapshot = dataSnapshot.children.first()
+                    val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+
+                    if (gameSession != null) {
+                        val playerIsHost = gameSession.players.any { it.userName == playerToKick && it.host }
+
+                        if (playerIsHost) {
+                            gameSessionSnapshot.ref.removeValue().addOnSuccessListener {
+                                Toast.makeText(this@Lobby, "The game session has ended as the host left", Toast.LENGTH_SHORT).show()
+                                finish()
+                            }.addOnFailureListener {
+                                Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
+                            }
+                        } else {
+                            val updatedPlayers = gameSession.players.toMutableList()
+                            updatedPlayers.removeIf { it.userName == playerToKick }
+
+                            gameSession.players = updatedPlayers
+                            gameSessionSnapshot.ref.setValue(gameSession).addOnSuccessListener {
+                                Toast.makeText(this@Lobby, "$playerToKick was removed due to inactivity", Toast.LENGTH_SHORT).show()
+                            }.addOnFailureListener {
+                                Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    } else {
+                        Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                Toast.makeText(this@Lobby, "Error fetching data", Toast.LENGTH_SHORT).show()
             }
         })
     }
