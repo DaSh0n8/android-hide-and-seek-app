@@ -11,6 +11,7 @@ class BasicGameTutorial : AppCompatActivity() {
         setContentView(R.layout.activity_basic_game_tutorial)
         val left : ImageButton = findViewById(R.id.left_btn)
         val right : ImageButton = findViewById(R.id.right_btn)
+        val exit : ImageButton = findViewById(R.id.close_btn3)
         left.setOnClickListener{
             val intent = Intent(this@BasicGameTutorial, TutorialPageMain::class.java)
             //intent.putExtra("host", true)
@@ -22,6 +23,12 @@ class BasicGameTutorial : AppCompatActivity() {
             //intent.putExtra("host", true)
             startActivity(intent)
             overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+        }
+        exit.setOnClickListener {
+
+            val intent = Intent(this@BasicGameTutorial, HomeScreen::class.java)
+            //intent.putExtra("host", true)
+            startActivity(intent)
         }
     }
     override fun finish(){

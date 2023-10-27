@@ -12,6 +12,20 @@
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="right">
+
+        <ImageButton
+            android:id="@+id/close_btn6"
+            android:layout_width="55dp"
+            android:layout_height="41dp"
+            android:layout_marginTop="10dp"
+            android:background="@color/white"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/eliminated" />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:gravity="center"
         android:layout_gravity="center_horizontal"
         android:orientation="vertical">
@@ -101,7 +115,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginTop="30dp"
-            android:text="Once the host is happy with the arrangement, they can start the game. There must be atleast 1 hider and 1 seeker"
+            android:text="There must be at least 1 hider and 1 seeker for the game to start"
             android:textStyle="bold|italic"
             android:textSize="20dp"
             />

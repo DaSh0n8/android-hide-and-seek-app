@@ -9,15 +9,15 @@ class EndGameTutorial : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_end_game_tutorial)
-        val left : ImageButton = findViewById(R.id.left_button5)
-        val right : ImageButton = findViewById(R.id.right_button5)
+        val left : ImageButton = findViewById(R.id.left_arrow)
+        val exit : ImageButton = findViewById(R.id.close_btn1)
         left.setOnClickListener{
             val intent = Intent(this@EndGameTutorial, PlayGameTutorial::class.java)
             //intent.putExtra("host", true)
             startActivity(intent)
             overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
         }
-        right.setOnClickListener {
+        exit.setOnClickListener {
 
             val intent = Intent(this@EndGameTutorial, HomeScreen::class.java)
             //intent.putExtra("host", true)

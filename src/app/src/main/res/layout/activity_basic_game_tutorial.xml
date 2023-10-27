@@ -10,12 +10,26 @@
     >
     <LinearLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_gravity="right">
+
+        <ImageButton
+            android:id="@+id/close_btn3"
+            android:layout_width="55dp"
+            android:layout_height="41dp"
+            android:layout_marginTop="10dp"
+            android:background="@color/white"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/eliminated" />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp">
 
         <TextView
             android:layout_width="392dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
             android:gravity="center"
             android:textStyle="bold|italic"
             android:text="Basic Gameplay of Hide and Seek:"
@@ -24,7 +38,7 @@
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="10dp"
         android:orientation="horizontal">
 
         <ImageView
@@ -103,7 +117,7 @@
             android:layout_width="233dp"
             android:layout_height="match_parent"
             android:gravity="center"
-            android:text="After Hiders finish, Seekers can start searching. When a hider is found, the seeker can eliminate them by their code"
+            android:text="After Hiders finish, Seekers can start searching for them"
             android:textSize="18dp" />
 
         <ImageView
