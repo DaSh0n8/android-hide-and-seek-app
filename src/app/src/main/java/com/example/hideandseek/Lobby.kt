@@ -76,11 +76,8 @@ class Lobby : AppCompatActivity() {
                     } else {
                         val intent = Intent(this@Lobby, HomeScreen::class.java)
                         intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
-
+                        removeLobbyListener(lobbyCode)
                         Toast.makeText(this@Lobby, "You have been disconnected from the lobby", Toast.LENGTH_SHORT).show()
-
-
-                        removeLobbyListener(lobbyCode!!)
                         startActivity(intent)
                         finish()
                     }
@@ -620,6 +617,11 @@ class Lobby : AppCompatActivity() {
                 Toast.makeText(this@Lobby, "Error fetching data", Toast.LENGTH_SHORT).show()
             }
         })
+    }
+
+    override fun onStop() {
+        super.onStop()
+        connectTimer.cancel()
     }
 
 //    override fun onStop() {
