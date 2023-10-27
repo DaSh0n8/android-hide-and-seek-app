@@ -107,6 +107,13 @@ class Lobby : AppCompatActivity() {
             hidersListView.adapter = hidersNameAdapter
         }
 
+        val chatButton: Button = findViewById(R.id.chatButton)
+        chatButton.setOnClickListener {
+            NetworkUtils.checkConnectivityAndProceed(this) {
+                showChatOverlay(receivedUsername, receivedLobbyCode)
+            }
+        }
+
         val switchTeamButton: Button = findViewById(R.id.switchTeamButton)
         switchTeamButton.setOnClickListener {
             NetworkUtils.checkConnectivityAndProceed(this) {
@@ -174,8 +181,7 @@ class Lobby : AppCompatActivity() {
                     val playerStillInSession = (seekersList + hidersList).any { it.userName == receivedUsername }
 
                     if (!playerStillInSession) {
-                        Toast.makeText(this@Lobby, "You have been removed from the lobby", Toast.LENGTH_SHORT).show()
-                        finish()
+                        returnHomeIntent(receivedLobbyCode, currentUserIsHost, false)
                         return
                     }
 
@@ -200,6 +206,12 @@ class Lobby : AppCompatActivity() {
                     .show()
             }
         })
+    }
+
+    private fun showChatOverlay(username: String?, lobbyCode: String?) {
+        val fragmentManager = supportFragmentManager
+        val newFragment = ChatOverlay.newInstance(username?: "Anonymous", lobbyCode?: "Unknown")
+        newFragment.show(fragmentManager, "chat_overlay")
     }
 
     private fun updateUIBasedOnHostStatus(isHost: Boolean) {
@@ -502,6 +514,8 @@ class Lobby : AppCompatActivity() {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 // get the game session
                 val gameSessionSnapshot = dataSnapshot.children.first()
+
+
                 val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
                 val ref = realtimeDb.getReference("gameSessions").child(gameSessionSnapshot.key!!)
 
