@@ -70,8 +70,21 @@ class Lobby : AppCompatActivity() {
         connectTimer = object: CountDownTimer(Long.MAX_VALUE, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 if (tickCounter == interval) {
-                    acknowledgeOnline(receivedLobbyCode, receivedUsername)
-                    checkPlayerActivity(receivedLobbyCode)
+                    if (NetworkUtils.checkForInternet(this@Lobby)){
+                        acknowledgeOnline(receivedLobbyCode, receivedUsername)
+                        checkPlayerActivity(receivedLobbyCode)
+                    } else {
+                        val intent = Intent(this@Lobby, HomeScreen::class.java)
+                        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+
+                        Toast.makeText(this@Lobby, "You have been disconnected from the lobby", Toast.LENGTH_SHORT).show()
+
+
+                        removeLobbyListener(lobbyCode!!)
+                        startActivity(intent)
+                        finish()
+                    }
+
                     tickCounter = 0
                 }
                 tickCounter++
@@ -514,7 +527,6 @@ class Lobby : AppCompatActivity() {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 // get the game session
                 val gameSessionSnapshot = dataSnapshot.children.first()
-
 
                 val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
                 val ref = realtimeDb.getReference("gameSessions").child(gameSessionSnapshot.key!!)
