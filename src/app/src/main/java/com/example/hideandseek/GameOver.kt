@@ -2,6 +2,7 @@ package com.example.hideandseek
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
@@ -28,7 +29,6 @@ class GameOver : AppCompatActivity() {
 
         val username: String? = intent.getStringExtra("username")
         val lobbyCode: String? = intent.getStringExtra("lobbyCode")
-        val playerCode: String? = intent.getStringExtra("playerCode")
         val host: Boolean? = intent.getBooleanExtra("host", false)
         val isSeeker: Boolean? = intent.getBooleanExtra("isSeeker", false)
         val seekerWon = intent.getBooleanExtra("seekerWonGame", false)
@@ -55,20 +55,28 @@ class GameOver : AppCompatActivity() {
         // clean db and return to home page
         var backToHomeBtn: Button = findViewById(R.id.btnHome)
         backToHomeBtn.setOnClickListener {
-            if (host!!) {
-                endGame(lobbyCode)
-            } else {
-                removePlayer(lobbyCode, username)
+            NetworkUtils.checkConnectivityAndProceed(this) {
+                if (host!!) {
+                    endGame(lobbyCode)
+                } else {
+                    removePlayer(lobbyCode, username)
+                }
+
+                // return to homepage
+                val intent = Intent(this@GameOver, HomeScreen::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                startActivity(intent)
+                finish()
             }
-            // return to homepage
-            val intent = Intent(this@GameOver, HomeScreen::class.java)
-            startActivity(intent)
-            finish()
         }
 
         // back to lobby
         var backToLobbyBtn: Button = findViewById(R.id.btnPlayAgain)
-        backToLobbyBtn.setOnClickListener { returnLobby(username, playerCode, lobbyCode, host) }
+        backToLobbyBtn.setOnClickListener {
+            NetworkUtils.checkConnectivityAndProceed(this) {
+                returnLobby(username, lobbyCode, host)
+            }
+        }
     }
 
     /**
@@ -143,11 +151,57 @@ class GameOver : AppCompatActivity() {
     /**
      * Return to lobby
      */
-    private fun returnLobby(username: String?, playerCode: String?, lobbyCode: String?, host: Boolean?) {
+    private fun returnLobby(username: String?, lobbyCode: String?, host: Boolean?) {
+        if (host!!) {
+            // reset the players'status
+            val query = database.getReference("gameSessions")
+                .orderByChild("sessionId")
+                .equalTo(lobbyCode)
+
+            query.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    // get the game session
+                    val gameSessionSnapshot = dataSnapshot.children.first()
+                    val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+
+                    if (gameSession != null) {
+                        val players = gameSession.players.toMutableList()
+                        players.forEach { p ->
+                            p.eliminated = false
+                        }
+
+
+                        // Update the local GameSession object
+                        gameSession.players = players
+
+                        // Save the updated GameSession back to Firebase
+                        gameSessionSnapshot.ref.setValue(gameSession)
+                            .addOnFailureListener {
+                                Toast.makeText(
+                                    this@GameOver,
+                                    "Error updating game status in Firebase",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                    }
+                }
+
+                override fun onCancelled(databaseError: DatabaseError) {
+                    Log.e("Firebase", "Data retrieval error: ${databaseError.message}")
+                }
+            })
+        }
+
         val intent = Intent(this@GameOver, Lobby::class.java)
         intent.putExtra("username_key", username)
         intent.putExtra("lobby_key", lobbyCode)
         intent.putExtra("host", host)
         startActivity(intent)
+    }
+
+    override fun onBackPressed() {
+        var backToHomeBtn: Button = findViewById(R.id.btnHome)
+        backToHomeBtn.performClick()
+        super.onBackPressed()
     }
 }

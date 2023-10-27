@@ -13,8 +13,7 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 
-class LocationHelper(private val context: Context) {
-    private var updateInterval: Long = 60 * 1000
+class LocationHelper(private val context: Context, private var updateInterval: Long) {
 
     private val fusedLocationClient: FusedLocationProviderClient =
         LocationServices.getFusedLocationProviderClient(context)
@@ -23,17 +22,22 @@ class LocationHelper(private val context: Context) {
         Priority.PRIORITY_HIGH_ACCURACY,
         updateInterval).build()
 
+    private var locationCallback: LocationCallback? = null
+
     fun requestLocationUpdates(callback: (Location) -> Unit) {
         if (ActivityCompat.checkSelfPermission(
                 context,
                 Manifest.permission.ACCESS_FINE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED
         ) {
-            fusedLocationClient.requestLocationUpdates(locationRequest, object : LocationCallback() {
+            locationCallback = object : LocationCallback() {
                 override fun onLocationResult(locationResult: LocationResult) {
                     locationResult.lastLocation?.let { callback.invoke(it) }
                 }
-            }, null)
+            }
+
+            fusedLocationClient.requestLocationUpdates(locationRequest,
+                locationCallback as LocationCallback, null)
         } else {
             ActivityCompat.requestPermissions(
                 context as Activity,
@@ -49,6 +53,14 @@ class LocationHelper(private val context: Context) {
             Priority.PRIORITY_HIGH_ACCURACY,
             updateInterval
         ).build()
+
+    }
+
+    fun stopUpdate() {
+        if (locationCallback != null) {
+            fusedLocationClient.removeLocationUpdates(locationCallback!!)
+            locationCallback = null
+        }
     }
 
     companion object {
