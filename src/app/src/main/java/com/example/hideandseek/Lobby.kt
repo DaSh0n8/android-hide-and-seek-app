@@ -65,31 +65,31 @@ class Lobby : AppCompatActivity() {
         }
 
         // update user's connectivity
-        var tickCounter = 0
-        val interval = 10
-        connectTimer = object: CountDownTimer(Long.MAX_VALUE, 1000) {
-            override fun onTick(millisUntilFinished: Long) {
-                if (tickCounter == interval) {
-                    if (NetworkUtils.checkForInternet(this@Lobby)){
-                        acknowledgeOnline(receivedLobbyCode, receivedUsername)
-                        checkPlayerActivity(receivedLobbyCode)
-                    } else {
-                        val intent = Intent(this@Lobby, HomeScreen::class.java)
-                        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
-                        removeLobbyListener(lobbyCode)
-                        Toast.makeText(this@Lobby, "You have been disconnected from the lobby", Toast.LENGTH_SHORT).show()
-                        startActivity(intent)
-                        finish()
-                    }
-
-                    tickCounter = 0
-                }
-                tickCounter++
-            }
-            override fun onFinish() {
-
-            }
-        }.start()
+//        var tickCounter = 0
+//        val interval = 10
+//        connectTimer = object: CountDownTimer(Long.MAX_VALUE, 1000) {
+//            override fun onTick(millisUntilFinished: Long) {
+//                if (tickCounter == interval) {
+//                    if (NetworkUtils.checkForInternet(this@Lobby)){
+//                        acknowledgeOnline(receivedLobbyCode, receivedUsername)
+//                        checkPlayerActivity(receivedLobbyCode)
+//                    } else {
+//                        val intent = Intent(this@Lobby, HomeScreen::class.java)
+//                        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+//                        removeLobbyListener(lobbyCode)
+//                        Toast.makeText(this@Lobby, "You have been disconnected from the lobby", Toast.LENGTH_SHORT).show()
+//                        startActivity(intent)
+//                        finish()
+//                    }
+//
+//                    tickCounter = 0
+//                }
+//                tickCounter++
+//            }
+//            override fun onFinish() {
+//
+//            }
+//        }.start()
 
 
         val query = realtimeDb.getReference("gameSessions")
@@ -220,7 +220,7 @@ class Lobby : AppCompatActivity() {
 
     private fun showChatOverlay(username: String?, lobbyCode: String?) {
         val fragmentManager = supportFragmentManager
-        val newFragment = ChatOverlay.newInstance(username?: "Anonymous", lobbyCode?: "Unknown")
+        val newFragment = ChatOverlay.newInstance(username?: "Anonymous", lobbyCode?: "Unknown", seeker)
         newFragment.show(fragmentManager, "chat_overlay")
     }
 
@@ -496,7 +496,7 @@ class Lobby : AppCompatActivity() {
         val intent = Intent(this@Lobby, HomeScreen::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
         if (!host!! && !voluntary) {
-            Toast.makeText(this@Lobby, "Host has left", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this@Lobby, "You have been disconnected from the lobby", Toast.LENGTH_SHORT).show()
         } else {
             intent.putExtra("lobby_key", lobbyCode)
         }
@@ -561,7 +561,7 @@ class Lobby : AppCompatActivity() {
                         for (player in gameSession.players) {
                             val lastUpdatedTime = LocalTime.parse(player.lastUpdated)
                             val duration = Duration.between(lastUpdatedTime, currentTime)
-                            if (duration.seconds > 20) {
+                            if (duration.seconds > 30) {
                                 kickPlayer(lobbyCode, player.userName)
                                 Log.e("checkPlayerActivity", "Kicking the player ${player.userName}")
                             }
@@ -591,8 +591,16 @@ class Lobby : AppCompatActivity() {
 
                         if (playerIsHost) {
                             gameSessionSnapshot.ref.removeValue().addOnSuccessListener {
+
                                 Toast.makeText(this@Lobby, "The game session has ended as the host left", Toast.LENGTH_SHORT).show()
+
+                                val intent = Intent(this@Lobby, HomeScreen::class.java)
+                                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+
+                                removeLobbyListener(lobbyCode!!)
+                                startActivity(intent)
                                 finish()
+
                             }.addOnFailureListener {
                                 Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
                             }
@@ -622,6 +630,34 @@ class Lobby : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         connectTimer.cancel()
+    }
+    override fun onStart() {
+        super.onStart()
+        var tickCounter = 0
+        val interval = 10
+        connectTimer = object: CountDownTimer(Long.MAX_VALUE, 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                if (tickCounter == interval) {
+                    if (NetworkUtils.checkForInternet(this@Lobby)){
+                        acknowledgeOnline(currentLobbyCode, currentUserName)
+                        checkPlayerActivity(currentLobbyCode)
+                    } else {
+                        val intent = Intent(this@Lobby, HomeScreen::class.java)
+                        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                        currentLobbyCode?.let { removeLobbyListener(it) }
+                        Toast.makeText(this@Lobby, "You have been disconnected from the lobby", Toast.LENGTH_SHORT).show()
+                        startActivity(intent)
+                        finish()
+                    }
+
+                    tickCounter = 0
+                }
+                tickCounter++
+            }
+            override fun onFinish() {
+
+            }
+        }.start()
     }
 
 //    override fun onStop() {
