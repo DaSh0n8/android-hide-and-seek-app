@@ -78,6 +78,10 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private var accelerationHelper: LinearAccelerationHelper? = null
     private var accelerationListener: LinearAccelerationHelper.LinearAccelerationListener? = null
 
+    // timer
+    private lateinit var hideTimer: CountDownTimer
+    private lateinit var connectTimer: CountDownTimer
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -155,7 +159,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         var countDownValue: TextView = findViewById(R.id.playTimeValue)
         var hidingText: TextView = findViewById(R.id.hidingText)
         val ackTime = 5000
-        val hideTimer = object: CountDownTimer(hideTime, 1000) {
+        hideTimer = object: CountDownTimer(hideTime, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 val seconds = (millisUntilFinished / 1000) % 60
                 val minutes = (millisUntilFinished / 1000) / 60
@@ -441,6 +445,10 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 if (!isSeeker && accelerationHelper != null) {
                     accelerationHelper!!.stopListening()
                 }
+
+                // cancel timer
+                hideTimer.cancel()
+                connectTimer.cancel()
 
                 // Update the local GameSession object
                 gameSession.players = players
@@ -728,7 +736,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private fun confirmConnectivity(lobbyCode: String?, username: String?) {
         var tickCounter = 0
         val checkpoint = (updateInterval/1000).toInt() - 3
-        val connectTimer = object: CountDownTimer(hideTime + gameTime, 1000) {
+        connectTimer = object: CountDownTimer(hideTime + gameTime, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 if (tickCounter == checkpoint) {
                     acknowledgeOnline(lobbyCode, username)
