@@ -162,23 +162,32 @@ class GameOver : AppCompatActivity() {
      * Return to lobby
      */
     private fun returnLobby(username: String?, lobbyCode: String?, host: Boolean?) {
-        if (host!!) {
-            // reset the players'status
-            val query = database.getReference("gameSessions")
-                .orderByChild("sessionId")
-                .equalTo(lobbyCode)
+        val intent = Intent(this@GameOver, Lobby::class.java)
+        intent.putExtra("username_key", username)
+        intent.putExtra("lobby_key", lobbyCode)
+        intent.putExtra("host", host)
 
-            query.addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(dataSnapshot: DataSnapshot) {
-                    // get the game session
-                    val gameSessionSnapshot = dataSnapshot.children.first()
-                    val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+        // reset the players'status
+        val query = database.getReference("gameSessions")
+            .orderByChild("sessionId")
+            .equalTo(lobbyCode)
 
-                    if (gameSession != null) {
-                        val players = gameSession.players.toMutableList()
-                        val codes = listOf<String>().toMutableList()
-                        players.forEach { p ->
+        query.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                // get the game session
+                val gameSessionSnapshot = dataSnapshot.children.first()
+                val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+                val ref = database.getReference("gameSessions").child(gameSessionSnapshot.key!!)
+
+                if (gameSession != null) {
+                    val players = gameSession.players.toMutableList()
+                    val codes = listOf<String>().toMutableList()
+                    for ((index, p) in players.withIndex()) {
+                        if (p.userName == username) {
                             p.eliminated = false
+                            p.playerStatus = "In Lobby"
+
+                            // reset player code
                             var randomNum = ((0..9999).random())
                             var playerCode = String.format("%04d",randomNum)
                             while(codes.contains(playerCode)){
@@ -186,72 +195,31 @@ class GameOver : AppCompatActivity() {
                                 playerCode = String.format("%04d",randomNum)
                             }
                             p.playerCode = playerCode
-                            codes.add(playerCode)
+                            ref.child("players").child(index.toString()).setValue(p)
+
                         }
-
-                        // Update the local GameSession object
-                        gameSession.players = players
-
-                        // Save the updated GameSession back to Firebase
-                        gameSessionSnapshot.ref.setValue(gameSession)
-                            .addOnFailureListener {
-                                Toast.makeText(
-                                    this@GameOver,
-                                    "Error updating game status in Firebase",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
                     }
-                }
 
-                override fun onCancelled(databaseError: DatabaseError) {
-                    Log.e("Firebase", "Data retrieval error: ${databaseError.message}")
-                }
-            })
-        }
+                    // Update the local GameSession object
+                    gameSession.players = players
 
-        val intent = Intent(this@GameOver, Lobby::class.java)
-        intent.putExtra("username_key", username)
-        intent.putExtra("lobby_key", lobbyCode)
-        intent.putExtra("host", host)
-        val query = database.getReference("gameSessions")
-            .orderByChild("sessionId")
-            .equalTo(lobbyCode)
-        query.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    val gameSessionSnapshot = dataSnapshot.children.first()
-                    val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
-                    if (gameSession != null) {
-                        for (player in gameSession.players){
-                            if (player.userName == username){
-                                player.playerStatus = "In Lobby"
-                                Log.e("Player Found","Setting ${player.userName}'s status to ${player.playerStatus}")
-                            }
+                    // Save the updated GameSession back to Firebase
+                    gameSessionSnapshot.ref.setValue(gameSession)
+                        .addOnFailureListener {
+                            Toast.makeText(
+                                this@GameOver,
+                                "Error updating game status in Firebase",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
-
-                        gameSessionSnapshot.ref.setValue(gameSession)
-                            .addOnSuccessListener {
-                                Log.e("GameOver", "Player status updated successfully in Firebase")
-                            }
-                            .addOnFailureListener { exception ->
-                                Log.e("GameOver", "Error updating player status in Firebase", exception)
-                            }
-
-                    } else{
-                        Log.e("GameOver","Can't find Game Session")
-                    }
-                } else {
-                    Toast.makeText(this@GameOver, "Game session not found", Toast.LENGTH_SHORT)
-                        .show()
                 }
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
-                Toast.makeText(this@GameOver, "Error fetching data", Toast.LENGTH_SHORT)
-                    .show()
+                Log.e("Firebase", "Data retrieval error: ${databaseError.message}")
             }
         })
+
         startActivity(intent)
         connectTimer.cancel()
         finish()
