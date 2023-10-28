@@ -170,9 +170,19 @@ class GameOver : AppCompatActivity() {
 
                     if (gameSession != null) {
                         val players = gameSession.players.toMutableList()
+                        val codes = listOf<String>().toMutableList()
                         players.forEach { p ->
                             p.eliminated = false
+                            var randomNum = ((0..9999).random())
+                            var playerCode = String.format("%04d",randomNum)
+                            while(codes.contains(playerCode)){
+                                randomNum = ((0..9999).random())
+                                playerCode = String.format("%04d",randomNum)
+                            }
+                            p.playerCode = playerCode
+                            codes.add(playerCode)
                         }
+
 
 
                         // Update the local GameSession object

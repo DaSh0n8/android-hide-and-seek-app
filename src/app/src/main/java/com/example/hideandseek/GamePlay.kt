@@ -82,6 +82,15 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var hideTimer: CountDownTimer
     private lateinit var connectTimer: CountDownTimer
 
+    // map zoom levels
+    val mapZoom = mutableMapOf(
+        100 to 17F,
+        200 to 16F,
+        300 to 16F,
+        400 to 15F,
+        500 to 15F
+    )
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -227,7 +236,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
      */
     private fun showUserLocation(query: Query, gameTimer: CountDownTimer) {
         // convert the drawable user icon to a Bitmap
-        val userIconBitmap = scaleBitmap(BitmapFactory.decodeResource(resources, R.drawable.usericon), 24)
+        val userIconBitmap = scaleBitmap(BitmapFactory.decodeResource(resources, R.drawable.usericon), 40)
         val eliminatedIcon = getBitmapFromVectorDrawable(this, R.drawable.eliminated)
         var lastUpdate: TextView = findViewById(R.id.lastUpdateValue)
         val timer = Timer()
@@ -357,7 +366,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 }
 
                 // update the map accordingly
-                map.setMinZoomPreference(15F)
+                map.setMinZoomPreference(mapZoom[geofenceRadius]!!)
                 map.moveCamera(CameraUpdateFactory.newLatLng(user))
                 map.setMapStyle(
                     MapStyleOptions.loadRawResourceStyle(this@GamePlay, R.raw.gamemap_lightmode)
@@ -542,7 +551,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                     .addOnSuccessListener { icons ->
                         val userIcon = BitmapFactory.decodeByteArray(icons, 0, icons?.size ?:0)
                         var result = makeBlackPixelsTransparent(userIcon!!)
-                        userIcons[username] = scaleBitmap(result, 40)
+                        userIcons[username] = scaleBitmap(result, 45)
 
                         // Decrement the counter
                         countDownLatch--
