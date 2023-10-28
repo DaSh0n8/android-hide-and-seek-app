@@ -67,6 +67,8 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private var inGamePlayers: List<String>? = null
     private var hasTriggered: Boolean = false
     private var playersIcons: MutableMap<String, Bitmap> = mutableMapOf()
+    private var lastLoc = mutableMapOf<String, LatLng>()
+    private var lastStatus = mutableMapOf<String, Boolean>()
 
     private lateinit var map: GoogleMap
     private lateinit var binding: GamePlayBinding
@@ -262,8 +264,6 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
                 // reset the map before reflecting users' latest location
                 map.clear()
-                minutePassed = 0
-                lastUpdate.text = "$minutePassed minute(s) ago"
 
                 // draw geofence
                 map.addCircle(
@@ -282,12 +282,20 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                         // calculate the last update
                         val currTime = LocalTime.now()
                         val duration = minToMilli(Duration.between(LocalTime.parse(player.lastUpdated), currTime).toMinutes().toInt())
-                        if (!player.eliminated && duration > updateInterval && !player.seeker) {
+                        if (!player.eliminated && duration > 20000 && !player.seeker) {
                             eliminatePlayer(player.playerCode, false)
                         }
 
                         val coordinates = LatLng(player.latitude!!, player.longitude!!)
                         val markerOptions = MarkerOptions().position(coordinates).title(player.userName)
+
+                        if (lastLoc[player.userName] != coordinates || lastStatus[player.userName] != player.eliminated) {
+                            minutePassed = 0
+                            lastUpdate.text = "$minutePassed minute(s) ago"
+
+                            lastLoc[player.userName] =  coordinates
+                            lastStatus[player.userName] = player.eliminated
+                        }
 
                         val iconBitmap = if (!player.seeker && !player.eliminated) {
                             hidersAvailable = true
@@ -599,6 +607,8 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                     // Iterate through players and add to the list
                     for (p in gameSession.players) {
                         playerList.add(p.userName)
+                        lastLoc[p.userName] = LatLng(p.latitude!!, p.longitude!!)
+                        lastStatus[p.userName] = p.eliminated
                     }
                     callback(playerList)
                     return@addOnSuccessListener
