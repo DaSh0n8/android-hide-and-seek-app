@@ -78,6 +78,15 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private var accelerationHelper: LinearAccelerationHelper? = null
     private var accelerationListener: LinearAccelerationHelper.LinearAccelerationListener? = null
 
+    // map zoom levels
+    val mapZoom = mutableMapOf(
+        100 to 17F,
+        200 to 16F,
+        300 to 16F,
+        400 to 15F,
+        500 to 15F
+    )
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -353,7 +362,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 }
 
                 // update the map accordingly
-                map.setMinZoomPreference(15F)
+                map.setMinZoomPreference(mapZoom[geofenceRadius]!!)
                 map.moveCamera(CameraUpdateFactory.newLatLng(user))
                 map.setMapStyle(
                     MapStyleOptions.loadRawResourceStyle(this@GamePlay, R.raw.gamemap_lightmode)
