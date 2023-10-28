@@ -744,7 +744,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
      */
     private fun confirmConnectivity(lobbyCode: String?, username: String?) {
         var tickCounter = 0
-        val checkpoint = (updateInterval/1000).toInt() - 3
+        val checkpoint = 10
         connectTimer = object: CountDownTimer(hideTime + gameTime, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 if (tickCounter == checkpoint) {
