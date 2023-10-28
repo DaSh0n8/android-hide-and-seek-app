@@ -8,9 +8,11 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import android.provider.Settings
 import android.util.Log
 import android.view.View
 import android.widget.Toast
@@ -54,11 +56,7 @@ class SelfieSegmentation : AppCompatActivity() {
                 if (it.key in REQUIRED_PERMISSIONS && !it.value)
                     permissionGranted = false
             }
-            if (!permissionGranted) {
-                Toast.makeText(baseContext,
-                    "Permission request denied",
-                    Toast.LENGTH_SHORT).show()
-            } else {
+            if (permissionGranted) {
                 startCamera()
             }
         }
@@ -80,7 +78,15 @@ class SelfieSegmentation : AppCompatActivity() {
         lobbyCode = intent.getStringExtra("lobbyCode")
 
         // Set up the listeners for take photo and video capture buttons
-        viewBinding.imageCaptureButton.setOnClickListener { takePhoto() }
+        viewBinding.imageCaptureButton.setOnClickListener {
+            if (allPermissionsGranted()) {
+                takePhoto()
+            } else {
+                Toast.makeText(this@SelfieSegmentation, "Camera and Microphone Permission Required!", Toast.LENGTH_SHORT).show()
+                openAppSettings()
+                finish()
+            }
+        }
 
         // cancel button
         viewBinding.cancelButton.setOnClickListener { finish() }
@@ -264,5 +270,12 @@ class SelfieSegmentation : AppCompatActivity() {
             }
             finish()
         }
+    }
+
+    private fun openAppSettings() {
+        val intent = Intent()
+        intent.action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+        intent.data = Uri.fromParts("package", this.packageName, null)
+        this.startActivity(intent)
     }
 }
