@@ -263,7 +263,6 @@ class Lobby : AppCompatActivity() {
                     for (playerSnapshot in players) {
                         val playerName = playerSnapshot.child("userName").value.toString()
                         if (playerName == username) {
-                            // Get the current seeker status
                             val isSeeker = playerSnapshot.child("seeker").getValue(Boolean::class.java) ?: false
 
                             seeker = if (isSeeker) {
@@ -310,26 +309,42 @@ class Lobby : AppCompatActivity() {
                     val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
 
                     if (gameSession != null) {
-                        val playerIsHost = gameSession.players.find { it.userName == username }?.host == true
+                        val players = gameSession.players
+                        val playerIndex = players.indexOfFirst { it.userName == username }
 
-                        if (playerIsHost) {
-                            // Update the local GameSession object
-                            gameSession?.gameStatus = "ended"
-                            gameSessionSnapshot.ref.setValue(gameSession).addOnFailureListener {
-                                Toast.makeText(this@Lobby, "Game session ended", Toast.LENGTH_SHORT).show()
+                        if (playerIndex != -1) {
+                            val playerIsHost = players[playerIndex].host
+
+                            if (playerIsHost) {
+                                gameSession.gameStatus = "ended"
+                                gameSessionSnapshot.ref.setValue(gameSession).addOnSuccessListener {
+                                    Toast.makeText(this@Lobby, "Game session ended", Toast.LENGTH_SHORT).show()
+                                    val intent = Intent(this@Lobby, HomeScreen::class.java)
+                                    intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+
+                                    removeLobbyListener(lobbyCode!!)
+                                    startActivity(intent)
+                                    finish()
+                                }.addOnFailureListener {
+                                    Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
+                                }
+                            } else {
+                                val ref = realtimeDb.getReference("gameSessions").child(gameSessionSnapshot.key!!)
+                                ref.child("players").child(playerIndex.toString()).removeValue().addOnSuccessListener {
+                                    Toast.makeText(this@Lobby, "You left the lobby", Toast.LENGTH_SHORT).show()
+                                    val intent = Intent(this@Lobby, HomeScreen::class.java)
+                                    intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+
+                                    removeLobbyListener(lobbyCode!!)
+                                    startActivity(intent)
+                                    finish()
+                                }.addOnFailureListener {
+                                    Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
+                                }
                             }
                         } else {
-                            val updatedPlayers = gameSession.players.toMutableList()
-                            updatedPlayers.removeIf { it.userName == username}
-
-                            gameSession.players = updatedPlayers
-                            gameSessionSnapshot.ref.setValue(gameSession).addOnFailureListener {
-                                Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
-                            }
+                            Toast.makeText(this@Lobby, "$username not found in the game session", Toast.LENGTH_SHORT).show()
                         }
-
-                        returnHomeIntent(lobbyCode, playerIsHost, true)
-
                     } else {
                         Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
                     }
@@ -337,8 +352,7 @@ class Lobby : AppCompatActivity() {
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
-                Toast.makeText(this@Lobby, "Error fetching data", Toast.LENGTH_SHORT)
-                    .show()
+                Toast.makeText(this@Lobby, "Error fetching data", Toast.LENGTH_SHORT).show()
             }
         })
     }
@@ -582,42 +596,40 @@ class Lobby : AppCompatActivity() {
 
         query.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    val gameSessionSnapshot = dataSnapshot.children.first()
+                val gameSessionSnapshot = dataSnapshot.children.firstOrNull()
+                if (gameSessionSnapshot != null) {
                     val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+                    val ref = realtimeDb.getReference("gameSessions").child(gameSessionSnapshot.key!!)
 
                     if (gameSession != null) {
-                        val playerIsHost = gameSession.players.any { it.userName == playerToKick && it.host }
-
-                        if (playerIsHost) {
-                            gameSessionSnapshot.ref.removeValue().addOnSuccessListener {
-
-                                Toast.makeText(this@Lobby, "The game session has ended as the host left", Toast.LENGTH_SHORT).show()
-
-                                val intent = Intent(this@Lobby, HomeScreen::class.java)
-                                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
-
-                                removeLobbyListener(lobbyCode!!)
-                                startActivity(intent)
-                                finish()
-
-                            }.addOnFailureListener {
-                                Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
+                        val players = gameSession.players.toMutableList()
+                        val playerIndex = players.indexOfFirst { it.userName == playerToKick }
+                        if (playerIndex != -1) {
+                            if (players[playerIndex].host) {
+                                gameSessionSnapshot.ref.removeValue().addOnSuccessListener {
+                                    Toast.makeText(this@Lobby, "The game session has ended as the host left", Toast.LENGTH_SHORT).show()
+                                    val intent = Intent(this@Lobby, HomeScreen::class.java)
+                                    intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                                    startActivity(intent)
+                                    finish()
+                                }.addOnFailureListener {
+                                    Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
+                                }
+                            } else {
+                                ref.child("players").child(playerIndex.toString()).removeValue().addOnSuccessListener {
+                                    Toast.makeText(this@Lobby, "$playerToKick was removed due to inactivity", Toast.LENGTH_SHORT).show()
+                                }.addOnFailureListener {
+                                    Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
+                                }
                             }
                         } else {
-                            val updatedPlayers = gameSession.players.toMutableList()
-                            updatedPlayers.removeIf { it.userName == playerToKick }
-
-                            gameSession.players = updatedPlayers
-                            gameSessionSnapshot.ref.setValue(gameSession).addOnSuccessListener {
-                                Toast.makeText(this@Lobby, "$playerToKick was removed due to inactivity", Toast.LENGTH_SHORT).show()
-                            }.addOnFailureListener {
-                                Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
-                            }
+                            Toast.makeText(this@Lobby, "$playerToKick not found in the game session", Toast.LENGTH_SHORT).show()
                         }
                     } else {
                         Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
                     }
+                } else {
+                    Toast.makeText(this@Lobby, "Game session not found", Toast.LENGTH_SHORT).show()
                 }
             }
 
