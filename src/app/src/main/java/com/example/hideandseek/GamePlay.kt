@@ -425,9 +425,6 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                         host = p.host
                         isSeeker = p.seeker
                     }
-
-                    // reset status
-                    p.eliminated = false
                 }
 
                 val gameOver = Intent(this@GamePlay, GameOver::class.java)

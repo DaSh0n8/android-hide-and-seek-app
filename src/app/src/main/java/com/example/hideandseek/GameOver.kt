@@ -2,6 +2,7 @@ package com.example.hideandseek
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
@@ -151,6 +152,46 @@ class GameOver : AppCompatActivity() {
      * Return to lobby
      */
     private fun returnLobby(username: String?, lobbyCode: String?, host: Boolean?) {
+        if (host!!) {
+            // reset the players'status
+            val query = database.getReference("gameSessions")
+                .orderByChild("sessionId")
+                .equalTo(lobbyCode)
+
+            query.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    // get the game session
+                    val gameSessionSnapshot = dataSnapshot.children.first()
+                    val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+
+                    if (gameSession != null) {
+                        val players = gameSession.players.toMutableList()
+                        players.forEach { p ->
+                            p.eliminated = false
+                        }
+
+
+                        // Update the local GameSession object
+                        gameSession.players = players
+
+                        // Save the updated GameSession back to Firebase
+                        gameSessionSnapshot.ref.setValue(gameSession)
+                            .addOnFailureListener {
+                                Toast.makeText(
+                                    this@GameOver,
+                                    "Error updating game status in Firebase",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                    }
+                }
+
+                override fun onCancelled(databaseError: DatabaseError) {
+                    Log.e("Firebase", "Data retrieval error: ${databaseError.message}")
+                }
+            })
+        }
+
         val intent = Intent(this@GameOver, Lobby::class.java)
         intent.putExtra("username_key", username)
         intent.putExtra("lobby_key", lobbyCode)
