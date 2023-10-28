@@ -220,7 +220,7 @@ class Lobby : AppCompatActivity() {
 
     private fun showChatOverlay(username: String?, lobbyCode: String?) {
         val fragmentManager = supportFragmentManager
-        val newFragment = ChatOverlay.newInstance(username?: "Anonymous", lobbyCode?: "Unknown", seeker)
+        val newFragment = ChatOverlay.newInstance(username?: "Anonymous", lobbyCode?: "Unknown")
         newFragment.show(fragmentManager, "chat_overlay")
     }
 

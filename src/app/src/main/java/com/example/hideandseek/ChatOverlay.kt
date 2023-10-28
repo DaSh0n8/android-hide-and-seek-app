@@ -21,13 +21,10 @@ class ChatOverlay : DialogFragment() {
     companion object {
         const val ARG_USERNAME = "username"
         const val ARG_GAME_SESSION = "gameSession"
-        const val ARG_SEEKER = "seeker"
-
-        fun newInstance(username: String, gameSession: String, seeker: Boolean): ChatOverlay {
+        fun newInstance(username: String, gameSession: String): ChatOverlay {
             val args = Bundle()
             args.putString(ARG_USERNAME, username)
             args.putString(ARG_GAME_SESSION, gameSession)
-            args.putBoolean(ARG_SEEKER, seeker)
             val fragment = ChatOverlay()
             fragment.arguments = args
             return fragment
@@ -48,7 +45,6 @@ class ChatOverlay : DialogFragment() {
         arguments?.let {
             username = it.getString(ARG_USERNAME)
             gameSession = it.getString(ARG_GAME_SESSION)
-            seeker = it.getBoolean(ARG_SEEKER)
         }
     }
 
@@ -70,7 +66,6 @@ class ChatOverlay : DialogFragment() {
                 chatMessage.userName = username ?: "Anonymous"
                 chatMessage.message = messageText
                 chatMessage.gameSession = gameSession ?: "Unknown"
-                chatMessage.seeker = seeker
                 Log.d("ChatOverlay", "Chat Message: $chatMessage")
                 databaseReference.push().setValue(chatMessage)
                 editText.text?.clear()
