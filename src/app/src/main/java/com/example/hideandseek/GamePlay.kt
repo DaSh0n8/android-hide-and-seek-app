@@ -69,6 +69,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private var playersIcons: MutableMap<String, Bitmap> = mutableMapOf()
     private var lastLoc = mutableMapOf<String, LatLng>()
     private var lastStatus = mutableMapOf<String, Boolean>()
+    private val disconnected = "disconnected"
 
     private lateinit var map: GoogleMap
     private lateinit var binding: GamePlayBinding
@@ -240,6 +241,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         // convert the drawable user icon to a Bitmap
         val userIconBitmap = scaleBitmap(BitmapFactory.decodeResource(resources, R.drawable.usericon), 35)
         val eliminatedIcon = getBitmapFromVectorDrawable(this, R.drawable.eliminated)
+        val disconnectedIcon = getBitmapFromVectorDrawable(this, R.drawable.disconnected)
         var lastUpdate: TextView = findViewById(R.id.lastUpdateValue)
         val timer = Timer()
         var minutePassed = -1
@@ -283,6 +285,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                         val currTime = LocalTime.now()
                         val duration = minToMilli(Duration.between(LocalTime.parse(player.lastUpdated), currTime).toMinutes().toInt())
                         if (!player.eliminated && duration > 20000 && !player.seeker) {
+                            setPlayerStatus(lobbyCode, userName, disconnected)
                             eliminatePlayer(player.playerCode, false)
                         }
 
@@ -304,8 +307,11 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                         } else if (player.seeker && player.userName == userName) {
                             playersIcons[player.userName] ?: userIconBitmap
 
-                        } else if (!player.seeker && player.eliminated) {
+                        } else if (!player.seeker && player.eliminated && player.playerStatus != disconnected) {
                             eliminatedIcon
+
+                        } else if (player.playerStatus == disconnected) {
+                            disconnectedIcon
 
                         } else {
                             null
@@ -767,5 +773,36 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
             }
         }.start()
+    }
+
+    /**
+     * Set player status
+     */
+    private fun setPlayerStatus(lobbyCode: String?, username: String?, status: String) {
+        val query = realtimeDb.getReference("gameSessions")
+            .orderByChild("sessionId")
+            .equalTo(lobbyCode)
+
+        query.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                // get the game session
+                val gameSessionSnapshot = dataSnapshot.children.first()
+                val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+                val ref = realtimeDb.getReference("gameSessions").child(gameSessionSnapshot.key!!)
+
+                if (gameSession != null) {
+                    val players = gameSession.players.toMutableList()
+                    for ((index, p) in players.withIndex()) {
+                        if (p.userName == username) {
+                            ref.child("players").child(index.toString()).child("playerStatus").setValue(status)
+                        }
+                    }
+                }
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                Log.e("Firebase", "Data retrieval error: ${databaseError.message}")
+            }
+        })
     }
 }
