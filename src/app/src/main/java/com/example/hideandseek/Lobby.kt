@@ -1,6 +1,5 @@
 package com.example.hideandseek
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.os.CountDownTimer
@@ -35,6 +34,13 @@ class Lobby : AppCompatActivity() {
     private var seeker: Boolean = false
     private var currentLobbyCode: String? = null
     private var currentUserName: String? = null
+
+    // return home reasons
+    private val ENDED = "ended"
+    private val LEAVE = "leave"
+    private val KICKED = "kicked"
+    private val DISCONNECTED = "disconnected"
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.lobby)
@@ -63,34 +69,6 @@ class Lobby : AppCompatActivity() {
         if (receivedUserIcon != null) {
             uploadIcon(receivedUserIcon, receivedLobbyCode, receivedUsername)
         }
-
-        // update user's connectivity
-//        var tickCounter = 0
-//        val interval = 10
-//        connectTimer = object: CountDownTimer(Long.MAX_VALUE, 1000) {
-//            override fun onTick(millisUntilFinished: Long) {
-//                if (tickCounter == interval) {
-//                    if (NetworkUtils.checkForInternet(this@Lobby)){
-//                        acknowledgeOnline(receivedLobbyCode, receivedUsername)
-//                        checkPlayerActivity(receivedLobbyCode)
-//                    } else {
-//                        val intent = Intent(this@Lobby, HomeScreen::class.java)
-//                        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
-//                        removeLobbyListener(lobbyCode)
-//                        Toast.makeText(this@Lobby, "You have been disconnected from the lobby", Toast.LENGTH_SHORT).show()
-//                        startActivity(intent)
-//                        finish()
-//                    }
-//
-//                    tickCounter = 0
-//                }
-//                tickCounter++
-//            }
-//            override fun onFinish() {
-//
-//            }
-//        }.start()
-
 
         val query = realtimeDb.getReference("gameSessions")
             .orderByChild("sessionId")
@@ -172,7 +150,7 @@ class Lobby : AppCompatActivity() {
                     // check if host has started or ended the game
                     when (gameSession!!.gameStatus) {
                         "started" -> startGameIntent(receivedLobbyCode, receivedUsername, gameSession)
-                        "ended"   -> returnHomeIntent(receivedLobbyCode, host, false)
+                        "ended"   -> returnHomeIntent(receivedLobbyCode, ENDED)
                     }
 
                     val players = sessionSnapshot.child("players").children
@@ -190,10 +168,10 @@ class Lobby : AppCompatActivity() {
                     }
                     val playerStillInSession = (seekersList + hidersList).any { it.userName == receivedUsername }
 
-                    if (!playerStillInSession) {
-                        returnHomeIntent(receivedLobbyCode, currentUserIsHost, false)
-                        return
-                    }
+//                    if (!playerStillInSession) {
+//                        returnHomeIntent(receivedLobbyCode, KICKED)
+//                        return
+//                    }
 
                     if (currentUserIsHost) {
                         seekersAdapter.updateData(seekersList)
@@ -319,25 +297,16 @@ class Lobby : AppCompatActivity() {
                                 gameSession.gameStatus = "ended"
                                 gameSessionSnapshot.ref.setValue(gameSession).addOnSuccessListener {
                                     Toast.makeText(this@Lobby, "Game session ended", Toast.LENGTH_SHORT).show()
-                                    val intent = Intent(this@Lobby, HomeScreen::class.java)
-                                    intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                                    returnHomeIntent(lobbyCode!!, LEAVE)
 
-                                    removeLobbyListener(lobbyCode!!)
-                                    startActivity(intent)
-                                    finish()
                                 }.addOnFailureListener {
                                     Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
                                 }
                             } else {
                                 val ref = realtimeDb.getReference("gameSessions").child(gameSessionSnapshot.key!!)
                                 ref.child("players").child(playerIndex.toString()).removeValue().addOnSuccessListener {
-                                    Toast.makeText(this@Lobby, "You left the lobby", Toast.LENGTH_SHORT).show()
-                                    val intent = Intent(this@Lobby, HomeScreen::class.java)
-                                    intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                                    returnHomeIntent(lobbyCode!!, LEAVE)
 
-                                    removeLobbyListener(lobbyCode!!)
-                                    startActivity(intent)
-                                    finish()
                                 }.addOnFailureListener {
                                     Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
                                 }
@@ -506,14 +475,24 @@ class Lobby : AppCompatActivity() {
         }
     }
 
-    private fun returnHomeIntent(lobbyCode: String?, host: Boolean?, voluntary: Boolean) {
+    private fun returnHomeIntent(lobbyCode: String?, reason: String) {
         val intent = Intent(this@Lobby, HomeScreen::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
-        if (!host!! && !voluntary) {
-            Toast.makeText(this@Lobby, "You have been disconnected from the lobby", Toast.LENGTH_SHORT).show()
-        } else {
-            intent.putExtra("lobby_key", lobbyCode)
+        when (reason) {
+            LEAVE -> {
+                Toast.makeText(this@Lobby, "You have left lobby #$lobbyCode", Toast.LENGTH_SHORT).show()
+            }
+            KICKED -> {
+                Toast.makeText(this@Lobby, "You have been removed by the host!", Toast.LENGTH_SHORT).show()
+            }
+            DISCONNECTED -> {
+                Toast.makeText(this@Lobby, "You have been removed due to inactivity!", Toast.LENGTH_SHORT).show()
+            }
+            ENDED -> {
+                Toast.makeText(this@Lobby, "Host has left!", Toast.LENGTH_SHORT).show()
+            }
         }
+
         removeLobbyListener(lobbyCode!!)
         startActivity(intent)
         finish()
