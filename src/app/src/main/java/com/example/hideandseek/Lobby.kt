@@ -34,6 +34,7 @@ class Lobby : AppCompatActivity() {
     private var seeker: Boolean = false
     private var currentLobbyCode: String? = null
     private var currentUserName: String? = null
+    private var hostStatus: Boolean? = null
 
     // return home reasons
     private val ENDED = "ended"
@@ -52,7 +53,7 @@ class Lobby : AppCompatActivity() {
         currentUserName = receivedUsername
         seeker = intent.getBooleanExtra("isSeeker", false)
 
-        val host = intent.getBooleanExtra("host", false)
+        hostStatus = intent.getBooleanExtra("host", false)
         val lobbyHeader = findViewById<TextView>(R.id.lobbyHeader)
         val lobbyCode = "Lobby #$receivedLobbyCode"
         lobbyHeader.text = lobbyCode
@@ -87,7 +88,7 @@ class Lobby : AppCompatActivity() {
         hidersNameAdapter = ArrayAdapter(this@Lobby, android.R.layout.simple_list_item_1, hidersNames)
 
 
-        if (host) {
+        if (hostStatus!!) {
             seekersListView.adapter = seekersAdapter
             hidersListView.adapter = hidersAdapter
         } else {
@@ -129,7 +130,7 @@ class Lobby : AppCompatActivity() {
                 val intent = Intent(this@Lobby, LobbySettings::class.java)
                 intent.putExtra("lobby_code_key", receivedLobbyCode)
                 intent.putExtra("username_key", receivedUsername)
-                intent.putExtra("host", host)
+                intent.putExtra("host", hostStatus)
                 startActivity(intent)
             }
         }
@@ -138,8 +139,6 @@ class Lobby : AppCompatActivity() {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 seekersList.clear()
                 hidersList.clear()
-
-                var currentUserIsHost = false
 
                 for (sessionSnapshot in dataSnapshot.children) {
                     seekersAdapter.updateData(seekersList)
@@ -150,7 +149,7 @@ class Lobby : AppCompatActivity() {
                     // check if host has started or ended the game
                     when (gameSession!!.gameStatus) {
                         "started" -> startGameIntent(receivedLobbyCode, receivedUsername, gameSession)
-                        "ended"   -> returnHomeIntent(receivedLobbyCode, host, ENDED)
+                        "ended"   -> returnHomeIntent(receivedLobbyCode, hostStatus!!, ENDED)
                     }
 
                     val players = sessionSnapshot.child("players").children
@@ -162,18 +161,18 @@ class Lobby : AppCompatActivity() {
                         } else {
                             hidersList.add(player)
                         }
-                        if (player.userName == receivedUsername && player.host) {
-                            currentUserIsHost = true
+                        if (player.userName == receivedUsername) {
+                            hostStatus = player.host
                         }
                     }
                     val playerStillInSession = (seekersList + hidersList).any { it.userName == receivedUsername }
 
-//                    if (!playerStillInSession) {
-//                        returnHomeIntent(receivedLobbyCode, KICKED)
-//                        return
-//                    }
+                    if (!playerStillInSession) {
+                        returnHomeIntent(receivedLobbyCode, hostStatus!!, KICKED)
+                        return
+                    }
 
-                    if (currentUserIsHost) {
+                    if (hostStatus!!) {
                         seekersAdapter.updateData(seekersList)
                         hidersAdapter.updateData(hidersList)
                     } else {
@@ -186,7 +185,7 @@ class Lobby : AppCompatActivity() {
                         hidersNameAdapter.notifyDataSetChanged()
                     }
                 }
-                updateUIBasedOnHostStatus(currentUserIsHost)
+                updateUIBasedOnHostStatus(hostStatus!!)
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
@@ -276,6 +275,7 @@ class Lobby : AppCompatActivity() {
 
     private fun leaveLobby(lobbyCode: String?, username: String?) {
         connectTimer.cancel()
+        removeLobbyListener(lobbyCode!!)
         val query = realtimeDb.getReference("gameSessions")
             .orderByChild("sessionId")
             .equalTo(lobbyCode)
@@ -634,12 +634,7 @@ class Lobby : AppCompatActivity() {
                         acknowledgeOnline(currentLobbyCode, currentUserName)
                         checkPlayerActivity(currentLobbyCode)
                     } else {
-                        val intent = Intent(this@Lobby, HomeScreen::class.java)
-                        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
-                        currentLobbyCode?.let { removeLobbyListener(it) }
-                        Toast.makeText(this@Lobby, "You have been disconnected from the lobby", Toast.LENGTH_SHORT).show()
-                        startActivity(intent)
-                        finish()
+                        returnHomeIntent(currentLobbyCode, hostStatus!!, DISCONNECTED)
                     }
 
                     tickCounter = 0
