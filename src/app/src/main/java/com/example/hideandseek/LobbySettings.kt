@@ -1,11 +1,13 @@
 package com.example.hideandseek
 
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
@@ -29,16 +31,23 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import java.time.Duration
+import java.time.LocalTime
 
 class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var map: GoogleMap
     private lateinit var binding: NewGameSettingsBinding
     private lateinit var database: FirebaseDatabase
     private lateinit var locationHelper: LocationHelper
+    private lateinit var connectTimer: CountDownTimer
+    private lateinit var lobbySettingsListener: ValueEventListener
 
     // default geofence radius
     private var geofenceRadius = 100.0
     private var userLatLng: LatLng = LatLng(0.0, 0.0)
+
+    private var currentLobbyCode: String? = null
+    private var currentUserName: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,6 +57,8 @@ class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
 
         val receivedLobbyCode: String? = intent.getStringExtra("lobby_code_key")
         val receivedUsername: String? = intent.getStringExtra("username_key")
+        currentLobbyCode = receivedLobbyCode
+        currentUserName = receivedUsername
         val host = intent.getBooleanExtra("host", false)
         val lobbyHeader = findViewById<TextView>(R.id.titleText)
         lobbyHeader.text = "Change Game Setting"
@@ -258,5 +269,154 @@ class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
         drawable.setBounds(0, 0, canvas.width, canvas.height)
         drawable.draw(canvas)
         return bitmap
+    }
+
+    override fun onStart() {
+        super.onStart()
+        var tickCounter = 0
+        val interval = 10
+        connectTimer = object: CountDownTimer(Long.MAX_VALUE, 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                if (tickCounter == interval) {
+                    if (NetworkUtils.checkForInternet(this@LobbySettings)){
+                        acknowledgeOnline(currentLobbyCode, currentUserName)
+                        checkPlayerActivity(currentLobbyCode)
+                    } else {
+                        val intent = Intent(this@LobbySettings, HomeScreen::class.java)
+                        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                        Toast.makeText(this@LobbySettings, "You have been disconnected from the lobby", Toast.LENGTH_SHORT).show()
+                        startActivity(intent)
+                        finish()
+                    }
+
+                    tickCounter = 0
+                }
+                tickCounter++
+            }
+            override fun onFinish() {
+
+            }
+        }.start()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        connectTimer.cancel()
+    }
+
+    private fun acknowledgeOnline(lobbyCode: String?, username: String?) {
+        val query = database.getReference("gameSessions")
+            .orderByChild("sessionId")
+            .equalTo(lobbyCode)
+
+        query.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                // get the game session
+                val gameSessionSnapshot = dataSnapshot.children.first()
+
+                val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+                val ref = database.getReference("gameSessions").child(gameSessionSnapshot.key!!)
+
+                if (gameSession != null) {
+                    // update user's last update time
+                    val players = gameSession.players.toMutableList()
+                    for ((index, p) in players.withIndex()) {
+                        if (p.userName == username) {
+                            val currTime = LocalTime.now().toString()
+                            ref.child("players").child(index.toString()).child("lastUpdated").setValue(currTime)
+                        }
+                    }
+                }
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                Log.e("Firebase", "Data retrieval error: ${databaseError.message}")
+            }
+        })
+    }
+
+    private fun checkPlayerActivity(lobbyCode: String?) {
+        val query = database.getReference("gameSessions")
+            .orderByChild("sessionId")
+            .equalTo(lobbyCode)
+
+        query.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    val gameSessionSnapshot = dataSnapshot.children.first()
+                    val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+                    if (gameSession != null) {
+                        val currentTime = LocalTime.now()
+                        for (player in gameSession.players) {
+                            val lastUpdatedTime = LocalTime.parse(player.lastUpdated)
+                            val duration = Duration.between(lastUpdatedTime, currentTime)
+                            if (duration.seconds > 30) {
+                                kickPlayer(lobbyCode, player.userName)
+                                Log.e("checkPlayerActivity", "Kicking the player ${player.userName}")
+                            }
+                        }
+                    }
+                }
+            }
+            override fun onCancelled(databaseError: DatabaseError) {
+                Log.e("Firebase", "Data retrieval error: ${databaseError.message}")
+            }
+        })
+    }
+
+    private fun kickPlayer(lobbyCode: String?, playerToKick: String?) {
+        val query = database.getReference("gameSessions")
+            .orderByChild("sessionId")
+            .equalTo(lobbyCode)
+
+        query.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    val gameSessionSnapshot = dataSnapshot.children.first()
+                    val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+
+                    if (gameSession != null) {
+                        val playerIsHost = gameSession.players.any { it.userName == playerToKick && it.host }
+
+                        if (playerIsHost) {
+                            gameSessionSnapshot.ref.removeValue().addOnSuccessListener {
+                                Toast.makeText(this@LobbySettings, "The game session has ended as the host left", Toast.LENGTH_SHORT).show()
+                                finish()
+                            }.addOnFailureListener {
+                                Toast.makeText(this@LobbySettings, "Unexpected Error", Toast.LENGTH_SHORT).show()
+                            }
+                        } else {
+                            val updatedPlayers = gameSession.players.toMutableList()
+                            updatedPlayers.removeIf { it.userName == playerToKick }
+
+                            gameSession.players = updatedPlayers
+                            gameSessionSnapshot.ref.setValue(gameSession).addOnSuccessListener {
+                                Toast.makeText(this@LobbySettings, "$playerToKick was removed due to inactivity", Toast.LENGTH_SHORT).show()
+                            }.addOnFailureListener {
+                                Toast.makeText(this@LobbySettings, "Unexpected Error", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    } else {
+                        Toast.makeText(this@LobbySettings, "Unexpected Error", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                Toast.makeText(this@LobbySettings, "Error fetching data", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
+    private fun returnHomeIntent(lobbyCode: String?, host: Boolean?, voluntary: Boolean) {
+        val intent = Intent(this@LobbySettings, HomeScreen::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+        if (!host!! && !voluntary) {
+            Toast.makeText(this@LobbySettings, "Host has left", Toast.LENGTH_SHORT).show()
+        } else {
+            intent.putExtra("lobby_key", lobbyCode)
+        }
+        startActivity(intent)
+        finish()
     }
 }

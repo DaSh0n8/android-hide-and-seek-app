@@ -103,7 +103,7 @@ class UserSetting : AppCompatActivity() {
                                 }
                             }
 
-                            val newPlayer = PlayerClass(username, false, 0.0, 0.0, false, false, playerCode, LocalTime.now().toString())
+                            val newPlayer = PlayerClass(username, false, 0.0, 0.0, false, false, playerCode, LocalTime.now().toString(), "In Lobby")
                             val updatedPlayers = gameSession.players.toMutableList()
                             updatedPlayers.add(newPlayer)
 

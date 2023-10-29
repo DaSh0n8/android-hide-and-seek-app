@@ -17,11 +17,6 @@ class HomeScreen : AppCompatActivity() {
         val locationHelper = LocationHelper(this, 1)
         locationHelper.askPermission()
 
-        val receivedLobbyCode: String? = intent.getStringExtra("lobby_key")
-        if (receivedLobbyCode!=null){
-            Toast.makeText(this@HomeScreen, "You have left lobby #$receivedLobbyCode", Toast.LENGTH_SHORT).show()
-        }
-
         val createGameButton: Button = findViewById(R.id.createGameButton)
         createGameButton.setOnClickListener {
             NetworkUtils.checkConnectivityAndProceed(this) {

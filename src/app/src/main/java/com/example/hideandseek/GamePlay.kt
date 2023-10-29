@@ -67,6 +67,8 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private var inGamePlayers: List<String>? = null
     private var hasTriggered: Boolean = false
     private var playersIcons: MutableMap<String, Bitmap> = mutableMapOf()
+    private var lastLoc = mutableMapOf<String, LatLng>()
+    private var lastStatus = mutableMapOf<String, Boolean>()
 
     private lateinit var map: GoogleMap
     private lateinit var binding: GamePlayBinding
@@ -77,6 +79,10 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var gameplayListener: ValueEventListener
     private var accelerationHelper: LinearAccelerationHelper? = null
     private var accelerationListener: LinearAccelerationHelper.LinearAccelerationListener? = null
+
+    // timer
+    private lateinit var hideTimer: CountDownTimer
+    private lateinit var connectTimer: CountDownTimer
 
     // map zoom levels
     val mapZoom = mutableMapOf(
@@ -164,7 +170,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         var countDownValue: TextView = findViewById(R.id.playTimeValue)
         var hidingText: TextView = findViewById(R.id.hidingText)
         val ackTime = 5000
-        val hideTimer = object: CountDownTimer(hideTime, 1000) {
+        hideTimer = object: CountDownTimer(hideTime, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 val seconds = (millisUntilFinished / 1000) % 60
                 val minutes = (millisUntilFinished / 1000) / 60
@@ -258,8 +264,6 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
                 // reset the map before reflecting users' latest location
                 map.clear()
-                minutePassed = 0
-                lastUpdate.text = "$minutePassed minute(s) ago"
 
                 // draw geofence
                 map.addCircle(
@@ -278,12 +282,20 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                         // calculate the last update
                         val currTime = LocalTime.now()
                         val duration = minToMilli(Duration.between(LocalTime.parse(player.lastUpdated), currTime).toMinutes().toInt())
-                        if (!player.eliminated && duration > updateInterval && !player.seeker) {
+                        if (!player.eliminated && duration > 20000 && !player.seeker) {
                             eliminatePlayer(player.playerCode, false)
                         }
 
                         val coordinates = LatLng(player.latitude!!, player.longitude!!)
                         val markerOptions = MarkerOptions().position(coordinates).title(player.userName)
+
+                        if (lastLoc[player.userName] != coordinates || lastStatus[player.userName] != player.eliminated) {
+                            minutePassed = 0
+                            lastUpdate.text = "$minutePassed minute(s) ago"
+
+                            lastLoc[player.userName] =  coordinates
+                            lastStatus[player.userName] = player.eliminated
+                        }
 
                         val iconBitmap = if (!player.seeker && !player.eliminated) {
                             hidersAvailable = true
@@ -451,6 +463,10 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                     accelerationHelper!!.stopListening()
                 }
 
+                // cancel timer
+                hideTimer.cancel()
+                connectTimer.cancel()
+
                 // Update the local GameSession object
                 gameSession.players = players
                 gameSession?.gameStatus = "ongoing"
@@ -591,6 +607,8 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                     // Iterate through players and add to the list
                     for (p in gameSession.players) {
                         playerList.add(p.userName)
+                        lastLoc[p.userName] = LatLng(p.latitude!!, p.longitude!!)
+                        lastStatus[p.userName] = p.eliminated
                     }
                     callback(playerList)
                     return@addOnSuccessListener
@@ -736,8 +754,8 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
      */
     private fun confirmConnectivity(lobbyCode: String?, username: String?) {
         var tickCounter = 0
-        val checkpoint = (updateInterval/1000).toInt() - 3
-        val connectTimer = object: CountDownTimer(hideTime + gameTime, 1000) {
+        val checkpoint = 10
+        connectTimer = object: CountDownTimer(hideTime + gameTime, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 if (tickCounter == checkpoint) {
                     acknowledgeOnline(lobbyCode, username)

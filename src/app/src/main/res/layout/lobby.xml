@@ -63,6 +63,16 @@
         app:layout_constraintTop_toBottomOf="@+id/hiderHeader" />
 
     <Button
+        android:id="@+id/chatButton"
+        android:layout_width="41dp"
+        android:layout_height="35dp"
+        android:layout_marginStart="5dp"
+        android:layout_marginBottom="46dp"
+        android:text="Chat"
+        app:layout_constraintBottom_toTopOf="@+id/seekerListView"
+        app:layout_constraintStart_toEndOf="@+id/lobbyHeader" />
+
+    <Button
         android:id="@+id/switchTeamButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -130,5 +140,7 @@
         app:layout_constraintHorizontal_bias="0.505"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/settingsPlaceholder" />
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -102,7 +102,7 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
         val playerCode = String.format("%04d",randomNum)
 
         val players = listOf(
-            PlayerClass(username, true, null, null, false, true, playerCode, LocalTime.now().toString())
+            PlayerClass(username, true, null, null, false, true, playerCode, LocalTime.now().toString(), "In Lobby")
         )
 
         val sessionId: Int = Random().nextInt(999999 - 100000 + 1) + 100000
