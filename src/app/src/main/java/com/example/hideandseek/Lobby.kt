@@ -150,7 +150,7 @@ class Lobby : AppCompatActivity() {
                     // check if host has started or ended the game
                     when (gameSession!!.gameStatus) {
                         "started" -> startGameIntent(receivedLobbyCode, receivedUsername, gameSession)
-                        "ended"   -> returnHomeIntent(receivedLobbyCode, ENDED)
+                        "ended"   -> returnHomeIntent(receivedLobbyCode, host, ENDED)
                     }
 
                     val players = sessionSnapshot.child("players").children
@@ -296,8 +296,7 @@ class Lobby : AppCompatActivity() {
                             if (playerIsHost) {
                                 gameSession.gameStatus = "ended"
                                 gameSessionSnapshot.ref.setValue(gameSession).addOnSuccessListener {
-                                    Toast.makeText(this@Lobby, "Game session ended", Toast.LENGTH_SHORT).show()
-                                    returnHomeIntent(lobbyCode!!, LEAVE)
+                                    returnHomeIntent(lobbyCode!!, playerIsHost, LEAVE)
 
                                 }.addOnFailureListener {
                                     Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
@@ -305,7 +304,7 @@ class Lobby : AppCompatActivity() {
                             } else {
                                 val ref = realtimeDb.getReference("gameSessions").child(gameSessionSnapshot.key!!)
                                 ref.child("players").child(playerIndex.toString()).removeValue().addOnSuccessListener {
-                                    returnHomeIntent(lobbyCode!!, LEAVE)
+                                    returnHomeIntent(lobbyCode!!, playerIsHost, LEAVE)
 
                                 }.addOnFailureListener {
                                     Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
@@ -475,7 +474,7 @@ class Lobby : AppCompatActivity() {
         }
     }
 
-    private fun returnHomeIntent(lobbyCode: String?, reason: String) {
+    private fun returnHomeIntent(lobbyCode: String?, host: Boolean, reason: String) {
         val intent = Intent(this@Lobby, HomeScreen::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
         when (reason) {
@@ -489,7 +488,9 @@ class Lobby : AppCompatActivity() {
                 Toast.makeText(this@Lobby, "You have been removed due to inactivity!", Toast.LENGTH_SHORT).show()
             }
             ENDED -> {
-                Toast.makeText(this@Lobby, "Host has left!", Toast.LENGTH_SHORT).show()
+                if (!host) {
+                    Toast.makeText(this@Lobby, "Host has left!", Toast.LENGTH_SHORT).show()
+                }
             }
         }
 
