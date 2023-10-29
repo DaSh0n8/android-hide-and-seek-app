@@ -238,7 +238,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
      */
     private fun showUserLocation(query: Query, gameTimer: CountDownTimer) {
         // convert the drawable user icon to a Bitmap
-        val userIconBitmap = scaleBitmap(BitmapFactory.decodeResource(resources, R.drawable.usericon), 40)
+        val userIconBitmap = scaleBitmap(BitmapFactory.decodeResource(resources, R.drawable.usericon), 35)
         val eliminatedIcon = getBitmapFromVectorDrawable(this, R.drawable.eliminated)
         var lastUpdate: TextView = findViewById(R.id.lastUpdateValue)
         val timer = Timer()
