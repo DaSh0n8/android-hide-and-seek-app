@@ -310,7 +310,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                         } else if (!player.seeker && player.eliminated && player.playerStatus != disconnected) {
                             eliminatedIcon
 
-                        } else if (player.playerStatus == disconnected) {
+                        } else if (!player.seeker && player.playerStatus == disconnected) {
                             disconnectedIcon
 
                         } else {
