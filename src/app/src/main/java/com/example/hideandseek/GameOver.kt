@@ -8,6 +8,7 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -58,7 +59,7 @@ class GameOver : AppCompatActivity() {
         }
 
         // clean db and return to home page
-        var backToHomeBtn: Button = findViewById(R.id.btnHome)
+        val backToHomeBtn: Button = findViewById(R.id.btnHome)
         backToHomeBtn.setOnClickListener {
             NetworkUtils.checkConnectivityAndProceed(this) {
                 if (host!!) {
@@ -162,6 +163,7 @@ class GameOver : AppCompatActivity() {
      * Return to lobby
      */
     private fun returnLobby(username: String?, lobbyCode: String?, host: Boolean?) {
+        var hostExist = false
         val intent = Intent(this@GameOver, Lobby::class.java)
         intent.putExtra("username_key", username)
         intent.putExtra("lobby_key", lobbyCode)
@@ -183,6 +185,10 @@ class GameOver : AppCompatActivity() {
                     val players = gameSession.players.toMutableList()
                     val codes = listOf<String>().toMutableList()
                     for ((index, p) in players.withIndex()) {
+                        if (p.host) {
+                            hostExist = true
+                        }
+
                         if (p.userName == username) {
                             p.eliminated = false
                             p.playerStatus = "In Lobby"
@@ -219,9 +225,12 @@ class GameOver : AppCompatActivity() {
                 Log.e("Firebase", "Data retrieval error: ${databaseError.message}")
             }
         })
-
-        startActivity(intent)
-        finish()
+        if (hostExist) {
+            startActivity(intent)
+            finish()
+        } else {
+            hostLeftDialog()
+        }
     }
 
     override fun onBackPressed() {
@@ -286,5 +295,19 @@ class GameOver : AppCompatActivity() {
 
             }
         }.start()
+    }
+
+    private fun hostLeftDialog(){
+        val builder = AlertDialog.Builder(this)
+        with(builder)
+        {
+            setTitle("Sorry...")
+            setMessage("Host has left the game")
+            setPositiveButton("OK"){ _, _ ->
+                val backToHomeBtn: Button = findViewById(R.id.btnHome)
+                backToHomeBtn.performClick()
+            }
+            show()
+        }
     }
 }
