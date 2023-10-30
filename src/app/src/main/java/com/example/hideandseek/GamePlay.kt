@@ -325,7 +325,11 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                                 markerOptions.icon(BitmapDescriptorFactory.fromBitmap(it))
                             }
 
-                            map.addMarker(markerOptions)
+                            val marker = map.addMarker(markerOptions)
+
+                            if (player.userName == userName) {
+                                marker!!.showInfoWindow()
+                            }
                         }
 
                     }
