@@ -14,6 +14,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -172,6 +173,8 @@ class Lobby : AppCompatActivity() {
                     val playerStillInSession = (seekersList + hidersList).any { it.userName == receivedUsername }
 
                     if (!playerStillInSession) {
+                        connectTimer.cancel()
+                        removeLobbyListener(receivedLobbyCode)
                         removedDialog(receivedLobbyCode, hostStatus!!, KICKED)
                         return
                     }
@@ -646,42 +649,64 @@ class Lobby : AppCompatActivity() {
         }.start()
     }
 
-    private fun removedDialog(lobbyCode: String?, host: Boolean, reason: String){
+    private fun createCustomDialog(
+        titleText: String,
+        messageText: String,
+        positiveButtonText: String,
+        positiveButtonAction: () -> Unit
+    ) {
         val builder = AlertDialog.Builder(this)
-        with(builder)
-        {
-            setTitle("Sorry...")
-            setMessage("You have been removed by the host")
-            setPositiveButton("OK"){ _, _ ->
-                returnHomeIntent(lobbyCode, host, reason)
-            }
-            show()
-        }
-    }
 
-    private fun madeHostDialog(){
-        val builder = AlertDialog.Builder(this)
-        with(builder)
-        {
-            setTitle("Hey...")
-            setMessage("You have been made host")
-            setPositiveButton("OK"){ dialog, _ ->
+        val customTitleView = layoutInflater.inflate(R.layout.dialog_title, null)
+        val customMessageView = layoutInflater.inflate(R.layout.dialog_message, null)
+
+        // Set the title text dynamically
+        (customTitleView.findViewById<TextView>(R.id.title)).text = titleText
+
+        // Set the message text dynamically
+        (customMessageView.findViewById<TextView>(R.id.message)).text = messageText
+
+        with(builder) {
+            setCustomTitle(customTitleView) // Set the custom title view
+            setView(customMessageView)     // Set the custom message view
+            setPositiveButton(positiveButtonText) { dialog, _ ->
+                positiveButtonAction()
                 dialog.dismiss()
             }
-            show()
+            val dialog = create()
+            dialog.setOnShowListener { dialogInterface ->
+                val okButton = (dialogInterface as AlertDialog).getButton(AlertDialog.BUTTON_POSITIVE)
+                okButton.setTextColor(ContextCompat.getColor(this@Lobby, R.color.blue))
+            }
+            dialog.show()
         }
     }
 
-    private fun hostLeftDialog(lobbyCode: String?, host: Boolean, reason: String){
-        val builder = AlertDialog.Builder(this)
-        with(builder)
-        {
-            setTitle("Sorry...")
-            setMessage("Host has left the game")
-            setPositiveButton("OK"){ _, _ ->
-                returnHomeIntent(lobbyCode, host, reason)
-            }
-            show()
+    private fun removedDialog(lobbyCode: String?, host: Boolean, reason: String) {
+        createCustomDialog(
+            "Sorry...",
+            "You have been removed by the host",
+            "OK"
+        ) {
+            returnHomeIntent(lobbyCode, host, reason)
+        }
+    }
+
+    private fun madeHostDialog() {
+        createCustomDialog(
+            "Hey...",
+            "You have been made host",
+            "OK"
+        ) { /* Positive button action for madeHostDialog */ }
+    }
+
+    private fun hostLeftDialog(lobbyCode: String?, host: Boolean, reason: String) {
+        createCustomDialog(
+            "Sorry...",
+            "Host has left the game",
+            "OK"
+        ) {
+            returnHomeIntent(lobbyCode, host, reason)
         }
     }
 
