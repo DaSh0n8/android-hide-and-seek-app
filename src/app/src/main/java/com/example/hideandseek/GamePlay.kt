@@ -214,7 +214,8 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                                 hasTriggered = true
                             }
                         } else {
-                            returnHome()
+                            disconnectedDialog()
+                            gameTimer.cancel()
                         }
                     }
 
@@ -879,6 +880,19 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
             setMessage("Game ending, limit your movement or your location will be constantly exposed!")
             setPositiveButton("OK"){ dialog, _ ->
                 dialog.dismiss()
+            }
+            show()
+        }
+    }
+
+    private fun disconnectedDialog(){
+        val builder = AlertDialog.Builder(this)
+        with(builder)
+        {
+            setTitle("Sorry...")
+            setMessage("You have been eliminated due to disconnection from internet")
+            setPositiveButton("OK"){ _, _ ->
+                returnHome()
             }
             show()
         }

@@ -206,18 +206,12 @@ class GameOver : AppCompatActivity() {
                         }
                     }
 
-                    // Update the local GameSession object
-                    gameSession.players = players
-
-                    // Save the updated GameSession back to Firebase
-                    gameSessionSnapshot.ref.setValue(gameSession)
-                        .addOnFailureListener {
-                            Toast.makeText(
-                                this@GameOver,
-                                "Error updating game status in Firebase",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
+                    if (hostExist) {
+                        startActivity(intent)
+                        finish()
+                    } else {
+                        hostLeftDialog()
+                    }
                 }
             }
 
@@ -225,12 +219,6 @@ class GameOver : AppCompatActivity() {
                 Log.e("Firebase", "Data retrieval error: ${databaseError.message}")
             }
         })
-        if (hostExist) {
-            startActivity(intent)
-            finish()
-        } else {
-            hostLeftDialog()
-        }
     }
 
     override fun onBackPressed() {
