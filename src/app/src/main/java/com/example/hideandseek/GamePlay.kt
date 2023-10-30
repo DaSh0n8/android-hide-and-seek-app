@@ -285,8 +285,8 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                         val currTime = LocalTime.now()
                         val duration = minToMilli(Duration.between(LocalTime.parse(player.lastUpdated), currTime).toMinutes().toInt())
                         if (!player.eliminated && duration > 20000 && !player.seeker) {
-                            setPlayerStatus(lobbyCode, userName, disconnected)
-                            eliminatePlayer(player.playerCode, false)
+                            setPlayerStatus(lobbyCode, player.userName, disconnected)
+                            //eliminatePlayer(player.playerCode, false)
                         }
 
                         val coordinates = LatLng(player.latitude!!, player.longitude!!)
@@ -300,7 +300,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                             lastStatus[player.userName] = player.eliminated
                         }
 
-                        val iconBitmap = if (!player.seeker && !player.eliminated) {
+                        val iconBitmap = if (!player.seeker && !player.eliminated && player.playerStatus != disconnected) {
                             hidersAvailable = true
                             playersIcons[player.userName] ?: userIconBitmap
 
@@ -444,7 +444,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 val players = gameSession.players
                 for (p in players) {
                     // check if all players have been eliminated
-                    if (!p.eliminated && !p.seeker) {
+                    if (!p.eliminated && !p.seeker && p.playerStatus != disconnected) {
                         seekerWonGame = false
                     }
 
