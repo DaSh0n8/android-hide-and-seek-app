@@ -20,6 +20,7 @@ import android.view.View.VISIBLE
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.example.hideandseek.databinding.GamePlayBinding
@@ -207,7 +208,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
                             // if only 20% time left, trigger the accelerometer
                             if (millisUntilFinished < triggerTime && !isSeeker && !hasTriggered) {
-                                Toast.makeText(this@GamePlay, "Game ending!! Limit your movement!!", Toast.LENGTH_LONG).show()
+                                limitMovementDialog()
                                 countDownValue.setTextColor(Color.RED)
                                 limitMovement(query)
                                 hasTriggered = true
@@ -537,7 +538,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                         }
                         if(existPlayer){
                             if (voluntary) {
-                                Toast.makeText(this@GamePlay, "$eliminatedUsername has successfully been Eliminated", Toast.LENGTH_SHORT).show()
+                                eliminateDialog(eliminatedUsername)
                             }
                         }else{
                             Toast.makeText(this@GamePlay, "This user does not exist", Toast.LENGTH_SHORT).show()
@@ -842,5 +843,44 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
         val distance = earthRadius * c // The distance between the two coordinates in meters
         return distance <= radiusMeters
+    }
+
+    private fun eliminateDialog(username: String?){
+        val builder = AlertDialog.Builder(this)
+        with(builder)
+        {
+            setTitle("Hider Eliminated")
+            setMessage("$username has been eliminated!")
+            setPositiveButton("OK"){ dialog, _ ->
+                dialog.dismiss()
+            }
+            show()
+        }
+    }
+
+    private fun deadDialog(){
+        val builder = AlertDialog.Builder(this)
+        with(builder)
+        {
+            setTitle("Eliminated")
+            setMessage("You have been eliminated!")
+            setPositiveButton("OK"){ dialog, _ ->
+                dialog.dismiss()
+            }
+            show()
+        }
+    }
+
+    private fun limitMovementDialog(){
+        val builder = AlertDialog.Builder(this)
+        with(builder)
+        {
+            setTitle("Be careful!!!")
+            setMessage("Game ending, limit your movement or your location will be constantly exposed!")
+            setPositiveButton("OK"){ dialog, _ ->
+                dialog.dismiss()
+            }
+            show()
+        }
     }
 }
