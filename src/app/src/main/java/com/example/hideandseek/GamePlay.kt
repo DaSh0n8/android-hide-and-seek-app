@@ -378,6 +378,14 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                             val path = ref.child("players").child(index.toString())
                             path.child("latitude").setValue(lat)
                             path.child("longitude").setValue(lon)
+
+                            // eliminate self if exited the geofence
+                            val geofenceLatLng = LatLng(gameSession!!.geofenceLat, gameSession.geofenceLon)
+                            val leeway = 10 // 10 metres leeway
+                            if(!isCoordinateInsideGeofence(user, geofenceLatLng, (geofenceRadius+leeway).toDouble())) {
+                                eliminatePlayer(p.playerCode, false)
+                                Toast.makeText(this@GamePlay, "You have been eliminated as you exited the game area!", Toast.LENGTH_SHORT).show()
+                            }
                         }
                     }
                 }
@@ -388,11 +396,6 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 map.setMapStyle(
                     MapStyleOptions.loadRawResourceStyle(this@GamePlay, R.raw.gamemap_lightmode)
                 )
-
-                // eliminate self if exited the geofence
-                val geofenceLatLng = LatLng(gameSession!!.geofenceLat, gameSession.geofenceLon)
-                val leeway = 10 // 10 metres leeway
-                isCoordinateInsideGeofence(user, geofenceLatLng, (geofenceRadius+leeway).toDouble())
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
@@ -819,6 +822,9 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         })
     }
 
+    /**
+     * Check if user is within the game play area
+     */
     fun isCoordinateInsideGeofence(userLocation: LatLng, geofenceCenter: LatLng, radiusMeters: Double): Boolean {
         val earthRadius = 6371000.0 // Earth's radius in meters (approximately)
 
@@ -831,7 +837,6 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         val c = 2 * atan2(sqrt(a), sqrt(1 - a))
 
         val distance = earthRadius * c // The distance between the two coordinates in meters
-        Log.d("Distance", distance.toString())
         return distance <= radiusMeters
     }
 }
