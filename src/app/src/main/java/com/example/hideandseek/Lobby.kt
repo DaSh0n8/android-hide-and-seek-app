@@ -150,7 +150,7 @@ class Lobby : AppCompatActivity() {
                     // check if host has started or ended the game
                     when (gameSession!!.gameStatus) {
                         "started" -> startGameIntent(receivedLobbyCode, receivedUsername, gameSession)
-                        "ended"   -> returnHomeIntent(receivedLobbyCode, hostStatus!!, ENDED)
+                        "ended"   -> hostLeftDialog(receivedLobbyCode, hostStatus!!, ENDED)
                     }
 
                     val players = sessionSnapshot.child("players").children
@@ -163,6 +163,9 @@ class Lobby : AppCompatActivity() {
                             hidersList.add(player)
                         }
                         if (player.userName == receivedUsername) {
+                            if (!hostStatus!! && player.host) {
+                                madeHostDialog()
+                            }
                             hostStatus = player.host
                         }
                     }
@@ -485,11 +488,6 @@ class Lobby : AppCompatActivity() {
             DISCONNECTED -> {
                 Toast.makeText(this@Lobby, "You have been removed due to inactivity!", Toast.LENGTH_SHORT).show()
             }
-            ENDED -> {
-                if (!host) {
-                    Toast.makeText(this@Lobby, "Host has left!", Toast.LENGTH_SHORT).show()
-                }
-            }
             else -> {
 
             }
@@ -654,6 +652,32 @@ class Lobby : AppCompatActivity() {
         {
             setTitle("Sorry...")
             setMessage("You have been removed by the host")
+            setPositiveButton("OK"){ _, _ ->
+                returnHomeIntent(lobbyCode, host, reason)
+            }
+            show()
+        }
+    }
+
+    private fun madeHostDialog(){
+        val builder = AlertDialog.Builder(this)
+        with(builder)
+        {
+            setTitle("Hey...")
+            setMessage("You have been made host")
+            setPositiveButton("OK"){ dialog, _ ->
+                dialog.dismiss()
+            }
+            show()
+        }
+    }
+
+    private fun hostLeftDialog(lobbyCode: String?, host: Boolean, reason: String){
+        val builder = AlertDialog.Builder(this)
+        with(builder)
+        {
+            setTitle("Sorry...")
+            setMessage("Host has left the game")
             setPositiveButton("OK"){ _, _ ->
                 returnHomeIntent(lobbyCode, host, reason)
             }
