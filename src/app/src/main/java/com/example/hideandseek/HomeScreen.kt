@@ -5,8 +5,11 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.widget.Button
+import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 
 class HomeScreen : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -25,8 +28,7 @@ class HomeScreen : AppCompatActivity() {
                     intent.putExtra("host", true)
                     startActivity(intent)
                 } else {
-                    Toast.makeText(this@HomeScreen, "Location Permission Required!", Toast.LENGTH_SHORT).show()
-                    openAppSettings()
+                    connectInternetDialog()
                 }
             }
         }
@@ -38,8 +40,7 @@ class HomeScreen : AppCompatActivity() {
                     val intent = Intent(this@HomeScreen, JoinGame::class.java)
                     startActivity(intent)
                 } else {
-                    Toast.makeText(this@HomeScreen, "Location Permission Required!", Toast.LENGTH_SHORT).show()
-                    openAppSettings()
+                    connectInternetDialog()
                 }
             }
         }
@@ -55,6 +56,49 @@ class HomeScreen : AppCompatActivity() {
         intent.action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
         intent.data = Uri.fromParts("package", this.packageName, null)
         this.startActivity(intent)
+    }
+
+    private fun connectInternetDialog() {
+        createCustomDialog(
+            "Sorry...",
+            "Location Permission Required!",
+            "OK"
+        ) {
+            openAppSettings()
+        }
+    }
+
+    private fun createCustomDialog(
+        titleText: String,
+        messageText: String,
+        positiveButtonText: String,
+        positiveButtonAction: () -> Unit
+    ) {
+        val builder = AlertDialog.Builder(this)
+
+        val customTitleView = layoutInflater.inflate(R.layout.dialog_title, null)
+        val customMessageView = layoutInflater.inflate(R.layout.dialog_message, null)
+
+        // Set the title text dynamically
+        (customTitleView.findViewById<TextView>(R.id.title)).text = titleText
+
+        // Set the message text dynamically
+        (customMessageView.findViewById<TextView>(R.id.message)).text = messageText
+
+        with(builder) {
+            setCustomTitle(customTitleView) // Set the custom title view
+            setView(customMessageView)     // Set the custom message view
+            setPositiveButton(positiveButtonText) { dialog, _ ->
+                positiveButtonAction()
+                dialog.dismiss()
+            }
+            val dialog = create()
+            dialog.setOnShowListener { dialogInterface ->
+                val okButton = (dialogInterface as AlertDialog).getButton(AlertDialog.BUTTON_POSITIVE)
+                okButton.setTextColor(ContextCompat.getColor(this@HomeScreen, R.color.blue))
+            }
+            dialog.show()
+        }
     }
 
 
