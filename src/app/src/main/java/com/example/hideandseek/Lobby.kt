@@ -12,6 +12,7 @@ import android.widget.FrameLayout
 import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -168,7 +169,7 @@ class Lobby : AppCompatActivity() {
                     val playerStillInSession = (seekersList + hidersList).any { it.userName == receivedUsername }
 
                     if (!playerStillInSession) {
-                        returnHomeIntent(receivedLobbyCode, hostStatus!!, KICKED)
+                        removedDialog(receivedLobbyCode, hostStatus!!, KICKED)
                         return
                     }
 
@@ -481,9 +482,6 @@ class Lobby : AppCompatActivity() {
             LEAVE -> {
                 Toast.makeText(this@Lobby, "You have left lobby #$lobbyCode", Toast.LENGTH_SHORT).show()
             }
-            KICKED -> {
-                Toast.makeText(this@Lobby, "You have been removed by the host!", Toast.LENGTH_SHORT).show()
-            }
             DISCONNECTED -> {
                 Toast.makeText(this@Lobby, "You have been removed due to inactivity!", Toast.LENGTH_SHORT).show()
             }
@@ -491,6 +489,9 @@ class Lobby : AppCompatActivity() {
                 if (!host) {
                     Toast.makeText(this@Lobby, "Host has left!", Toast.LENGTH_SHORT).show()
                 }
+            }
+            else -> {
+
             }
         }
 
@@ -645,6 +646,19 @@ class Lobby : AppCompatActivity() {
 
             }
         }.start()
+    }
+
+    private fun removedDialog(lobbyCode: String?, host: Boolean, reason: String){
+        val builder = AlertDialog.Builder(this)
+        with(builder)
+        {
+            setTitle("Sorry...")
+            setMessage("You have been removed by the host")
+            setPositiveButton("OK"){ _, _ ->
+                returnHomeIntent(lobbyCode, host, reason)
+            }
+            show()
+        }
     }
 
 }
