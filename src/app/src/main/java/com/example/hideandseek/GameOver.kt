@@ -221,7 +221,6 @@ class GameOver : AppCompatActivity() {
         })
 
         startActivity(intent)
-        connectTimer.cancel()
         finish()
     }
 
@@ -229,6 +228,11 @@ class GameOver : AppCompatActivity() {
         var backToHomeBtn: Button = findViewById(R.id.btnHome)
         backToHomeBtn.performClick()
         super.onBackPressed()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        connectTimer.cancel()
     }
 
     /**

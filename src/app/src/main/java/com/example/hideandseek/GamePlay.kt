@@ -83,6 +83,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
     // timer
     private lateinit var hideTimer: CountDownTimer
+    private lateinit var gameTimer: CountDownTimer
     private lateinit var connectTimer: CountDownTimer
 
     // map zoom levels
@@ -170,7 +171,6 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         var countDown: TextView = findViewById(R.id.playTime)
         var countDownValue: TextView = findViewById(R.id.playTimeValue)
         var hidingText: TextView = findViewById(R.id.hidingText)
-        val ackTime = 5000
         hideTimer = object: CountDownTimer(hideTime, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 val seconds = (millisUntilFinished / 1000) % 60
@@ -194,7 +194,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 }
 
                 // count down timer for game play
-                val gameTimer = object: CountDownTimer(gameTime, 1000) {
+                gameTimer = object: CountDownTimer(gameTime, 1000) {
                     override fun onTick(millisUntilFinished: Long) {
                         if (NetworkUtils.checkForInternet(this@GamePlay)) {
                             val seconds = (millisUntilFinished / 1000) % 60
@@ -286,7 +286,6 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                         val duration = minToMilli(Duration.between(LocalTime.parse(player.lastUpdated), currTime).toMinutes().toInt())
                         if (!player.eliminated && duration > 20000 && !player.seeker) {
                             setPlayerStatus(lobbyCode, player.userName, disconnected)
-                            //eliminatePlayer(player.playerCode, false)
                         }
 
                         val coordinates = LatLng(player.latitude!!, player.longitude!!)
@@ -463,15 +462,9 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 startActivity(gameOver)
 
                 // turn off listener
-                reference.removeEventListener(gameplayListener)
-                locationHelper.stopUpdate()
                 if (!isSeeker && accelerationHelper != null) {
                     accelerationHelper!!.stopListening()
                 }
-
-                // cancel timer
-                hideTimer.cancel()
-                connectTimer.cancel()
 
                 // Update the local GameSession object
                 gameSession.players = players
@@ -710,9 +703,20 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private fun returnHome() {
         val errorMessage = "You have been eliminated as you are disconnected from internet!"
         val intent = Intent(this@GamePlay, HomeScreen::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
         intent.putExtra("error", errorMessage)
         startActivity(intent)
         finish()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        val reference = realtimeDb.getReference("gameSessions")
+        reference.removeEventListener(gameplayListener)
+        hideTimer.cancel()
+        connectTimer.cancel()
+        gameTimer.cancel()
+        locationHelper.stopUpdate()
     }
 
     /**
