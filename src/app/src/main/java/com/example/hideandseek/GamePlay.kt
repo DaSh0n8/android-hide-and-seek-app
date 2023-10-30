@@ -44,6 +44,10 @@ import java.time.Duration
 import java.time.LocalTime
 import java.util.Timer
 import java.util.TimerTask
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 
 class GamePlay : AppCompatActivity(), OnMapReadyCallback {
@@ -281,7 +285,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                     val players = gameSession.players
                     // reflect hiders' latest locations on map
                     players.forEach{ player ->
-                        // calculate the last update
+                        // check the last update
                         val currTime = LocalTime.now()
                         val duration = minToMilli(Duration.between(LocalTime.parse(player.lastUpdated), currTime).toMinutes().toInt())
                         if (!player.eliminated && duration > 20000 && !player.seeker) {
@@ -321,7 +325,11 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                                 markerOptions.icon(BitmapDescriptorFactory.fromBitmap(it))
                             }
 
-                            map.addMarker(markerOptions)
+                            val marker = map.addMarker(markerOptions)
+
+                            if (player.userName == userName) {
+                                marker!!.showInfoWindow()
+                            }
                         }
 
                     }
@@ -374,6 +382,14 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                             val path = ref.child("players").child(index.toString())
                             path.child("latitude").setValue(lat)
                             path.child("longitude").setValue(lon)
+
+                            // eliminate self if exited the geofence
+                            val geofenceLatLng = LatLng(gameSession!!.geofenceLat, gameSession.geofenceLon)
+                            val leeway = 10 // 10 metres leeway
+                            if(!isCoordinateInsideGeofence(user, geofenceLatLng, (geofenceRadius+leeway).toDouble())) {
+                                eliminatePlayer(p.playerCode, false)
+                                Toast.makeText(this@GamePlay, "You have been eliminated as you exited the game area!", Toast.LENGTH_SHORT).show()
+                            }
                         }
                     }
                 }
@@ -808,5 +824,23 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 Log.e("Firebase", "Data retrieval error: ${databaseError.message}")
             }
         })
+    }
+
+    /**
+     * Check if user is within the game play area
+     */
+    fun isCoordinateInsideGeofence(userLocation: LatLng, geofenceCenter: LatLng, radiusMeters: Double): Boolean {
+        val earthRadius = 6371000.0 // Earth's radius in meters (approximately)
+
+        val dLat = Math.toRadians(geofenceCenter.latitude - userLocation.latitude)
+        val dLng = Math.toRadians(geofenceCenter.longitude - userLocation.longitude)
+
+        val a = kotlin.math.sin(dLat / 2).pow(2) + cos(Math.toRadians(userLocation.latitude)) * cos(Math.toRadians(geofenceCenter.latitude)) * kotlin.math.sin(
+            dLng / 2
+        ).pow(2)
+        val c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+        val distance = earthRadius * c // The distance between the two coordinates in meters
+        return distance <= radiusMeters
     }
 }
