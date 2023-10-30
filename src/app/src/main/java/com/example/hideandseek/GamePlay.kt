@@ -23,6 +23,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import com.example.hideandseek.databinding.GamePlayBinding
 import com.example.hideandseek.databinding.GamePlayHiderBinding
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -41,6 +42,8 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.Query
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.LocalTime
 import java.util.Timer
@@ -301,8 +304,13 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                             minutePassed = 0
                             lastUpdate.text = "$minutePassed minute(s) ago"
 
+                            if (lastStatus[player.userName] != player.eliminated && player.userName == userName) {
+                                deadDialog()
+                            }
+
                             lastLoc[player.userName] =  coordinates
                             lastStatus[player.userName] = player.eliminated
+
                         }
 
                         val iconBitmap = if (!player.seeker && !player.eliminated && player.playerStatus != disconnected) {
@@ -471,14 +479,6 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                     }
                 }
 
-                val gameOver = Intent(this@GamePlay, GameOver::class.java)
-                gameOver.putExtra("seekerWonGame", seekerWonGame)
-                gameOver.putExtra("isSeeker", isSeeker)
-                gameOver.putExtra("lobbyCode", lobbyCode)
-                gameOver.putExtra("username", userName)
-                gameOver.putExtra("host", host)
-                startActivity(gameOver)
-
                 // turn off listener
                 if (!isSeeker && accelerationHelper != null) {
                     accelerationHelper!!.stopListening()
@@ -494,7 +494,18 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                         Toast.makeText(this@GamePlay, "Error updating game status in Firebase", Toast.LENGTH_SHORT).show()
                     }
 
-                finish()
+                val gameOver = Intent(this@GamePlay, GameOver::class.java)
+                gameOver.putExtra("seekerWonGame", seekerWonGame)
+                gameOver.putExtra("isSeeker", isSeeker)
+                gameOver.putExtra("lobbyCode", lobbyCode)
+                gameOver.putExtra("username", userName)
+                gameOver.putExtra("host", host)
+
+                lifecycleScope.launch {
+                    delay(2000) // Delay for 3 seconds
+                    startActivity(gameOver)
+                    finish()
+                }
             }
         }
     }
@@ -505,56 +516,67 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private fun eliminatePlayer(code: String, voluntary: Boolean){
         if (code.isBlank()){
             Toast.makeText(this@GamePlay, "Please enter a code", Toast.LENGTH_SHORT).show()
-        }
-        val reference = realtimeDb.getReference("gameSessions")
-        val query = reference.orderByChild("sessionId").equalTo(lobbyCode)
-        query.addListenerForSingleValueEvent(object : ValueEventListener{
-            override fun onDataChange(datasnapshot: DataSnapshot) {
-                if (datasnapshot.exists()){
-                    val gameSessionSnapshot = datasnapshot.children.first()
-                    val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
-                    val ref = realtimeDb.getReference("gameSessions").child(gameSessionSnapshot.key!!)
-                    var existPlayer = false
-                    var eliminatedUsername = ""
+        } else {
+            val reference = realtimeDb.getReference("gameSessions")
+            val query = reference.orderByChild("sessionId").equalTo(lobbyCode)
+            query.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(datasnapshot: DataSnapshot) {
+                    if (datasnapshot.exists()) {
+                        val gameSessionSnapshot = datasnapshot.children.first()
+                        val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+                        val ref =
+                            realtimeDb.getReference("gameSessions").child(gameSessionSnapshot.key!!)
+                        var existPlayer = false
+                        var eliminatedUsername = ""
 
-                    if (gameSession != null) {
-                        val players = gameSession.players
-                        for ((index, player) in players.withIndex()) {
-                            if (code == player.playerCode) {
-                                eliminatedUsername = player.userName;
-                                if(player.seeker){
-                                    Toast.makeText(this@GamePlay,
-                                        "$eliminatedUsername is a seeker and cannot be eliminated", Toast.LENGTH_SHORT).show()
-                                }
-                                else if (!player.eliminated){
-                                    val path = ref.child("players").child(index.toString())
-                                    path.child("eliminated").setValue(true)
-                                    existPlayer = true
+                        if (gameSession != null) {
+                            val players = gameSession.players
+                            for ((index, player) in players.withIndex()) {
+                                if (code == player.playerCode) {
+                                    eliminatedUsername = player.userName;
+                                    if (player.seeker) {
+                                        Toast.makeText(
+                                            this@GamePlay,
+                                            "$eliminatedUsername is a seeker and cannot be eliminated",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    } else if (!player.eliminated) {
+                                        val path = ref.child("players").child(index.toString())
+                                        path.child("eliminated").setValue(true)
+                                        existPlayer = true
 
-                                }
-                                else{
-                                    Toast.makeText(this@GamePlay, "$eliminatedUsername has already been Eliminated", Toast.LENGTH_SHORT).show()
+                                    } else {
+                                        Toast.makeText(
+                                            this@GamePlay,
+                                            "$eliminatedUsername has already been Eliminated",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
                                 }
                             }
-                        }
-                        if(existPlayer){
-                            if (voluntary) {
-                                eliminateDialog(eliminatedUsername)
+                            if (existPlayer) {
+                                if (voluntary) {
+                                    eliminateDialog(eliminatedUsername)
+                                }
+                            } else {
+                                Toast.makeText(
+                                    this@GamePlay,
+                                    "This user does not exist",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
-                        }else{
-                            Toast.makeText(this@GamePlay, "This user does not exist", Toast.LENGTH_SHORT).show()
                         }
+                    } else {
+                        Toast.makeText(this@GamePlay, "Database Error", Toast.LENGTH_SHORT).show()
                     }
-                }else{
-                    Toast.makeText(this@GamePlay, "Database Error", Toast.LENGTH_SHORT).show()
                 }
-            }
 
-            override fun onCancelled(error: DatabaseError) {
-                Log.e("Firebase", "Data retrieval error: ${error.message}")
-            }
+                override fun onCancelled(error: DatabaseError) {
+                    Log.e("Firebase", "Data retrieval error: ${error.message}")
+                }
 
-        })
+            })
+        }
     }
 
     /**
@@ -863,7 +885,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         val builder = AlertDialog.Builder(this)
         with(builder)
         {
-            setTitle("Eliminated")
+            setTitle("Whoops...")
             setMessage("You have been eliminated!")
             setPositiveButton("OK"){ dialog, _ ->
                 dialog.dismiss()
