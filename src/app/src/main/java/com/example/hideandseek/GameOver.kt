@@ -1,6 +1,8 @@
 package com.example.hideandseek
 
 import android.content.Intent
+import android.media.MediaPlayer
+import android.os.Build
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
@@ -8,6 +10,7 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -17,7 +20,7 @@ import java.time.LocalTime
 
 class GameOver : AppCompatActivity() {
     private lateinit var database: FirebaseDatabase
-
+    private var mediaPlayer : MediaPlayer? = null
     private val youWon = "Congrats, You Won!!!"
     private val youLost = "Sorry, You Lost!!!"
     private lateinit var connectTimer: CountDownTimer
@@ -45,15 +48,43 @@ class GameOver : AppCompatActivity() {
             resultImg.setImageResource(R.drawable.seekers_win)
             if (isSeeker!!) {
                 resultText.text = youWon
+                if (mediaPlayer == null) {
+                    mediaPlayer = MediaPlayer.create(this, R.raw.win)
+                }
+                mediaPlayer?.start()
+                mediaPlayer?.setOnCompletionListener (MediaPlayer.OnCompletionListener{
+                    mediaPlayer?.release();
+                } )
             } else {
                 resultText.text = youLost
+                if (mediaPlayer == null) {
+                    mediaPlayer = MediaPlayer.create(this, R.raw.fail)
+                }
+                mediaPlayer?.start()
+                mediaPlayer?.setOnCompletionListener (MediaPlayer.OnCompletionListener{
+                    mediaPlayer?.release();
+                } )
             }
         } else {
             resultImg.setImageResource(R.drawable.hiders_win)
             if (isSeeker!!) {
                 resultText.text = youLost
+                if (mediaPlayer == null) {
+                    mediaPlayer = MediaPlayer.create(this, R.raw.fail)
+                }
+                mediaPlayer?.start()
+                mediaPlayer?.setOnCompletionListener (MediaPlayer.OnCompletionListener{
+                    mediaPlayer?.release();
+                } )
             } else {
                 resultText.text = youWon
+                if (mediaPlayer == null) {
+                    mediaPlayer = MediaPlayer.create(this, R.raw.win)
+                }
+                mediaPlayer?.start()
+                mediaPlayer?.setOnCompletionListener (MediaPlayer.OnCompletionListener{
+                    mediaPlayer?.release();
+                } )
             }
         }
 
@@ -240,6 +271,7 @@ class GameOver : AppCompatActivity() {
             .equalTo(lobbyCode)
 
         query.addListenerForSingleValueEvent(object : ValueEventListener {
+            @RequiresApi(Build.VERSION_CODES.O)
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 // get the game session
                 val gameSessionSnapshot = dataSnapshot.children.first()
