@@ -113,10 +113,8 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         mediaPlayer = MediaPlayer.create(this, R.raw.start_game)
         mediaPlayer?.start()
         mediaPlayer?.setOnCompletionListener (MediaPlayer.OnCompletionListener{
-            mediaPlayer?.release();
+            mediaPlayer = MediaPlayer.create(this, R.raw.start)
         } )
-        mediaPlayer = null
-        mediaPlayer = MediaPlayer.create(this, R.raw.start)
         if (isSeeker){
             binding = GamePlayBinding.inflate(layoutInflater)
             setContentView(binding.root)
@@ -196,12 +194,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 countDownValue.text = String.format("%02d:%02d", minutes, seconds)
                 if (minutes.toDouble() == 0.0 && seconds.toDouble() == 3.0){
                     mediaPlayer?.start()
-
                 }
-                mediaPlayer?.setOnCompletionListener (MediaPlayer.OnCompletionListener{
-                    mediaPlayer?.release();
-                } )
-
             }
 
 

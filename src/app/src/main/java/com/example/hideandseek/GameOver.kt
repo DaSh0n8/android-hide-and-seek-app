@@ -272,7 +272,6 @@ class GameOver : AppCompatActivity() {
             .equalTo(lobbyCode)
 
         query.addListenerForSingleValueEvent(object : ValueEventListener {
-            @RequiresApi(Build.VERSION_CODES.O)
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 // get the game session
                 val gameSessionSnapshot = dataSnapshot.children.first()
