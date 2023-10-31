@@ -1,6 +1,7 @@
 package com.example.hideandseek
 
 import LinearAccelerationHelper
+import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -18,6 +19,7 @@ import android.view.View.GONE
 import android.view.View.INVISIBLE
 import android.view.View.VISIBLE
 import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -141,6 +143,9 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 playersIcons = result
             }
         }
+
+        val legendBtn: Button = findViewById(R.id.legend_button)
+        legendBtn.setOnClickListener { showLegend() }
 
         if (isSeeker){
             //eliminate player button setup
@@ -933,5 +938,21 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
             "$username has been eliminated!",
             "OK"
         ) { /* Positive button action for eliminateDialog */ }
+    }
+
+    private fun showLegend() {
+        val legendDialog = Dialog(this)
+        legendDialog.setContentView(R.layout.legend)
+        legendDialog.window?.setLayout(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.MATCH_PARENT
+        )
+
+        val closeButton = legendDialog.findViewById<Button>(R.id.closeButton)
+        closeButton.setOnClickListener {
+            legendDialog.dismiss()
+        }
+
+        legendDialog.show()
     }
 }
