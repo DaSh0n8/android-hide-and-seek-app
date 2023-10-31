@@ -8,13 +8,17 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import android.provider.Settings
 import android.util.Log
 import android.view.View
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
@@ -54,11 +58,7 @@ class SelfieSegmentation : AppCompatActivity() {
                 if (it.key in REQUIRED_PERMISSIONS && !it.value)
                     permissionGranted = false
             }
-            if (!permissionGranted) {
-                Toast.makeText(baseContext,
-                    "Permission request denied",
-                    Toast.LENGTH_SHORT).show()
-            } else {
+            if (permissionGranted) {
                 startCamera()
             }
         }
@@ -80,7 +80,13 @@ class SelfieSegmentation : AppCompatActivity() {
         lobbyCode = intent.getStringExtra("lobbyCode")
 
         // Set up the listeners for take photo and video capture buttons
-        viewBinding.imageCaptureButton.setOnClickListener { takePhoto() }
+        viewBinding.imageCaptureButton.setOnClickListener {
+            if (allPermissionsGranted()) {
+                takePhoto()
+            } else {
+                cameraPermissionDialog()
+            }
+        }
 
         // cancel button
         viewBinding.cancelButton.setOnClickListener { finish() }
@@ -263,6 +269,57 @@ class SelfieSegmentation : AppCompatActivity() {
                 setResult(Activity.RESULT_OK, intent)
             }
             finish()
+        }
+    }
+
+    private fun openAppSettings() {
+        val intent = Intent()
+        intent.action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+        intent.data = Uri.fromParts("package", this.packageName, null)
+        this.startActivity(intent)
+    }
+
+    private fun cameraPermissionDialog() {
+        createCustomDialog(
+            "Sorry...",
+            "Camera and Microphone Permission Required!",
+            "OK"
+        ) {
+            openAppSettings()
+            finish()
+        }
+    }
+
+    private fun createCustomDialog(
+        titleText: String,
+        messageText: String,
+        positiveButtonText: String,
+        positiveButtonAction: () -> Unit
+    ) {
+        val builder = AlertDialog.Builder(this)
+
+        val customTitleView = layoutInflater.inflate(R.layout.dialog_title, null)
+        val customMessageView = layoutInflater.inflate(R.layout.dialog_message, null)
+
+        // Set the title text dynamically
+        (customTitleView.findViewById<TextView>(R.id.title)).text = titleText
+
+        // Set the message text dynamically
+        (customMessageView.findViewById<TextView>(R.id.message)).text = messageText
+
+        with(builder) {
+            setCustomTitle(customTitleView) // Set the custom title view
+            setView(customMessageView)     // Set the custom message view
+            setPositiveButton(positiveButtonText) { dialog, _ ->
+                positiveButtonAction()
+                dialog.dismiss()
+            }
+            val dialog = create()
+            dialog.setOnShowListener { dialogInterface ->
+                val okButton = (dialogInterface as AlertDialog).getButton(AlertDialog.BUTTON_POSITIVE)
+                okButton.setTextColor(ContextCompat.getColor(this@SelfieSegmentation, R.color.blue))
+            }
+            dialog.show()
         }
     }
 }

@@ -3,10 +3,13 @@ package com.example.hideandseek
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Resources
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.os.Bundle
+import android.util.TypedValue
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
@@ -102,7 +105,7 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
         val playerCode = String.format("%04d",randomNum)
 
         val players = listOf(
-            PlayerClass(username, true, null, null, false, true, playerCode, LocalTime.now().toString())
+            PlayerClass(username, true, null, null, false, true, playerCode, LocalTime.now().toString(), "In Lobby")
         )
 
         val sessionId: Int = Random().nextInt(999999 - 100000 + 1) + 100000
@@ -144,7 +147,7 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
         map.clear()
 
         // convert the drawable user icon to a Bitmap
-        val userIconBitmap = getBitmapFromVectorDrawable(this, R.drawable.self_user_icon)
+        val userIconBitmap = scaleBitmap(BitmapFactory.decodeResource(resources, R.drawable.usericon), 35)
 
         // add the marker and adjust the view
         map.addMarker(
@@ -203,5 +206,30 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
         drawable.setBounds(0, 0, canvas.width, canvas.height)
         drawable.draw(canvas)
         return bitmap
+    }
+
+    private fun scaleBitmap(originalBitmap: Bitmap, targetSizeDp: Int): Bitmap {
+        val resources = Resources.getSystem()
+        val density = resources.displayMetrics.density
+
+        // Convert dp to pixels
+        val targetSizePixels = TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            targetSizeDp.toFloat(),
+            resources.displayMetrics
+        ).toInt()
+
+        // Calculate the scale factor
+        val scale = targetSizePixels.toFloat() / originalBitmap.width
+
+        // Create a matrix for the scaling operation
+        val matrix = android.graphics.Matrix()
+        matrix.postScale(scale, scale)
+
+        // Resize the bitmap
+        return Bitmap.createBitmap(
+            originalBitmap, 0, 0,
+            originalBitmap.width, originalBitmap.height, matrix, true
+        )
     }
 }

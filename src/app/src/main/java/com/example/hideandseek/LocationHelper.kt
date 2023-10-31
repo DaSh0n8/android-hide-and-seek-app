@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -47,6 +48,20 @@ class LocationHelper(private val context: Context, private var updateInterval: L
         }
     }
 
+    fun askPermission() {
+        if (ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                context as Activity,
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                LOCATION_PERMISSION_REQUEST_CODE
+            )
+        }
+    }
+
     fun setUpdateInterval(interval: Long) {
         this.updateInterval = interval
         locationRequest = LocationRequest.Builder(
@@ -61,6 +76,13 @@ class LocationHelper(private val context: Context, private var updateInterval: L
             fusedLocationClient.removeLocationUpdates(locationCallback!!)
             locationCallback = null
         }
+    }
+
+    fun checkLocationPermission(): Boolean {
+        return ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
     }
 
     companion object {

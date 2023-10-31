@@ -20,8 +20,10 @@ import android.view.View.VISIBLE
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import com.example.hideandseek.databinding.GamePlayBinding
 import com.example.hideandseek.databinding.GamePlayHiderBinding
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -40,10 +42,16 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.Query
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.LocalTime
 import java.util.Timer
 import java.util.TimerTask
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 
 class GamePlay : AppCompatActivity(), OnMapReadyCallback {
@@ -67,6 +75,9 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private var inGamePlayers: List<String>? = null
     private var hasTriggered: Boolean = false
     private var playersIcons: MutableMap<String, Bitmap> = mutableMapOf()
+    private var lastLoc = mutableMapOf<String, LatLng>()
+    private var lastStatus = mutableMapOf<String, Boolean>()
+    private val disconnected = "disconnected"
 
     private lateinit var map: GoogleMap
     private lateinit var binding: GamePlayBinding
@@ -77,6 +88,20 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var gameplayListener: ValueEventListener
     private var accelerationHelper: LinearAccelerationHelper? = null
     private var accelerationListener: LinearAccelerationHelper.LinearAccelerationListener? = null
+
+    // timer
+    private lateinit var hideTimer: CountDownTimer
+    private lateinit var gameTimer: CountDownTimer
+    private lateinit var connectTimer: CountDownTimer
+
+    // map zoom levels
+    val mapZoom = mutableMapOf(
+        100 to 17F,
+        200 to 16F,
+        300 to 16F,
+        400 to 15F,
+        500 to 15F
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -154,8 +179,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         var countDown: TextView = findViewById(R.id.playTime)
         var countDownValue: TextView = findViewById(R.id.playTimeValue)
         var hidingText: TextView = findViewById(R.id.hidingText)
-        val ackTime = 5000
-        val hideTimer = object: CountDownTimer(hideTime, 1000) {
+        hideTimer = object: CountDownTimer(hideTime, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 val seconds = (millisUntilFinished / 1000) % 60
                 val minutes = (millisUntilFinished / 1000) / 60
@@ -178,7 +202,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 }
 
                 // count down timer for game play
-                val gameTimer = object: CountDownTimer(gameTime, 1000) {
+                gameTimer = object: CountDownTimer(gameTime, 1000) {
                     override fun onTick(millisUntilFinished: Long) {
                         if (NetworkUtils.checkForInternet(this@GamePlay)) {
                             val seconds = (millisUntilFinished / 1000) % 60
@@ -187,13 +211,14 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
                             // if only 20% time left, trigger the accelerometer
                             if (millisUntilFinished < triggerTime && !isSeeker && !hasTriggered) {
-                                Toast.makeText(this@GamePlay, "Game ending!! Limit your movement!!", Toast.LENGTH_LONG).show()
+                                limitMovementDialog()
                                 countDownValue.setTextColor(Color.RED)
                                 limitMovement(query)
                                 hasTriggered = true
                             }
                         } else {
-                            returnHome()
+                            disconnectedDialog()
+                            gameTimer.cancel()
                         }
                     }
 
@@ -223,8 +248,9 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
      */
     private fun showUserLocation(query: Query, gameTimer: CountDownTimer) {
         // convert the drawable user icon to a Bitmap
-        val userIconBitmap = scaleBitmap(BitmapFactory.decodeResource(resources, R.drawable.usericon), 24)
+        val userIconBitmap = scaleBitmap(BitmapFactory.decodeResource(resources, R.drawable.usericon), 35)
         val eliminatedIcon = getBitmapFromVectorDrawable(this, R.drawable.eliminated)
+        val disconnectedIcon = getBitmapFromVectorDrawable(this, R.drawable.disconnected)
         var lastUpdate: TextView = findViewById(R.id.lastUpdateValue)
         val timer = Timer()
         var minutePassed = -1
@@ -249,8 +275,6 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
                 // reset the map before reflecting users' latest location
                 map.clear()
-                minutePassed = 0
-                lastUpdate.text = "$minutePassed minute(s) ago"
 
                 // draw geofence
                 map.addCircle(
@@ -266,25 +290,41 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                     val players = gameSession.players
                     // reflect hiders' latest locations on map
                     players.forEach{ player ->
-                        // calculate the last update
+                        // check the last update
                         val currTime = LocalTime.now()
                         val duration = minToMilli(Duration.between(LocalTime.parse(player.lastUpdated), currTime).toMinutes().toInt())
-                        if (!player.eliminated && duration > updateInterval && !player.seeker) {
-                            eliminatePlayer(player.playerCode, false)
+                        if (!player.eliminated && duration > 20000 && !player.seeker) {
+                            setPlayerStatus(lobbyCode, player.userName, disconnected)
                         }
 
                         val coordinates = LatLng(player.latitude!!, player.longitude!!)
                         val markerOptions = MarkerOptions().position(coordinates).title(player.userName)
 
-                        val iconBitmap = if (!player.seeker && !player.eliminated) {
+                        if (lastLoc[player.userName] != coordinates || lastStatus[player.userName] != player.eliminated) {
+                            minutePassed = 0
+                            lastUpdate.text = "$minutePassed minute(s) ago"
+
+                            if (lastStatus[player.userName] != player.eliminated && player.userName == userName) {
+                                deadDialog()
+                            }
+
+                            lastLoc[player.userName] =  coordinates
+                            lastStatus[player.userName] = player.eliminated
+
+                        }
+
+                        val iconBitmap = if (!player.seeker && !player.eliminated && player.playerStatus != disconnected) {
                             hidersAvailable = true
                             playersIcons[player.userName] ?: userIconBitmap
 
                         } else if (player.seeker && player.userName == userName) {
                             playersIcons[player.userName] ?: userIconBitmap
 
-                        } else if (!player.seeker && player.eliminated) {
+                        } else if (!player.seeker && player.eliminated && player.playerStatus != disconnected) {
                             eliminatedIcon
+
+                        } else if (!player.seeker && player.playerStatus == disconnected) {
+                            disconnectedIcon
 
                         } else {
                             null
@@ -295,7 +335,11 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                                 markerOptions.icon(BitmapDescriptorFactory.fromBitmap(it))
                             }
 
-                            map.addMarker(markerOptions)
+                            val marker = map.addMarker(markerOptions)
+
+                            if (player.userName == userName) {
+                                marker!!.showInfoWindow()
+                            }
                         }
 
                     }
@@ -348,12 +392,20 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                             val path = ref.child("players").child(index.toString())
                             path.child("latitude").setValue(lat)
                             path.child("longitude").setValue(lon)
+
+                            // eliminate self if exited the geofence
+                            val geofenceLatLng = LatLng(gameSession!!.geofenceLat, gameSession.geofenceLon)
+                            val leeway = 10 // 10 metres leeway
+                            if(!isCoordinateInsideGeofence(user, geofenceLatLng, (geofenceRadius+leeway).toDouble())) {
+                                eliminatePlayer(p.playerCode, false)
+                                Toast.makeText(this@GamePlay, "You have been eliminated as you exited the game area!", Toast.LENGTH_SHORT).show()
+                            }
                         }
                     }
                 }
 
                 // update the map accordingly
-                map.setMinZoomPreference(15F)
+                map.setMinZoomPreference(mapZoom[geofenceRadius]!!)
                 map.moveCamera(CameraUpdateFactory.newLatLng(user))
                 map.setMapStyle(
                     MapStyleOptions.loadRawResourceStyle(this@GamePlay, R.raw.gamemap_lightmode)
@@ -417,7 +469,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 val players = gameSession.players
                 for (p in players) {
                     // check if all players have been eliminated
-                    if (!p.eliminated && !p.seeker) {
+                    if (!p.eliminated && !p.seeker && p.playerStatus != disconnected) {
                         seekerWonGame = false
                     }
 
@@ -427,17 +479,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                     }
                 }
 
-                val gameOver = Intent(this@GamePlay, GameOver::class.java)
-                gameOver.putExtra("seekerWonGame", seekerWonGame)
-                gameOver.putExtra("isSeeker", isSeeker)
-                gameOver.putExtra("lobbyCode", lobbyCode)
-                gameOver.putExtra("username", userName)
-                gameOver.putExtra("host", host)
-                startActivity(gameOver)
-
                 // turn off listener
-                reference.removeEventListener(gameplayListener)
-                locationHelper.stopUpdate()
                 if (!isSeeker && accelerationHelper != null) {
                     accelerationHelper!!.stopListening()
                 }
@@ -452,7 +494,18 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                         Toast.makeText(this@GamePlay, "Error updating game status in Firebase", Toast.LENGTH_SHORT).show()
                     }
 
-                finish()
+                val gameOver = Intent(this@GamePlay, GameOver::class.java)
+                gameOver.putExtra("seekerWonGame", seekerWonGame)
+                gameOver.putExtra("isSeeker", isSeeker)
+                gameOver.putExtra("lobbyCode", lobbyCode)
+                gameOver.putExtra("username", userName)
+                gameOver.putExtra("host", host)
+
+                lifecycleScope.launch {
+                    delay(2000) // Delay for 3 seconds
+                    startActivity(gameOver)
+                    finish()
+                }
             }
         }
     }
@@ -463,56 +516,67 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private fun eliminatePlayer(code: String, voluntary: Boolean){
         if (code.isBlank()){
             Toast.makeText(this@GamePlay, "Please enter a code", Toast.LENGTH_SHORT).show()
-        }
-        val reference = realtimeDb.getReference("gameSessions")
-        val query = reference.orderByChild("sessionId").equalTo(lobbyCode)
-        query.addListenerForSingleValueEvent(object : ValueEventListener{
-            override fun onDataChange(datasnapshot: DataSnapshot) {
-                if (datasnapshot.exists()){
-                    val gameSessionSnapshot = datasnapshot.children.first()
-                    val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
-                    val ref = realtimeDb.getReference("gameSessions").child(gameSessionSnapshot.key!!)
-                    var existPlayer = false
-                    var eliminatedUsername = ""
+        } else {
+            val reference = realtimeDb.getReference("gameSessions")
+            val query = reference.orderByChild("sessionId").equalTo(lobbyCode)
+            query.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(datasnapshot: DataSnapshot) {
+                    if (datasnapshot.exists()) {
+                        val gameSessionSnapshot = datasnapshot.children.first()
+                        val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+                        val ref =
+                            realtimeDb.getReference("gameSessions").child(gameSessionSnapshot.key!!)
+                        var existPlayer = false
+                        var eliminatedUsername = ""
 
-                    if (gameSession != null) {
-                        val players = gameSession.players
-                        for ((index, player) in players.withIndex()) {
-                            if (code == player.playerCode) {
-                                eliminatedUsername = player.userName;
-                                if(player.seeker){
-                                    Toast.makeText(this@GamePlay,
-                                        "$eliminatedUsername is a seeker and cannot be eliminated", Toast.LENGTH_SHORT).show()
-                                }
-                                else if (!player.eliminated){
-                                    val path = ref.child("players").child(index.toString())
-                                    path.child("eliminated").setValue(true)
-                                    existPlayer = true
+                        if (gameSession != null) {
+                            val players = gameSession.players
+                            for ((index, player) in players.withIndex()) {
+                                if (code == player.playerCode) {
+                                    eliminatedUsername = player.userName;
+                                    if (player.seeker) {
+                                        Toast.makeText(
+                                            this@GamePlay,
+                                            "$eliminatedUsername is a seeker and cannot be eliminated",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    } else if (!player.eliminated) {
+                                        val path = ref.child("players").child(index.toString())
+                                        path.child("eliminated").setValue(true)
+                                        existPlayer = true
 
-                                }
-                                else{
-                                    Toast.makeText(this@GamePlay, "$eliminatedUsername has already been Eliminated", Toast.LENGTH_SHORT).show()
+                                    } else {
+                                        Toast.makeText(
+                                            this@GamePlay,
+                                            "$eliminatedUsername has already been Eliminated",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
                                 }
                             }
-                        }
-                        if(existPlayer){
-                            if (voluntary) {
-                                Toast.makeText(this@GamePlay, "$eliminatedUsername has successfully been Eliminated", Toast.LENGTH_SHORT).show()
+                            if (existPlayer) {
+                                if (voluntary) {
+                                    eliminateDialog(eliminatedUsername)
+                                }
+                            } else {
+                                Toast.makeText(
+                                    this@GamePlay,
+                                    "This user does not exist",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
-                        }else{
-                            Toast.makeText(this@GamePlay, "This user does not exist", Toast.LENGTH_SHORT).show()
                         }
+                    } else {
+                        Toast.makeText(this@GamePlay, "Database Error", Toast.LENGTH_SHORT).show()
                     }
-                }else{
-                    Toast.makeText(this@GamePlay, "Database Error", Toast.LENGTH_SHORT).show()
                 }
-            }
 
-            override fun onCancelled(error: DatabaseError) {
-                Log.e("Firebase", "Data retrieval error: ${error.message}")
-            }
+                override fun onCancelled(error: DatabaseError) {
+                    Log.e("Firebase", "Data retrieval error: ${error.message}")
+                }
 
-        })
+            })
+        }
     }
 
     /**
@@ -534,7 +598,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                     .addOnSuccessListener { icons ->
                         val userIcon = BitmapFactory.decodeByteArray(icons, 0, icons?.size ?:0)
                         var result = makeBlackPixelsTransparent(userIcon!!)
-                        userIcons[username] = scaleBitmap(result, 40)
+                        userIcons[username] = scaleBitmap(result, 45)
 
                         // Decrement the counter
                         countDownLatch--
@@ -582,6 +646,8 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                     // Iterate through players and add to the list
                     for (p in gameSession.players) {
                         playerList.add(p.userName)
+                        lastLoc[p.userName] = LatLng(p.latitude!!, p.longitude!!)
+                        lastStatus[p.userName] = p.eliminated
                     }
                     callback(playerList)
                     return@addOnSuccessListener
@@ -677,9 +743,20 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private fun returnHome() {
         val errorMessage = "You have been eliminated as you are disconnected from internet!"
         val intent = Intent(this@GamePlay, HomeScreen::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
         intent.putExtra("error", errorMessage)
         startActivity(intent)
         finish()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        val reference = realtimeDb.getReference("gameSessions")
+        reference.removeEventListener(gameplayListener)
+        hideTimer.cancel()
+        connectTimer.cancel()
+        gameTimer.cancel()
+        locationHelper.stopUpdate()
     }
 
     /**
@@ -727,8 +804,8 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
      */
     private fun confirmConnectivity(lobbyCode: String?, username: String?) {
         var tickCounter = 0
-        val checkpoint = (updateInterval/1000).toInt() - 3
-        val connectTimer = object: CountDownTimer(hideTime + gameTime, 1000) {
+        val checkpoint = 10
+        connectTimer = object: CountDownTimer(hideTime + gameTime, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 if (tickCounter == checkpoint) {
                     acknowledgeOnline(lobbyCode, username)
@@ -740,5 +817,121 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
             }
         }.start()
+    }
+
+    /**
+     * Set player status
+     */
+    private fun setPlayerStatus(lobbyCode: String?, username: String?, status: String) {
+        val query = realtimeDb.getReference("gameSessions")
+            .orderByChild("sessionId")
+            .equalTo(lobbyCode)
+
+        query.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                // get the game session
+                val gameSessionSnapshot = dataSnapshot.children.first()
+                val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+                val ref = realtimeDb.getReference("gameSessions").child(gameSessionSnapshot.key!!)
+
+                if (gameSession != null) {
+                    val players = gameSession.players.toMutableList()
+                    for ((index, p) in players.withIndex()) {
+                        if (p.userName == username) {
+                            ref.child("players").child(index.toString()).child("playerStatus").setValue(status)
+                        }
+                    }
+                }
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                Log.e("Firebase", "Data retrieval error: ${databaseError.message}")
+            }
+        })
+    }
+
+    /**
+     * Check if user is within the game play area
+     */
+    fun isCoordinateInsideGeofence(userLocation: LatLng, geofenceCenter: LatLng, radiusMeters: Double): Boolean {
+        val earthRadius = 6371000.0 // Earth's radius in meters (approximately)
+
+        val dLat = Math.toRadians(geofenceCenter.latitude - userLocation.latitude)
+        val dLng = Math.toRadians(geofenceCenter.longitude - userLocation.longitude)
+
+        val a = kotlin.math.sin(dLat / 2).pow(2) + cos(Math.toRadians(userLocation.latitude)) * cos(Math.toRadians(geofenceCenter.latitude)) * kotlin.math.sin(
+            dLng / 2
+        ).pow(2)
+        val c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+        val distance = earthRadius * c // The distance between the two coordinates in meters
+        return distance <= radiusMeters
+    }
+
+    private fun createCustomDialog(
+        titleText: String,
+        messageText: String,
+        positiveButtonText: String,
+        positiveButtonAction: () -> Unit
+    ) {
+        val builder = AlertDialog.Builder(this)
+
+        val customTitleView = layoutInflater.inflate(R.layout.dialog_title, null)
+        val customMessageView = layoutInflater.inflate(R.layout.dialog_message, null)
+
+        // Set the title text dynamically
+        (customTitleView.findViewById<TextView>(R.id.title)).text = titleText
+
+        // Set the message text dynamically
+        (customMessageView.findViewById<TextView>(R.id.message)).text = messageText
+
+        with(builder) {
+            setCustomTitle(customTitleView) // Set the custom title view
+            setView(customMessageView)     // Set the custom message view
+            setPositiveButton(positiveButtonText) { dialog, _ ->
+                positiveButtonAction()
+                dialog.dismiss()
+            }
+            val dialog = create()
+            dialog.setOnShowListener { dialogInterface ->
+                val okButton = (dialogInterface as AlertDialog).getButton(AlertDialog.BUTTON_POSITIVE)
+                okButton.setTextColor(ContextCompat.getColor(this@GamePlay, R.color.blue))
+            }
+            dialog.show()
+        }
+    }
+
+    private fun deadDialog() {
+        createCustomDialog(
+            "Whoops...",
+            "You have been eliminated!",
+            "OK"
+        ) { /* Positive button action, if needed */ }
+    }
+
+    private fun limitMovementDialog() {
+        createCustomDialog(
+            "Be careful!!!",
+            "Game ending, limit your movement or your location will be constantly exposed!",
+            "OK"
+        ) { /* Positive button action, if needed */ }
+    }
+
+    private fun disconnectedDialog() {
+        createCustomDialog(
+            "Sorry...",
+            "You have been eliminated due to disconnection from the internet",
+            "OK"
+        ) {
+            returnHome()
+        }
+    }
+
+    private fun eliminateDialog(username: String?) {
+        createCustomDialog(
+            "Hider Eliminated",
+            "$username has been eliminated!",
+            "OK"
+        ) { /* Positive button action for eliminateDialog */ }
     }
 }
