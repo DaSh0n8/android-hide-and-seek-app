@@ -62,7 +62,7 @@ class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
         val receivedUsername: String? = intent.getStringExtra("username_key")
         currentLobbyCode = receivedLobbyCode
         currentUserName = receivedUsername
-        val host = intent.getBooleanExtra("host", false)
+        intent.getBooleanExtra("host", false)
         val lobbyHeader = findViewById<TextView>(R.id.titleText)
         lobbyHeader.text = "Change Game Setting"
 
@@ -94,7 +94,7 @@ class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
         val createGameButton: Button = findViewById(R.id.btnStartGame)
         createGameButton.setOnClickListener {
             checkConnectivityAndProceed(this) {
-                confirmSettingsClicked(receivedLobbyCode, receivedUsername, host)
+                confirmSettingsClicked(receivedLobbyCode)
             }
         }
 
@@ -137,7 +137,7 @@ class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
     /**
      * Update game session with user input values
      */
-    private fun confirmSettingsClicked(receivedLobbyCode: String?, receivedUsername: String?, host: Boolean?) {
+    private fun confirmSettingsClicked(receivedLobbyCode: String?) {
         if (receivedLobbyCode == null) {
             return
         }
@@ -425,7 +425,6 @@ class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
 
     private fun scaleBitmap(originalBitmap: Bitmap, targetSizeDp: Int): Bitmap {
         val resources = Resources.getSystem()
-        val density = resources.displayMetrics.density
 
         // Convert dp to pixels
         val targetSizePixels = TypedValue.applyDimension(

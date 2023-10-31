@@ -159,7 +159,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         // query the db to get the user's session
         val reference = realtimeDb.getReference("gameSessions")
         val query = reference.orderByChild("sessionId").equalTo(lobbyCode)
-        var lastUpdate: TextView = findViewById(R.id.lastUpdate)
+        val lastUpdate: TextView = findViewById(R.id.lastUpdate)
         lastUpdate.visibility = INVISIBLE
 
         // Request location updates
@@ -176,9 +176,9 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         mapFragment.getMapAsync(this)
 
         // hiding time for hiders
-        var countDown: TextView = findViewById(R.id.playTime)
-        var countDownValue: TextView = findViewById(R.id.playTimeValue)
-        var hidingText: TextView = findViewById(R.id.hidingText)
+        val countDown: TextView = findViewById(R.id.playTime)
+        val countDownValue: TextView = findViewById(R.id.playTimeValue)
+        val hidingText: TextView = findViewById(R.id.hidingText)
         hideTimer = object: CountDownTimer(hideTime, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 val seconds = (millisUntilFinished / 1000) % 60
@@ -251,7 +251,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         val userIconBitmap = scaleBitmap(BitmapFactory.decodeResource(resources, R.drawable.usericon), 35)
         val eliminatedIcon = getBitmapFromVectorDrawable(this, R.drawable.eliminated)
         val disconnectedIcon = getBitmapFromVectorDrawable(this, R.drawable.disconnected)
-        var lastUpdate: TextView = findViewById(R.id.lastUpdateValue)
+        val lastUpdate: TextView = findViewById(R.id.lastUpdateValue)
         val timer = Timer()
         var minutePassed = -1
 
@@ -279,7 +279,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 // draw geofence
                 map.addCircle(
                     CircleOptions()
-                        .center(LatLng(gameSession!!.geofenceLat, gameSession!!.geofenceLon))
+                        .center(LatLng(gameSession!!.geofenceLat, gameSession.geofenceLon))
                         .radius(geofenceRadius.toDouble()) // Radius in meters
                         .strokeColor(Color.RED) // Circle border color
                         .fillColor(Color.argb(60, 220, 0, 0)) // Fill color with transparency
@@ -381,7 +381,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 // get the game session
                 val gameSessionSnapshot = dataSnapshot.children.first()
-                val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+                val gameSession: GameSessionClass? = gameSessionSnapshot.getValue(GameSessionClass::class.java)
                 val ref = realtimeDb.getReference("gameSessions").child(gameSessionSnapshot.key!!)
 
                 if (gameSession != null) {
@@ -597,7 +597,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 pathRef.getBytes(1_000_000)
                     .addOnSuccessListener { icons ->
                         val userIcon = BitmapFactory.decodeByteArray(icons, 0, icons?.size ?:0)
-                        var result = makeBlackPixelsTransparent(userIcon!!)
+                        val result = makeBlackPixelsTransparent(userIcon!!)
                         userIcons[username] = scaleBitmap(result, 45)
 
                         // Decrement the counter
@@ -695,7 +695,6 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
 
     private fun scaleBitmap(originalBitmap: Bitmap, targetSizeDp: Int): Bitmap {
         val resources = Resources.getSystem()
-        val density = resources.displayMetrics.density
 
         // Convert dp to pixels
         val targetSizePixels = TypedValue.applyDimension(
@@ -762,6 +761,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     /**
      * Disallow user from leaving the game by pressing back button during game
      */
+    @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         Toast.makeText(this, "You cannot leave the game midway!", Toast.LENGTH_SHORT).show()
     }

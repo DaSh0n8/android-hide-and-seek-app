@@ -151,7 +151,7 @@ class Lobby : AppCompatActivity() {
                     // check if host has started or ended the game
                     when (gameSession!!.gameStatus) {
                         "started" -> startGameIntent(receivedLobbyCode, receivedUsername, gameSession)
-                        "ended"   -> hostLeftDialog(receivedLobbyCode, hostStatus!!, ENDED)
+                        "ended"   -> hostLeftDialog(receivedLobbyCode, ENDED)
                     }
 
                     val players = sessionSnapshot.child("players").children
@@ -175,7 +175,7 @@ class Lobby : AppCompatActivity() {
                     if (!playerStillInSession) {
                         connectTimer.cancel()
                         removeLobbyListener(receivedLobbyCode)
-                        removedDialog(receivedLobbyCode, hostStatus!!, KICKED)
+                        removedDialog(receivedLobbyCode, KICKED)
                         return
                     }
 
@@ -271,7 +271,7 @@ class Lobby : AppCompatActivity() {
 
     private fun uploadIcon(userIcon: ByteArray?, lobbyCode: String?, username: String?) {
         // get storage path
-        var storageRef = storageDb.reference
+        val storageRef = storageDb.reference
         val pathRef = storageRef.child("$lobbyCode/$username.jpg")
 
         // Upload user icon
@@ -303,7 +303,7 @@ class Lobby : AppCompatActivity() {
                             if (playerIsHost) {
                                 gameSession.gameStatus = "ended"
                                 gameSessionSnapshot.ref.setValue(gameSession).addOnSuccessListener {
-                                    returnHomeIntent(lobbyCode!!, playerIsHost, LEAVE)
+                                    returnHomeIntent(lobbyCode, LEAVE)
 
                                 }.addOnFailureListener {
                                     Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
@@ -311,7 +311,7 @@ class Lobby : AppCompatActivity() {
                             } else {
                                 val ref = realtimeDb.getReference("gameSessions").child(gameSessionSnapshot.key!!)
                                 ref.child("players").child(playerIndex.toString()).removeValue().addOnSuccessListener {
-                                    returnHomeIntent(lobbyCode!!, playerIsHost, LEAVE)
+                                    returnHomeIntent(lobbyCode, LEAVE)
 
                                 }.addOnFailureListener {
                                     Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
@@ -351,9 +351,9 @@ class Lobby : AppCompatActivity() {
                     }
 
                     // validate the eligibility to start a game
-                    if (validateGame(gameSession!!.players)) {
+                    if (validateGame(gameSession.players)) {
                         // Update the local GameSession object
-                        gameSession?.gameStatus = "started"
+                        gameSession.gameStatus = "started"
 
                         for (player in gameSession.players) {
                             player.playerStatus = "In game"
@@ -481,7 +481,7 @@ class Lobby : AppCompatActivity() {
         }
     }
 
-    private fun returnHomeIntent(lobbyCode: String?, host: Boolean, reason: String) {
+    private fun returnHomeIntent(lobbyCode: String?, reason: String) {
         val intent = Intent(this@Lobby, HomeScreen::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
         when (reason) {
@@ -501,6 +501,7 @@ class Lobby : AppCompatActivity() {
         finish()
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         val leaveLobbyButton: Button = findViewById(R.id.leaveLobbyButton)
         leaveLobbyButton.performClick()
@@ -636,7 +637,7 @@ class Lobby : AppCompatActivity() {
                         acknowledgeOnline(currentLobbyCode, currentUserName)
                         checkPlayerActivity(currentLobbyCode)
                     } else {
-                        returnHomeIntent(currentLobbyCode, hostStatus!!, DISCONNECTED)
+                        returnHomeIntent(currentLobbyCode, DISCONNECTED)
                     }
 
                     tickCounter = 0
@@ -682,13 +683,13 @@ class Lobby : AppCompatActivity() {
         }
     }
 
-    private fun removedDialog(lobbyCode: String?, host: Boolean, reason: String) {
+    private fun removedDialog(lobbyCode: String?, reason: String) {
         createCustomDialog(
             "Sorry...",
             "You have been removed by the host",
             "OK"
         ) {
-            returnHomeIntent(lobbyCode, host, reason)
+            returnHomeIntent(lobbyCode, reason)
         }
     }
 
@@ -700,13 +701,13 @@ class Lobby : AppCompatActivity() {
         ) { /* Positive button action for madeHostDialog */ }
     }
 
-    private fun hostLeftDialog(lobbyCode: String?, host: Boolean, reason: String) {
+    private fun hostLeftDialog(lobbyCode: String?, reason: String) {
         createCustomDialog(
             "Sorry...",
             "Host has left the game",
             "OK"
         ) {
-            returnHomeIntent(lobbyCode, host, reason)
+            returnHomeIntent(lobbyCode, reason)
         }
     }
 

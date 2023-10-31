@@ -210,7 +210,6 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
 
     private fun scaleBitmap(originalBitmap: Bitmap, targetSizeDp: Int): Bitmap {
         val resources = Resources.getSystem()
-        val density = resources.displayMetrics.density
 
         // Convert dp to pixels
         val targetSizePixels = TypedValue.applyDimension(
