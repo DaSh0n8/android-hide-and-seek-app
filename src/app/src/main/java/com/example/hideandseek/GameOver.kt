@@ -10,8 +10,9 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -89,7 +90,7 @@ class GameOver : AppCompatActivity() {
         }
 
         // clean db and return to home page
-        var backToHomeBtn: Button = findViewById(R.id.btnHome)
+        val backToHomeBtn: Button = findViewById(R.id.btnHome)
         backToHomeBtn.setOnClickListener {
             NetworkUtils.checkConnectivityAndProceed(this) {
                 if (host!!) {
@@ -193,6 +194,7 @@ class GameOver : AppCompatActivity() {
      * Return to lobby
      */
     private fun returnLobby(username: String?, lobbyCode: String?, host: Boolean?) {
+        var hostExist = false
         val intent = Intent(this@GameOver, Lobby::class.java)
         intent.putExtra("username_key", username)
         intent.putExtra("lobby_key", lobbyCode)
@@ -214,6 +216,10 @@ class GameOver : AppCompatActivity() {
                     val players = gameSession.players.toMutableList()
                     val codes = listOf<String>().toMutableList()
                     for ((index, p) in players.withIndex()) {
+                        if (p.host) {
+                            hostExist = true
+                        }
+
                         if (p.userName == username) {
                             p.eliminated = false
                             p.playerStatus = "In Lobby"
@@ -231,18 +237,12 @@ class GameOver : AppCompatActivity() {
                         }
                     }
 
-                    // Update the local GameSession object
-                    gameSession.players = players
-
-                    // Save the updated GameSession back to Firebase
-                    gameSessionSnapshot.ref.setValue(gameSession)
-                        .addOnFailureListener {
-                            Toast.makeText(
-                                this@GameOver,
-                                "Error updating game status in Firebase",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
+                    if (hostExist) {
+                        startActivity(intent)
+                        finish()
+                    } else {
+                        hostLeftDialog()
+                    }
                 }
             }
 
@@ -250,16 +250,17 @@ class GameOver : AppCompatActivity() {
                 Log.e("Firebase", "Data retrieval error: ${databaseError.message}")
             }
         })
-
-        startActivity(intent)
-        connectTimer.cancel()
-        finish()
     }
 
     override fun onBackPressed() {
         var backToHomeBtn: Button = findViewById(R.id.btnHome)
         backToHomeBtn.performClick()
         super.onBackPressed()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        connectTimer.cancel()
     }
 
     /**
@@ -315,4 +316,50 @@ class GameOver : AppCompatActivity() {
             }
         }.start()
     }
+
+    private fun createCustomDialog(
+        titleText: String,
+        messageText: String,
+        positiveButtonText: String,
+        positiveButtonAction: () -> Unit
+    ) {
+        val builder = AlertDialog.Builder(this)
+
+        val customTitleView = layoutInflater.inflate(R.layout.dialog_title, null)
+        val customMessageView = layoutInflater.inflate(R.layout.dialog_message, null)
+
+        // Set the title text dynamically
+        (customTitleView.findViewById<TextView>(R.id.title)).text = titleText
+
+        // Set the message text dynamically
+        (customMessageView.findViewById<TextView>(R.id.message)).text = messageText
+
+        with(builder) {
+            setCustomTitle(customTitleView) // Set the custom title view
+            setView(customMessageView)     // Set the custom message view
+            setPositiveButton(positiveButtonText) { dialog, _ ->
+                positiveButtonAction()
+                dialog.dismiss()
+            }
+            val dialog = create()
+            dialog.setOnShowListener { dialogInterface ->
+                val okButton = (dialogInterface as AlertDialog).getButton(AlertDialog.BUTTON_POSITIVE)
+                okButton.setTextColor(ContextCompat.getColor(this@GameOver, R.color.blue))
+            }
+            dialog.show()
+        }
+    }
+
+    private fun hostLeftDialog() {
+        createCustomDialog(
+            "Sorry...",
+            "Host has left the game",
+            "OK"
+        ) {
+            val backToHomeBtn: Button = findViewById(R.id.btnHome)
+            backToHomeBtn.performClick()
+        }
+    }
+
+
 }
