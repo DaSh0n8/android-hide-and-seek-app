@@ -6,6 +6,14 @@
     android:layout_height="match_parent"
     android:padding="24dp">
 
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/material_switch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Dark Mode "
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <TextView
         android:id="@+id/lobbyHeader"
         android:layout_width="wrap_content"
@@ -20,12 +28,12 @@
     <Button
         android:id="@+id/createGameButton"
         android:layout_width="match_parent"
-        android:layout_height="90dp"
+        android:layout_height="60dp"
         android:layout_marginBottom="12dp"
         android:backgroundTint="#005AFF"
         android:text="Create Game"
         android:textAlignment="center"
-        android:textSize="30sp"
+        android:textSize="24sp"
         app:layout_constraintBottom_toTopOf="@+id/joinGameButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
@@ -33,12 +41,12 @@
     <Button
         android:id="@+id/joinGameButton"
         android:layout_width="match_parent"
-        android:layout_height="90dp"
-        android:layout_marginBottom="80dp"
+        android:layout_height="60dp"
+        android:layout_marginBottom="40dp"
         android:backgroundTint="#333333"
         android:text="Join Game"
         android:textAlignment="center"
-        android:textSize="30sp"
+        android:textSize="24sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
@@ -66,5 +74,14 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         app:layout_constraintGuide_percent="0.45" />
+
+    <ImageButton
+        android:id="@+id/imageButton6"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/help_icon"
+        android:background="#00000000"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

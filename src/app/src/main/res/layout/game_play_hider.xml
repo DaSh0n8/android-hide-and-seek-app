@@ -88,36 +88,45 @@
         app:layout_constraintStart_toStartOf="@+id/map"
         app:layout_constraintTop_toTopOf="@+id/map" />
 
-    <TextView
-        android:id="@+id/eliminateText"
-        android:layout_width="wrap_content"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/hiderCodeBox"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="114dp"
-        android:layout_marginTop="24dp"
-        android:layout_marginEnd="115dp"
-        android:text="Your Hider Code: "
-        android:textSize="20sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/lastUpdateValue" />
+        android:layout_marginTop="8dp"
+        android:background="@drawable/border_box"
+        app:layout_constraintTop_toBottomOf="@id/lastUpdateValue"
+        app:layout_constraintBottom_toBottomOf="parent">
 
-    <TextView
-        android:id="@+id/textCode"
-        android:layout_width="239dp"
-        android:layout_height="50dp"
-        android:layout_marginStart="77dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="77dp"
-        android:gravity="center_horizontal"
+        <TextView
+            android:id="@+id/eliminateText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Your Hider Code: "
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/hiderCodeBox" />
 
-        android:textAlignment="center"
-        android:textSize="40sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/eliminateText" />
+        <TextView
+            android:id="@+id/textCode"
+            android:layout_width="239dp"
+            android:layout_height="50dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+
+            android:textAlignment="center"
+            android:textSize="40sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/eliminateText"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

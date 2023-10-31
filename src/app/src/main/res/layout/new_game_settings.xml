@@ -46,6 +46,7 @@
             app:layout_constraintVertical_bias="0.062"
             tools:context=".NewGameSettings" />
 
+
         <!-- Add other UI elements within the top half layout here -->
 
     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -62,107 +63,27 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/bottomHalfLayout"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/border_box"
+        app:layout_constraintBottom_toTopOf="@+id/btnStartGame"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/guideline"
         app:layout_constraintVertical_bias="0.0">
 
-        <com.google.android.material.slider.Slider
-            android:id="@+id/discreteSlider"
-            android:layout_width="200dp"
-            android:layout_height="20dp"
-            android:layout_marginTop="4dp"
-            android:stepSize="100"
-            android:valueFrom="100"
-            android:valueTo="500"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.625"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/frameLayout"
-            app:thumbColor="#005AFF"/>
-
-        <Button
-            android:id="@+id/btnStartGame"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:text="Confirm"
-            android:textSize="30sp"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/discreteSlider"
-            android:backgroundTint="#005AFF"/>
-
-        <TextView
-            android:id="@+id/radiusText"
-            android:layout_width="63dp"
-            android:layout_height="25dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginEnd="16dp"
-            android:text="Radius:"
-            android:textSize="17sp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toStartOf="@+id/discreteSlider"
-            app:layout_constraintTop_toBottomOf="@+id/frameLayout" />
-
-        <FrameLayout
-            android:id="@+id/frameLayout"
-            android:layout_width="match_parent"
-            android:layout_height="187dp"
-            android:background="@drawable/background"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"></FrameLayout>
-
-        <TextView
-            android:id="@+id/modeTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="10dp"
-            android:text="Mode:"
-            android:textSize="17sp"
-            android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="@+id/frameLayout"
-            app:layout_constraintTop_toTopOf="@+id/frameLayout" />
-
-        <Spinner
-            android:id="@+id/spinnerGameMode"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginEnd="16dp"
-            app:layout_constraintEnd_toEndOf="@+id/frameLayout"
-            app:layout_constraintStart_toEndOf="@+id/modeTextView"
-            app:layout_constraintTop_toTopOf="@+id/frameLayout" />
-
-        <View
-            android:id="@+id/divider1"
-            android:layout_width="316dp"
-            android:layout_height="1dp"
-            android:layout_marginTop="10dp"
-            android:background="#E0E0E0"
-            app:layout_constraintEnd_toEndOf="@+id/frameLayout"
-            app:layout_constraintStart_toStartOf="@+id/frameLayout"
-            app:layout_constraintTop_toBottomOf="@+id/spinnerGameMode" />
-
         <TextView
             android:id="@+id/hidersTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="10dp"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="16dp"
             android:text="Hiding Time:"
             android:textSize="17sp"
             android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="@+id/frameLayout"
-            app:layout_constraintTop_toBottomOf="@+id/divider1" />
+            app:layout_constraintStart_toStartOf="@+id/bottomHalfLayout"
+            app:layout_constraintTop_toTopOf="@+id/bottomHalfLayout" />
 
         <EditText
             android:id="@+id/editHidingTime"
@@ -179,23 +100,24 @@
 
         <View
             android:id="@+id/divider2"
-            android:layout_width="316dp"
+            android:layout_marginHorizontal="5dp"
+            android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="#E0E0E0"
-            app:layout_constraintEnd_toEndOf="@+id/frameLayout"
-            app:layout_constraintStart_toStartOf="@+id/frameLayout"
+            app:layout_constraintEnd_toEndOf="@+id/bottomHalfLayout"
+            app:layout_constraintStart_toStartOf="@+id/bottomHalfLayout"
             app:layout_constraintTop_toBottomOf="@+id/editHidingTime" />
 
         <TextView
             android:id="@+id/seekersTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
+            android:layout_marginStart="24dp"
             android:layout_marginTop="10dp"
             android:text="Ping Interval:"
             android:textSize="17sp"
             android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="@+id/frameLayout"
+            app:layout_constraintStart_toStartOf="@+id/bottomHalfLayout"
             app:layout_constraintTop_toBottomOf="@+id/divider2" />
 
         <EditText
@@ -213,24 +135,25 @@
 
         <View
             android:id="@+id/divider3"
-            android:layout_width="316dp"
+            android:layout_width="match_parent"
+            android:layout_margin="5dp"
             android:layout_height="1dp"
             android:layout_marginTop="0dp"
             android:background="#E0E0E0"
-            app:layout_constraintEnd_toEndOf="@+id/frameLayout"
-            app:layout_constraintStart_toStartOf="@+id/frameLayout"
+            app:layout_constraintEnd_toEndOf="@+id/bottomHalfLayout"
+            app:layout_constraintStart_toStartOf="@+id/bottomHalfLayout"
             app:layout_constraintTop_toBottomOf="@+id/editUpdateInterval" />
 
         <TextView
             android:id="@+id/timeTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
+            android:layout_marginStart="24dp"
             android:layout_marginTop="10dp"
             android:text="Game Length:"
             android:textSize="17sp"
             android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="@+id/frameLayout"
+            app:layout_constraintStart_toStartOf="@+id/bottomHalfLayout"
             app:layout_constraintTop_toBottomOf="@+id/divider3" />
 
         <EditText
@@ -246,6 +169,66 @@
             app:layout_constraintStart_toEndOf="@+id/timeTextView"
             app:layout_constraintTop_toTopOf="@+id/timeTextView" />
 
+        <View
+            android:id="@+id/divider1"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginHorizontal="5dp"
+            android:layout_marginTop="0dp"
+            android:background="#E0E0E0"
+            app:layout_constraintEnd_toEndOf="@+id/bottomHalfLayout"
+            app:layout_constraintStart_toStartOf="@+id/bottomHalfLayout"
+            app:layout_constraintTop_toBottomOf="@+id/editGameTime" />
+
+        <TextView
+            android:id="@+id/modeTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="10dp"
+            android:text="Radius:"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="@+id/bottomHalfLayout"
+            app:layout_constraintTop_toBottomOf="@+id/divider1" />
+
+        <com.google.android.material.slider.Slider
+            android:id="@+id/discreteSlider"
+            android:layout_width="200dp"
+            android:layout_height="20dp"
+            android:layout_marginTop="0dp"
+            android:layout_marginStart="30dp"
+            android:stepSize="100"
+            android:valueFrom="100"
+            android:valueTo="500"
+            app:layout_constraintStart_toEndOf="@+id/modeTextView"
+            app:layout_constraintTop_toBottomOf="@+id/divider1"
+            app:thumbColor="#005AFF"/>
+
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <Button
+        android:id="@+id/btnStartGame"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:backgroundTint="#005AFF"
+        android:text="Confirm"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/btnCancelGame"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/btnCancelGame"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:backgroundTint="#333333"
+        android:text="Cancel"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

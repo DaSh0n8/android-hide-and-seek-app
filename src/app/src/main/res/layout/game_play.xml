@@ -88,52 +88,62 @@
         app:layout_constraintStart_toStartOf="@+id/map"
         app:layout_constraintTop_toTopOf="@+id/map" />
 
-    <TextView
-        android:id="@+id/eliminateText"
-        android:layout_width="wrap_content"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/seekerBox"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="114dp"
-        android:layout_marginTop="24dp"
-        android:layout_marginEnd="115dp"
-        android:text="Enter Hider Code: "
-        android:textSize="20sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/lastUpdateValue" />
-
-    <Button
-        android:id="@+id/eliminateBtn"
-        android:layout_width="188dp"
-        android:layout_height="51dp"
-        android:layout_marginTop="20dp"
-        android:backgroundTint="#D3D3D3"
-        android:enabled="false"
-        android:text="Eliminate Hider"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.497"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textInputEditText" />
-
-    <com.google.android.material.textfield.TextInputEditText
-        android:id="@+id/textInputEditText"
-        android:layout_width="239dp"
-        android:layout_height="50dp"
-        android:layout_marginStart="77dp"
         android:layout_marginTop="16dp"
-        android:layout_marginEnd="77dp"
-        android:hint="Enter the code here..."
-        android:inputType="number"
-        android:singleLine="true"
-        android:textAlignment="center"
-        android:textSize="20sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/eliminateText" />
+        android:background="@drawable/border_box"
+        app:layout_constraintTop_toBottomOf="@id/lastUpdateValue">
+
+        <TextView
+            android:id="@+id/eliminateText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Enter Hider Code: "
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <Button
+            android:id="@+id/eliminateBtn"
+            android:layout_width="188dp"
+            android:layout_height="50dp"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="#D3D3D3"
+            android:enabled="false"
+            android:text="Eliminate Hider"
+            android:layout_marginBottom="8dp"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.497"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textInputEditText"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/textInputEditText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:hint="Enter the code here..."
+            android:inputType="number"
+            android:singleLine="true"
+            android:textAlignment="center"
+            android:textSize="20sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/eliminateText" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
