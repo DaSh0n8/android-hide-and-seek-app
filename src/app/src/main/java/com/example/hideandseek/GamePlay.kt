@@ -101,6 +101,9 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         isSeeker = intent.getBooleanExtra("isSeeker", false)
         mediaPlayer = MediaPlayer.create(this, R.raw.start_game)
         mediaPlayer?.start()
+        mediaPlayer?.setOnCompletionListener (MediaPlayer.OnCompletionListener{
+            mediaPlayer?.release();
+        } )
         mediaPlayer = null
         mediaPlayer = MediaPlayer.create(this, R.raw.start)
         if (isSeeker){
