@@ -11,6 +11,7 @@ import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.location.Location
+import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
@@ -79,7 +80,9 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private var playersIcons: MutableMap<String, Bitmap> = mutableMapOf()
     private var lastLoc = mutableMapOf<String, LatLng>()
     private var lastStatus = mutableMapOf<String, Boolean>()
+    private var mediaPlayer : MediaPlayer? = null
     private val disconnected = "disconnected"
+
 
     private lateinit var map: GoogleMap
     private lateinit var binding: GamePlayBinding
@@ -109,6 +112,11 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         super.onCreate(savedInstanceState)
 
         isSeeker = intent.getBooleanExtra("isSeeker", false)
+        mediaPlayer = MediaPlayer.create(this, R.raw.start_game)
+        mediaPlayer?.start()
+        mediaPlayer?.setOnCompletionListener (MediaPlayer.OnCompletionListener{
+            mediaPlayer = MediaPlayer.create(this, R.raw.start)
+        } )
         if (isSeeker){
             binding = GamePlayBinding.inflate(layoutInflater)
             setContentView(binding.root)
@@ -189,7 +197,11 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 val seconds = (millisUntilFinished / 1000) % 60
                 val minutes = (millisUntilFinished / 1000) / 60
                 countDownValue.text = String.format("%02d:%02d", minutes, seconds)
+                if (minutes.toDouble() == 0.0 && seconds.toDouble() == 3.0){
+                    mediaPlayer?.start()
+                }
             }
+
 
             override fun onFinish() {
                 // start the game
@@ -213,6 +225,12 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                             val seconds = (millisUntilFinished / 1000) % 60
                             val minutes = (millisUntilFinished / 1000) / 60
                             countDownValue.text = String.format("%02d:%02d", minutes, seconds)
+                            if (minutes.toDouble() == 0.0 && seconds.toDouble() == 3.0){
+                                mediaPlayer?.start()
+                            }
+                            mediaPlayer?.setOnCompletionListener (MediaPlayer.OnCompletionListener{
+                                mediaPlayer?.release();
+                            } )
 
                             // if only 20% time left, trigger the accelerometer
                             if (millisUntilFinished < triggerTime && !isSeeker && !hasTriggered) {
