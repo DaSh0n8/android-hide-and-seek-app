@@ -36,8 +36,8 @@ class GameOver : AppCompatActivity() {
 
         val username: String? = intent.getStringExtra("username")
         val lobbyCode: String? = intent.getStringExtra("lobbyCode")
-        val host: Boolean? = intent.getBooleanExtra("host", false)
-        val isSeeker: Boolean? = intent.getBooleanExtra("isSeeker", false)
+        val host: Boolean = intent.getBooleanExtra("host", false)
+        val isSeeker: Boolean = intent.getBooleanExtra("isSeeker", false)
         val seekerWon = intent.getBooleanExtra("seekerWonGame", false)
 
         confirmConnectivity(lobbyCode, username)
@@ -47,7 +47,7 @@ class GameOver : AppCompatActivity() {
         val resultImg: ImageView = findViewById(R.id.resultView)
         if (seekerWon) {
             resultImg.setImageResource(R.drawable.seekers_win)
-            if (isSeeker!!) {
+            if (isSeeker) {
                 resultText.text = youWon
                 if (mediaPlayer == null) {
                     mediaPlayer = MediaPlayer.create(this, R.raw.win)
@@ -68,7 +68,7 @@ class GameOver : AppCompatActivity() {
             }
         } else {
             resultImg.setImageResource(R.drawable.hiders_win)
-            if (isSeeker!!) {
+            if (isSeeker) {
                 resultText.text = youLost
                 if (mediaPlayer == null) {
                     mediaPlayer = MediaPlayer.create(this, R.raw.fail)
@@ -93,7 +93,7 @@ class GameOver : AppCompatActivity() {
         val backToHomeBtn: Button = findViewById(R.id.btnHome)
         backToHomeBtn.setOnClickListener {
             NetworkUtils.checkConnectivityAndProceed(this) {
-                if (host!!) {
+                if (host) {
                     endGameSession(lobbyCode)
                 } else {
                     removePlayer(lobbyCode, username)
@@ -109,7 +109,7 @@ class GameOver : AppCompatActivity() {
         }
 
         // back to lobby
-        var backToLobbyBtn: Button = findViewById(R.id.btnPlayAgain)
+        val backToLobbyBtn: Button = findViewById(R.id.btnPlayAgain)
         backToLobbyBtn.setOnClickListener {
             NetworkUtils.checkConnectivityAndProceed(this) {
                 returnLobby(username, lobbyCode, host)
@@ -133,7 +133,7 @@ class GameOver : AppCompatActivity() {
 
                     if (gameSession != null) {
                         // Update the GameSession object
-                        gameSession?.gameStatus = "ended"
+                        gameSession.gameStatus = "ended"
 
                         for (player in gameSession.players) {
                             player.playerStatus = "End Game Screen"
@@ -252,8 +252,9 @@ class GameOver : AppCompatActivity() {
         })
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
-        var backToHomeBtn: Button = findViewById(R.id.btnHome)
+        val backToHomeBtn: Button = findViewById(R.id.btnHome)
         backToHomeBtn.performClick()
         super.onBackPressed()
     }
