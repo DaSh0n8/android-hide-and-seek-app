@@ -6,15 +6,18 @@
     android:layout_height="match_parent">
 
     <ImageView
+        style="@style/background"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        style="@style/background"
-        android:alpha="0.2"/>
+        android:alpha="0.2" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="24dp">
+        android:padding="24dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
 
         <Button
             android:id="@+id/chatButton"
@@ -26,10 +29,10 @@
 
         <TextView
             android:id="@+id/lobbyHeader"
+            style="@style/blackToWhiteText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Lobby: Game Mode"
-            style="@style/blackToWhiteText"
             android:textSize="30sp"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
@@ -38,10 +41,10 @@
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/seekerBox"
+            style="@style/borderBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            style="@style/borderBox"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
@@ -80,10 +83,10 @@
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@id/hiderBox"
+            style="@style/borderBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            style="@style/borderBox"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
@@ -143,6 +146,7 @@
             app:icon="@drawable/swap_icon"
             app:iconGravity="textStart"
             app:iconPadding="0dp"
+            app:iconTint="@color/white"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/settingsButton" />
 
@@ -155,6 +159,7 @@
             app:icon="@drawable/leave_lobby_icon"
             app:iconGravity="textStart"
             app:iconPadding="0dp"
+            app:iconTint="@color/white"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/switchTeamButton"
@@ -170,6 +175,7 @@
             app:icon="@drawable/gear_icon"
             app:iconGravity="textStart"
             app:iconPadding="0dp"
+            app:iconTint="@color/white"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/startGameButton" />
 
@@ -182,6 +188,7 @@
             app:icon="@drawable/play_icon"
             app:iconGravity="textStart"
             app:iconPadding="0dp"
+            app:iconTint="@color/white"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
@@ -207,10 +214,10 @@
 
         <TextView
             android:id="@+id/waitHost"
+            style="@style/blackToWhiteText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Waiting for host to start the game..."
-            style="@style/blackToWhiteText"
             android:textSize="20sp"
             android:textStyle="bold"
             android:visibility="invisible"
@@ -221,9 +228,6 @@
             app:layout_constraintTop_toBottomOf="@+id/settingsPlaceholder" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
-
-
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

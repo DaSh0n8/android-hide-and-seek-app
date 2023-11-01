@@ -12,7 +12,7 @@
     </style>
 
     <style name="buttonTint">
-        <item name="android:backgroundTint">#FFFFFF</item>
+        <item name="android:backgroundTint">#333333</item>
     </style>
 
     <style name="borderBox">

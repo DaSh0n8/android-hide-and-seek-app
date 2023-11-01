@@ -2,6 +2,7 @@ package com.example.hideandseek
 
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
@@ -33,6 +34,7 @@ class HomeScreen : AppCompatActivity() {
                 if (locationHelper.checkLocationPermission()) {
                     val intent = Intent(this@HomeScreen, UserSetting::class.java)
                     intent.putExtra("host", true)
+                    lightSensor.disableSensor()
                     startActivity(intent)
                 } else {
                     connectInternetDialog()
@@ -45,6 +47,7 @@ class HomeScreen : AppCompatActivity() {
             NetworkUtils.checkConnectivityAndProceed(this) {
                 if (locationHelper.checkLocationPermission()) {
                     val intent = Intent(this@HomeScreen, JoinGame::class.java)
+                    lightSensor.disableSensor()
                     startActivity(intent)
                 } else {
                     connectInternetDialog()
@@ -53,15 +56,15 @@ class HomeScreen : AppCompatActivity() {
         }
 
 
-//        val nightModeSwitch: SwitchCompat = findViewById(R.id.nightModeSwitch)
-//        nightModeSwitch.setOnCheckedChangeListener{ buttonView, isChecked -> {
-//            if (isChecked) {
-//                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-//            } else {
-//                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-//            }
-//          }
-//        }
+//        Night mode switch
+        val nightModeSwitch: SwitchCompat = findViewById(R.id.nightModeSwitch)
+        nightModeSwitch.setOnClickListener {
+            if (nightModeSwitch.isChecked) {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+            } else {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+            }
+        }
 
         val error = intent.getStringExtra("error")
         if (error != null) {

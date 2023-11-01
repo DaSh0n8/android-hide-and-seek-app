@@ -1,6 +1,8 @@
 package com.example.hideandseek
 
+import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
@@ -44,14 +46,22 @@ class GameOver : AppCompatActivity() {
         val resultText: TextView = findViewById(R.id.resultText)
         val resultImg: ImageView = findViewById(R.id.resultView)
         if (seekerWon) {
-            resultImg.setImageResource(R.drawable.seekers_win)
+            if (!isDarkTheme()) {
+                resultImg.setImageResource(R.drawable.seekers_win)
+            } else {
+                resultImg.setImageResource(R.drawable.seekers_win_night)
+            }
             if (isSeeker!!) {
                 resultText.text = youWon
             } else {
                 resultText.text = youLost
             }
         } else {
-            resultImg.setImageResource(R.drawable.hiders_win)
+            if (!isDarkTheme()) {
+                resultImg.setImageResource(R.drawable.hiders_win)
+            } else {
+                resultImg.setImageResource(R.drawable.hiders_win_night)
+            }
             if (isSeeker!!) {
                 resultText.text = youLost
             } else {
@@ -329,6 +339,8 @@ class GameOver : AppCompatActivity() {
             backToHomeBtn.performClick()
         }
     }
+
+    private fun Context.isDarkTheme(): Boolean { return resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES }
 
 
 }

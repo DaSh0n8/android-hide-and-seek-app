@@ -38,7 +38,7 @@ class LightSensor : SensorEventListener {
     public fun disableSensor() {
         // Unregister the sensor when the activity pauses.
         sensorManager.unregisterListener(this)
-        sensorManager.unregisterListener(this)
+//        sensorManager.unregisterListener(this)
     }
 
 
@@ -53,7 +53,7 @@ class LightSensor : SensorEventListener {
         if (event.sensor.getType() == Sensor.TYPE_LIGHT) {
             val luxValue = event.values[0]
             Log.v("sensor..", "sensor$luxValue")
-            if (luxValue.toInt() > 1000) {
+            if (luxValue.toInt() > 3000) {
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
             } else {
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
