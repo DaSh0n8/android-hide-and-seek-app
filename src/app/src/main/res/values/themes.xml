@@ -6,4 +6,20 @@
     </style>
 
     <style name="Theme.HideAndSeek" parent="Base.Theme.HideAndSeek" />
+
+    <style name="blackToWhiteText">
+        <item name="android:textColor">@color/black</item>
+    </style>
+
+    <style name="buttonTint">
+        <item name="android:backgroundTint">#FFFFFF</item>
+    </style>
+
+    <style name="borderBox">
+        <item name="android:background">@drawable/border_box</item>
+    </style>
+
+    <style name="background">
+        <item name="android:background">@drawable/page_background</item>
+    </style>
 </resources>

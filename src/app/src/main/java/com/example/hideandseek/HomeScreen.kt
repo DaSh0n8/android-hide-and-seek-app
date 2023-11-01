@@ -1,5 +1,6 @@
 package com.example.hideandseek
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -9,9 +10,13 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.appcompat.widget.SwitchCompat
 import androidx.core.content.ContextCompat
 
 class HomeScreen : AppCompatActivity() {
+
+    private lateinit var lightSensor: LightSensor
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.home_screen)
@@ -19,6 +24,8 @@ class HomeScreen : AppCompatActivity() {
         // get access location permission
         val locationHelper = LocationHelper(this, 1)
         locationHelper.askPermission()
+
+        lightSensor = LightSensor(this)
 
         val createGameButton: Button = findViewById(R.id.createGameButton)
         createGameButton.setOnClickListener {
@@ -44,6 +51,17 @@ class HomeScreen : AppCompatActivity() {
                 }
             }
         }
+
+
+//        val nightModeSwitch: SwitchCompat = findViewById(R.id.nightModeSwitch)
+//        nightModeSwitch.setOnCheckedChangeListener{ buttonView, isChecked -> {
+//            if (isChecked) {
+//                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+//            } else {
+//                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+//            }
+//          }
+//        }
 
         val error = intent.getStringExtra("error")
         if (error != null) {

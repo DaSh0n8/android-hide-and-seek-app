@@ -10,7 +10,7 @@
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/page_background"
+        style="@style/background"
         android:alpha="0.2"/>
 
     <TextView
@@ -18,6 +18,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Join Game"
+        style="@style/blackToWhiteText"
         android:textSize="40sp"
         android:textStyle="bold"
         android:paddingTop="12dp"
@@ -49,6 +50,7 @@
             android:layout_height="60dp"
             android:backgroundTint="#005AFF"
             android:text="Join Game"
+            android:textColor="@color/white"
             android:textAlignment="center"
             android:textSize="24sp"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -64,7 +66,7 @@
             android:ems="10"
             android:hint="Enter lobby code"
             android:padding="8dp"
-            android:background="@drawable/border_box"
+            style="@style/borderBox"
             android:inputType="number"
             android:singleLine="true"
             android:text=""
