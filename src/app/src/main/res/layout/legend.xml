@@ -1,4 +1,3 @@
-<!-- res/layout/legend_dialog_layout.xml -->
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
@@ -87,7 +86,7 @@
         <ImageView
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:src="@drawable/background"
+            android:src="@drawable/game_play"
             android:layout_margin="10dp"/>
 
         <TextView

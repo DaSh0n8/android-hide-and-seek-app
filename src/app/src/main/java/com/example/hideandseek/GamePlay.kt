@@ -963,7 +963,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         legendDialog.setContentView(R.layout.legend)
         legendDialog.window?.setLayout(
             LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.MATCH_PARENT
+            LinearLayout.LayoutParams.WRAP_CONTENT
         )
 
         val closeButton = legendDialog.findViewById<Button>(R.id.closeButton)
