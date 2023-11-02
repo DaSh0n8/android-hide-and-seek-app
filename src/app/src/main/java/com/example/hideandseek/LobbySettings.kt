@@ -98,6 +98,9 @@ class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
             }
         }
 
+        val cancelBtn: Button = findViewById(R.id.btnCancelGame)
+        cancelBtn.setOnClickListener { finish() }
+
         loadSettingsInFields(receivedLobbyCode)
     }
 

@@ -7,10 +7,10 @@
     android:layout_height="match_parent">
 
     <ImageView
+        style="@style/background"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        style="@style/background"
-        android:alpha="0.2"/>
+        android:alpha="0.2" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -19,10 +19,10 @@
 
         <TextView
             android:id="@+id/playTime"
+            style="@style/blackToWhiteText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Hiding Time: "
-            style="@style/blackToWhiteText"
             android:textAppearance="@style/TextAppearance.AppCompat.Large"
             android:textSize="40sp"
             android:textStyle="bold"
@@ -33,12 +33,12 @@
 
         <TextView
             android:id="@+id/playTimeValue"
+            style="@style/blackToWhiteText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="@style/TextAppearance.AppCompat.Large"
             android:textSize="40sp"
             android:textStyle="bold"
-            style="@style/blackToWhiteText"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toEndOf="@+id/playTime"
@@ -47,12 +47,12 @@
 
         <TextView
             android:id="@+id/lastUpdate"
+            style="@style/blackToWhiteText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="88dp"
             android:layout_marginTop="12dp"
             android:text="Last Updated: "
-            style="@style/blackToWhiteText"
             android:textStyle="bold"
             app:layout_constraintEnd_toStartOf="@+id/lastUpdateValue"
             app:layout_constraintHorizontal_bias="0.5"
@@ -61,11 +61,11 @@
 
         <TextView
             android:id="@+id/lastUpdateValue"
+            style="@style/blackToWhiteText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:layout_marginEnd="81dp"
-            style="@style/blackToWhiteText"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
@@ -101,19 +101,19 @@
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/seekerBox"
+            style="@style/borderBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            style="@style/borderBox"
             app:layout_constraintTop_toBottomOf="@id/lastUpdateValue">
 
             <TextView
                 android:id="@+id/eliminateText"
+                style="@style/blackToWhiteText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:text="Enter Hider Code: "
-                style="@style/blackToWhiteText"
                 android:textSize="20sp"
                 android:textStyle="bold"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -126,18 +126,18 @@
                 android:layout_width="188dp"
                 android:layout_height="50dp"
                 android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp"
                 android:backgroundTint="#D3D3D3"
                 android:enabled="false"
                 android:text="Eliminate Hider"
                 android:textColor="@color/white"
-                android:layout_marginBottom="8dp"
                 android:textSize="16sp"
                 android:textStyle="bold"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.497"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/textInputEditText"
-                app:layout_constraintBottom_toBottomOf="parent"/>
+                app:layout_constraintTop_toBottomOf="@+id/textInputEditText" />
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/textInputEditText"
@@ -156,34 +156,30 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
+        <Button
+            android:id="@+id/legend_button"
+            android:layout_width="50dp"
+            android:layout_height="47dp"
+            android:layout_marginEnd="16dp"
+            app:backgroundTint="#727C7575"
+            app:layout_constraintEnd_toEndOf="@+id/map"
+            app:layout_constraintTop_toTopOf="@+id/map"
+            app:strokeColor="#000000"
+            app:strokeWidth="2dp"></Button>
+
+        <ImageView
+            android:id="@+id/legend_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#00FFFFFF"
+            android:padding="8dp"
+            android:src="@drawable/question_mark"
+            app:layout_constraintBottom_toBottomOf="@+id/legend_button"
+            app:layout_constraintEnd_toEndOf="@+id/legend_button"
+            app:layout_constraintStart_toStartOf="@+id/legend_button"
+            app:layout_constraintTop_toTopOf="@+id/legend_button" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
-
-
-
-
-
-    <Button
-        android:id="@+id/legend_button"
-        android:layout_width="50dp"
-        android:layout_height="47dp"
-        android:layout_marginEnd="16dp"
-        app:backgroundTint="#727C7575"
-        app:layout_constraintEnd_toEndOf="@+id/map"
-        app:layout_constraintTop_toTopOf="@+id/map"
-        app:strokeColor="#000000"
-        app:strokeWidth="2dp"></Button>
-
-    <ImageView
-        android:id="@+id/legend_icon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintStart_toStartOf="@+id/legend_button"
-        app:layout_constraintEnd_toEndOf="@+id/legend_button"
-        app:layout_constraintTop_toTopOf="@+id/legend_button"
-        app:layout_constraintBottom_toBottomOf="@+id/legend_button"
-        android:src="@drawable/question_mark"
-        android:background="#00FFFFFF"
-        android:padding="8dp" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
