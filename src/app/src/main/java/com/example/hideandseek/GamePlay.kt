@@ -326,7 +326,6 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                         }
 
                         val coordinates = LatLng(player.latitude!!, player.longitude!!)
-                        val markerOptions = MarkerOptions().position(coordinates).title(player.userName)
 
                         if (lastLoc[player.userName] != coordinates || lastStatus[player.userName] != player.eliminated) {
                             minutePassed = 0
@@ -336,10 +335,15 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                                 deadDialog()
                             }
 
-                            lastLoc[player.userName] =  coordinates
-                            lastStatus[player.userName] = player.eliminated
+                            // update location only if player hasnt been eliminated
+                            if (lastStatus[player.userName] != true) {
+                                lastLoc[player.userName] = coordinates
+                                lastStatus[player.userName] = player.eliminated
+                            }
 
                         }
+
+                        val markerOptions = MarkerOptions().position(lastLoc[player.userName]!!).title(player.userName)
 
                         val iconBitmap = if (!player.seeker && !player.eliminated && player.playerStatus != disconnected) {
                             hidersAvailable = true
@@ -426,7 +430,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                             val leeway = 10 // 10 metres leeway
                             if(!p.eliminated && !isCoordinateInsideGeofence(user, geofenceLatLng, (geofenceRadius+leeway).toDouble())) {
                                 eliminatePlayer(p.playerCode, false)
-                                Toast.makeText(this@GamePlay, "You have been eliminated as you exited the game area!", Toast.LENGTH_SHORT).show()
+                                exitGeofenceDialog()
                             }
                         }
                     }
@@ -959,6 +963,14 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         createCustomDialog(
             "Hider Eliminated",
             "$username has been eliminated!",
+            "OK"
+        ) { /* Positive button action for eliminateDialog */ }
+    }
+
+    private fun exitGeofenceDialog() {
+        createCustomDialog(
+            "Sorry...",
+            "You have been eliminated as you exited the game play area!",
             "OK"
         ) { /* Positive button action for eliminateDialog */ }
     }
