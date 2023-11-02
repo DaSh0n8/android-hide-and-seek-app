@@ -28,7 +28,7 @@ class LightSensor : SensorEventListener {
         this.switch = switch
     }
 
-    private fun enableSensor() {
+    fun enableSensor() {
         // Register a listener for the sensor.
 //        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
 

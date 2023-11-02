@@ -1,11 +1,15 @@
 package com.example.hideandseek
 
+import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.widget.Button
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -13,10 +17,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.SwitchCompat
 import androidx.core.content.ContextCompat
+import kotlin.properties.Delegates
 
 class HomeScreen : AppCompatActivity() {
 
     private lateinit var lightSensor: LightSensor
+//    private lateinit var editor: SharedPreferences.Editor
+//    private var isLightSensorEnabled by Delegates.notNull<Boolean>()
+//    private val LIGHT_SENSOR_ENABLED_PREFERENCE = "light_sensor_enabled_preference"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.home_screen)
@@ -25,7 +33,18 @@ class HomeScreen : AppCompatActivity() {
         val locationHelper = LocationHelper(this, 1)
         locationHelper.askPermission()
 
+//        val sharedPrefs = getSharedPreferences("MyAppPrefs", Context.MODE_PRIVATE)
+//        isLightSensorEnabled = sharedPrefs.getBoolean(LIGHT_SENSOR_ENABLED_PREFERENCE, true)
+//        editor = sharedPrefs.edit()
+//        editor.putBoolean(LIGHT_SENSOR_ENABLED_PREFERENCE, false)
+//        editor.apply()
         lightSensor = LightSensor(this)
+
+
+//        if(!isLightSensorEnabled) {
+//            lightSensor.disableSensor()
+//        }
+
 
         val createGameButton: Button = findViewById(R.id.createGameButton)
         createGameButton.setOnClickListener {
@@ -57,7 +76,11 @@ class HomeScreen : AppCompatActivity() {
         val nightModeSwitch: SwitchCompat = findViewById(R.id.nightModeSwitch)
         lightSensor.setSwitch(nightModeSwitch)
         nightModeSwitch.setOnClickListener {
+//            if (isLightSensorEnabled) {
+//                editor.putBoolean(LIGHT_SENSOR_ENABLED_PREFERENCE, false)
+//                editor.apply()
             lightSensor.disableSensor()
+//            }
             if (nightModeSwitch.isChecked) {
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
             } else {
@@ -83,6 +106,28 @@ class HomeScreen : AppCompatActivity() {
         // Disable the light sensor when the activity is paused
         lightSensor.disableSensor()
     }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+
+        val wallpaper: ImageView = findViewById<ImageView>(R.id.wallpaper)
+        val lobbyHeader: TextView = findViewById(R.id.lobbyHeader)
+        val helpIcon: ImageButton = findViewById(R.id.tutorial)
+        if (!isDarkTheme()) {
+            wallpaper.setBackgroundResource(R.drawable.page_background)
+            lobbyHeader.setTextColor(ContextCompat.getColor(this, R.color.black))
+            helpIcon.setImageResource(R.drawable.help_icon)
+
+        } else {
+            wallpaper.setBackgroundResource(R.drawable.page_background_night)
+//            wallpaper.setColorFilter(Color.argb(0,0,0,0))
+            lobbyHeader.setTextColor(ContextCompat.getColor(this, R.color.white))
+            helpIcon.setImageResource(R.drawable.help_icon_night)
+        }
+    }
+
+    private fun Context.isDarkTheme(): Boolean { return resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES }
+
 
     private fun openAppSettings() {
         val intent = Intent()
