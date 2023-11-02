@@ -1,6 +1,10 @@
 package com.example.hideandseek
 
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.Color
+import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
@@ -15,11 +19,18 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.storage.FirebaseStorage
+import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.segmentation.Segmentation
+import com.google.mlkit.vision.segmentation.selfie.SelfieSegmenterOptions
+import java.io.ByteArrayOutputStream
+import java.io.FileNotFoundException
+import java.io.IOException
 import java.time.Duration
 import java.time.LocalTime
 
@@ -48,7 +59,7 @@ class Lobby : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.lobby)
 
-        val receivedUserIcon = intent.getByteArrayExtra("userIcon")
+        val receivedURI = intent.getStringExtra("uri")
         val receivedUsername = intent.getStringExtra("username_key")!!
         val receivedLobbyCode = intent.getStringExtra("lobby_key")!!
         currentLobbyCode = receivedLobbyCode
@@ -69,8 +80,8 @@ class Lobby : AppCompatActivity() {
         storageDb = application.getStorageDb()
 
         // upload user icon if available
-        if (receivedUserIcon != null) {
-            uploadIcon(receivedUserIcon, receivedLobbyCode, receivedUsername)
+        if (receivedURI != null) {
+            selfieSegmentation(receivedURI, receivedLobbyCode, receivedUsername)
         }
 
         val query = realtimeDb.getReference("gameSessions")
@@ -151,7 +162,7 @@ class Lobby : AppCompatActivity() {
                     // check if host has started or ended the game
                     when (gameSession!!.gameStatus) {
                         "started" -> startGameIntent(receivedLobbyCode, receivedUsername, gameSession)
-                        "ended"   -> hostLeftDialog(receivedLobbyCode, hostStatus!!, ENDED)
+                        "ended"   -> hostLeftDialog(receivedLobbyCode, ENDED)
                     }
 
                     val players = sessionSnapshot.child("players").children
@@ -175,7 +186,7 @@ class Lobby : AppCompatActivity() {
                     if (!playerStillInSession) {
                         connectTimer.cancel()
                         removeLobbyListener(receivedLobbyCode)
-                        removedDialog(receivedLobbyCode, hostStatus!!, KICKED)
+                        removedDialog(receivedLobbyCode, KICKED)
                         return
                     }
 
@@ -271,7 +282,7 @@ class Lobby : AppCompatActivity() {
 
     private fun uploadIcon(userIcon: ByteArray?, lobbyCode: String?, username: String?) {
         // get storage path
-        var storageRef = storageDb.reference
+        val storageRef = storageDb.reference
         val pathRef = storageRef.child("$lobbyCode/$username.jpg")
 
         // Upload user icon
@@ -303,7 +314,7 @@ class Lobby : AppCompatActivity() {
                             if (playerIsHost) {
                                 gameSession.gameStatus = "ended"
                                 gameSessionSnapshot.ref.setValue(gameSession).addOnSuccessListener {
-                                    returnHomeIntent(lobbyCode!!, playerIsHost, LEAVE)
+                                    returnHomeIntent(lobbyCode, LEAVE)
 
                                 }.addOnFailureListener {
                                     Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
@@ -311,7 +322,7 @@ class Lobby : AppCompatActivity() {
                             } else {
                                 val ref = realtimeDb.getReference("gameSessions").child(gameSessionSnapshot.key!!)
                                 ref.child("players").child(playerIndex.toString()).removeValue().addOnSuccessListener {
-                                    returnHomeIntent(lobbyCode!!, playerIsHost, LEAVE)
+                                    returnHomeIntent(lobbyCode, LEAVE)
 
                                 }.addOnFailureListener {
                                     Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
@@ -351,9 +362,9 @@ class Lobby : AppCompatActivity() {
                     }
 
                     // validate the eligibility to start a game
-                    if (validateGame(gameSession!!.players)) {
+                    if (validateGame(gameSession.players)) {
                         // Update the local GameSession object
-                        gameSession?.gameStatus = "started"
+                        gameSession.gameStatus = "started"
 
                         for (player in gameSession.players) {
                             player.playerStatus = "In game"
@@ -481,7 +492,7 @@ class Lobby : AppCompatActivity() {
         }
     }
 
-    private fun returnHomeIntent(lobbyCode: String?, host: Boolean, reason: String) {
+    private fun returnHomeIntent(lobbyCode: String?, reason: String) {
         val intent = Intent(this@Lobby, HomeScreen::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
         when (reason) {
@@ -501,6 +512,7 @@ class Lobby : AppCompatActivity() {
         finish()
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         val leaveLobbyButton: Button = findViewById(R.id.leaveLobbyButton)
         leaveLobbyButton.performClick()
@@ -636,7 +648,7 @@ class Lobby : AppCompatActivity() {
                         acknowledgeOnline(currentLobbyCode, currentUserName)
                         checkPlayerActivity(currentLobbyCode)
                     } else {
-                        returnHomeIntent(currentLobbyCode, hostStatus!!, DISCONNECTED)
+                        returnHomeIntent(currentLobbyCode, DISCONNECTED)
                     }
 
                     tickCounter = 0
@@ -682,13 +694,13 @@ class Lobby : AppCompatActivity() {
         }
     }
 
-    private fun removedDialog(lobbyCode: String?, host: Boolean, reason: String) {
+    private fun removedDialog(lobbyCode: String?, reason: String) {
         createCustomDialog(
             "Sorry...",
             "You have been removed by the host",
             "OK"
         ) {
-            returnHomeIntent(lobbyCode, host, reason)
+            returnHomeIntent(lobbyCode, reason)
         }
     }
 
@@ -700,13 +712,72 @@ class Lobby : AppCompatActivity() {
         ) { /* Positive button action for madeHostDialog */ }
     }
 
-    private fun hostLeftDialog(lobbyCode: String?, host: Boolean, reason: String) {
+    private fun hostLeftDialog(lobbyCode: String?, reason: String) {
         createCustomDialog(
             "Sorry...",
             "Host has left the game",
             "OK"
         ) {
-            returnHomeIntent(lobbyCode, host, reason)
+            returnHomeIntent(lobbyCode, reason)
+        }
+    }
+
+    private fun selfieSegmentation(output: String, lobbyCode: String?, username: String?) {
+        try {
+            val uri = Uri.parse(output)
+            var image: InputImage = InputImage.fromFilePath(this@Lobby, uri)
+
+            // configure segmenter
+            val options =
+                SelfieSegmenterOptions.Builder()
+                    .setDetectorMode(SelfieSegmenterOptions.SINGLE_IMAGE_MODE)
+                    .build()
+            val segmenter = Segmentation.getClient(options)
+
+            // process the image
+            segmenter.process(image)
+                .addOnSuccessListener { results ->
+                    val mask = results.buffer
+                    val maskWidth = results.width
+                    val maskHeight = results.height
+
+                    try {
+                        val inputStream = contentResolver.openInputStream(uri!!)
+                        var userPhoto =
+                            Drawable.createFromStream(inputStream, uri.toString())
+
+                        // convert user image into bitmap and retrieve the foreground
+                        var bitmapImage = userPhoto?.toBitmap(maskWidth, maskHeight)
+                        var copyBitmap = bitmapImage?.copy(Bitmap.Config.ARGB_8888, true)
+
+                        val threshold = 0.92
+                        for (y in 0 until maskHeight) {
+                            for (x in 0 until maskWidth) {
+                                val foregroundConfidence = mask.float
+                                if (foregroundConfidence < threshold) {
+                                    copyBitmap?.setPixel(x, y, Color.TRANSPARENT)
+                                }
+                            }
+                        }
+
+                        // compress the bitmap
+                        val stream = ByteArrayOutputStream()
+                        copyBitmap?.compress(Bitmap.CompressFormat.PNG, 100, stream)
+                        val byteArray = stream.toByteArray()
+
+                        uploadIcon(byteArray, lobbyCode, username)
+
+                    } catch (e: FileNotFoundException) {
+                        Log.e("File", "File Absent: $e")
+                    }
+
+                }
+                .addOnFailureListener { e ->
+                    Log.e("Segmentation", "Segmentation failed: $e")
+                }
+
+        } catch (e: IOException) {
+            e.printStackTrace()
         }
     }
 

@@ -5,18 +5,13 @@ import android.app.Activity
 import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.Color
-import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.provider.Settings
 import android.util.Log
-import android.view.View
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -26,14 +21,7 @@ import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
-import androidx.core.graphics.drawable.toBitmap
 import com.example.hideandseek.databinding.SelfieSegmentationBinding
-import com.google.mlkit.vision.common.InputImage
-import com.google.mlkit.vision.segmentation.Segmentation
-import com.google.mlkit.vision.segmentation.selfie.SelfieSegmenterOptions
-import java.io.ByteArrayOutputStream
-import java.io.FileNotFoundException
-import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.concurrent.ExecutorService
@@ -126,77 +114,15 @@ class SelfieSegmentation : AppCompatActivity() {
                     Log.e(TAG, "Photo capture failed: ${exc.message}", exc)
                 }
 
-                override fun
-                        onImageSaved(output: ImageCapture.OutputFileResults){
-                    val msg = "Generating Icon..."
-                    Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
-                    Log.d(TAG, msg)
+                override fun onImageSaved(output: ImageCapture.OutputFileResults){
+                    // back to user setting
+                    returnUserSetting(output.savedUri!!.toString())
 
-                    // show the progress bar
-                    viewBinding.loading.visibility = View.VISIBLE
-
-
-                    try {
-                        var image: InputImage =
-                            InputImage.fromFilePath(this@SelfieSegmentation, output.savedUri!!)
-
-                        // configure segmenter
-                        val options =
-                            SelfieSegmenterOptions.Builder()
-                                .setDetectorMode(SelfieSegmenterOptions.SINGLE_IMAGE_MODE)
-                                .build()
-                        val segmenter = Segmentation.getClient(options)
-
-                        // process the image
-                        segmenter.process(image)
-                            .addOnSuccessListener { results ->
-                                val mask = results.buffer
-                                val maskWidth = results.width
-                                val maskHeight = results.height
-
-                                try {
-                                    val inputStream = contentResolver.openInputStream(output.savedUri!!)
-                                    var userPhoto =
-                                        Drawable.createFromStream(inputStream, output.savedUri.toString())
-
-                                    // convert user image into bitmap and retrieve the foreground
-                                    var bitmapImage = userPhoto?.toBitmap(maskWidth, maskHeight)
-                                    var copyBitmap = bitmapImage?.copy(Bitmap.Config.ARGB_8888, true)
-
-                                    val threshold = 0.92
-                                    for (y in 0 until maskHeight) {
-                                        for (x in 0 until maskWidth) {
-                                            val foregroundConfidence = mask.float
-                                            if (foregroundConfidence < threshold) {
-                                                copyBitmap?.setPixel(x, y, Color.TRANSPARENT)
-                                            }
-                                        }
-                                    }
-
-                                    // compress the bitmap
-                                    val stream = ByteArrayOutputStream()
-                                    copyBitmap?.compress(Bitmap.CompressFormat.PNG, 100, stream)
-                                    val byteArray = stream.toByteArray()
-
-                                    // back to user setting
-                                    returnUserSetting(byteArray)
-
-                                } catch (e: FileNotFoundException) {
-                                    Log.e(TAG, "File Absent: $e")
-                                }
-
-                            }
-                            .addOnFailureListener { e ->
-                                Log.e(TAG, "Segmentation failed: $e")
-                            }
-
-                    } catch (e: IOException) {
-                        e.printStackTrace()
-                    }
                 }
             }
         )
     }
+
     private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
 
@@ -260,12 +186,12 @@ class SelfieSegmentation : AppCompatActivity() {
             }.toTypedArray()
     }
 
-    private fun returnUserSetting(byteArray: ByteArray?) {
+    private fun returnUserSetting(uri: String) {
         NetworkUtils.checkConnectivityAndProceed(this) {
-            if (byteArray != null) {
+            if (uri != null) {
                 // pass the bitmap to next activity
                 val intent = Intent()
-                intent.putExtra("userIcon", byteArray)
+                intent.putExtra("uri", uri)
                 setResult(Activity.RESULT_OK, intent)
             }
             finish()
