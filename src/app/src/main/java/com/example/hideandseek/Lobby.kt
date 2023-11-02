@@ -12,7 +12,6 @@ import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.widget.ArrayAdapter
 import android.widget.Button
-import android.widget.FrameLayout
 import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
@@ -137,7 +136,7 @@ class Lobby : AppCompatActivity() {
             }
         }
 
-        val updateGameSettings: FrameLayout = findViewById(R.id.settingsPlaceholder)
+        val updateGameSettings: Button = findViewById(R.id.settingsButton)
         updateGameSettings.setOnClickListener {
             NetworkUtils.checkConnectivityAndProceed(this) {
                 val intent = Intent(this@Lobby, LobbySettings::class.java)
@@ -222,7 +221,7 @@ class Lobby : AppCompatActivity() {
     private fun updateUIBasedOnHostStatus(isHost: Boolean) {
         val startGameButton: Button = findViewById(R.id.startGameButton)
         val waitHost: TextView = findViewById(R.id.waitHost)
-        val updateGameSettings: FrameLayout = findViewById(R.id.settingsPlaceholder)
+        val updateGameSettings: Button = findViewById(R.id.settingsButton)
         val hidersListView = findViewById<ListView>(R.id.hiderListView)
         val seekersListView = findViewById<ListView>(R.id.seekerListView)
 

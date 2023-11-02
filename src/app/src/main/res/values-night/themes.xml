@@ -2,6 +2,33 @@
     <!-- Base application theme. -->
     <style name="Base.Theme.HideAndSeek" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your dark theme here. -->
-        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+<!--         <item name="colorPrimary">@color/white</item>-->
+    </style>
+
+    <style name="blackToWhiteText">
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <style name="buttonTint">
+        <item name="android:backgroundTint">#AAAAAA</item>
+    </style>
+
+    <style name="borderBox">
+        <item name="android:background">@drawable/border_box_night</item>
+        <item name="android:textColorHint">#DDDDDD</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <style name="background">
+        <item name="android:background">@drawable/page_background_night</item>
+    </style>
+
+    <style name="helpIcon">
+        <item name="srcCompat">@drawable/help_icon_night</item>
+    </style>
+
+    <style name="chatBubble">
+        <item name="android:textColor">@color/white</item>
+        <item name="android:background">@drawable/message_border_night</item>
     </style>
 </resources>

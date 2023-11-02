@@ -968,9 +968,10 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         mediaPlayer?.start()
     }
 
-    private fun onRelease(){
+    private fun onRelease() {
         mediaPlayer?.release()
         mediaPlayer = null
+    }
 
     private fun showLegend() {
         val legendDialog = Dialog(this)

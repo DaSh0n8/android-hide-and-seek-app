@@ -4,122 +4,148 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="24dp"
     tools:context=".UserSetting">
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/changePic"
-        android:layout_width="58dp"
-        android:layout_height="54dp"
-        android:backgroundTint="#FFD100"
-        android:clickable="true"
-        android:src="@android:drawable/ic_input_add"
-        app:layout_constraintBottom_toTopOf="@+id/guideline6"
-        app:layout_constraintEnd_toStartOf="@+id/guideline5" />
-
-    <TextView
-        android:id="@+id/header"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="User Setting"
-        android:textSize="40sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <ImageView
-        android:id="@+id/profilePic"
-        android:layout_width="179dp"
-        android:layout_height="195dp"
-        android:background="@android:color/transparent"
-        android:cropToPadding="false"
-        app:layout_constraintBottom_toTopOf="@+id/guideline6"
-        app:layout_constraintEnd_toStartOf="@+id/guideline5"
-        app:srcCompat="@drawable/emptyprofile" />
+        style="@style/background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.2" />
 
-    <FrameLayout
-        android:id="@+id/rectangles_frame"
-        android:layout_width="335dp"
-        android:layout_height="185dp"
-        android:layout_marginTop="40dp"
-        android:layout_marginBottom="40dp"
-        android:background="@drawable/background"
-        app:layout_constraintBottom_toTopOf="@+id/confirmBtn"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/profilePic"
-        app:layout_constraintWidth_percent="0.8">
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="24dp">
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/changePic"
+            android:layout_width="58dp"
+            android:layout_height="54dp"
+            android:backgroundTint="#FFD100"
+            android:clickable="true"
+            android:src="@android:drawable/ic_input_add"
+            app:layout_constraintBottom_toBottomOf="@+id/profilePic"
+            app:layout_constraintEnd_toEndOf="@+id/profilePic" />
 
         <TextView
-            android:id="@+id/username"
+            android:id="@+id/header"
+            style="@style/blackToWhiteText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal|top"
-            android:layout_marginTop="20dp"
-            android:text="Your Username"
-            android:textSize="22sp"
-            android:textStyle="bold" />
+            android:text="User Setting"
+            android:textSize="40sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-        <View
-            android:id="@+id/horizontalLine"
-            android:layout_width="332dp"
-            android:layout_height="1dp"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="60dp"
-            android:background="@android:color/darker_gray" />
+        <ImageView
+            android:id="@+id/profilePic"
+            android:layout_width="179dp"
+            android:layout_height="195dp"
+            android:background="@android:color/transparent"
+            android:cropToPadding="false"
+            app:layout_constraintBottom_toTopOf="@+id/rectangles_frame"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/header"
+            app:srcCompat="@drawable/emptyprofile" />
 
-        <EditText
-            android:id="@+id/username_input"
+        <FrameLayout
+            android:id="@+id/rectangles_frame"
+            style="@style/borderBox"
+            android:layout_width="335dp"
+            android:layout_height="185dp"
+            android:layout_marginTop="40dp"
+            android:layout_marginBottom="40dp"
+            app:layout_constraintBottom_toTopOf="@+id/confirmBtn"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/profilePic"
+            app:layout_constraintWidth_percent="0.8">
+
+            <TextView
+                android:id="@+id/username"
+                style="@style/blackToWhiteText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal|top"
+                android:layout_marginTop="20dp"
+                android:text="Your Username"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <View
+                android:id="@+id/horizontalLine"
+                android:layout_width="332dp"
+                android:layout_height="1dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="60dp"
+                android:background="@android:color/darker_gray" />
+
+            <EditText
+                android:id="@+id/username_input"
+                android:layout_width="wrap_content"
+                android:layout_height="67dp"
+                android:layout_gravity="center"
+                android:layout_marginTop="15dp"
+                android:hint="Please enter your preferred username"
+                android:maxLength="15"
+                android:singleLine="true"
+                android:textAlignment="center"
+                android:textSize="15sp" />
+
+        </FrameLayout>
+
+        <Button
+            android:id="@+id/confirmBtn"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginBottom="116dp"
+            android:backgroundTint="#005AFF"
+            android:text="Confirm"
+            android:textColor="@color/white"
+            android:textSize="24sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.395"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <Button
+            android:id="@+id/cancelBtn"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginBottom="44dp"
+            android:backgroundTint="#333333"
+            android:text="Cancel"
+            android:textColor="@color/white"
+            android:textSize="24sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.395"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline5"
             android:layout_width="wrap_content"
-            android:layout_height="67dp"
-            android:layout_gravity="center"
-            android:layout_marginTop="15dp"
-            android:hint="Please enter your preferred username"
-            android:maxLength="15"
-            android:singleLine="true"
-            android:textAlignment="center"
-            android:textSize="15sp" />
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.75" />
 
-    </FrameLayout>
+        <ProgressBar
+            android:id="@+id/loading"
+            style="?android:attr/progressBarStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="@+id/profilePic"
+            app:layout_constraintEnd_toStartOf="@+id/guideline5"
+            app:layout_constraintStart_toStartOf="@+id/profilePic"
+            app:layout_constraintTop_toTopOf="@+id/profilePic" />
 
-    <Button
-        android:id="@+id/confirmBtn"
-        android:layout_width="match_parent"
-        android:layout_height="74dp"
-        android:layout_marginBottom="116dp"
-        android:backgroundTint="#005AFF"
-        android:text="Confirm"
-        android:textSize="30sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.395"
-        app:layout_constraintStart_toStartOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline5"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.75" />
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline6"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.4" />
-
-    <ProgressBar
-        android:id="@+id/loading"
-        style="?android:attr/progressBarStyle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="invisible"
-        app:layout_constraintBottom_toBottomOf="@+id/profilePic"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/profilePic" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

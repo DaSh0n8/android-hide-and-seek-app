@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="horizontal"
     android:padding="8dp">
 
@@ -14,15 +15,20 @@
         android:maxLines="1"
         android:text="Player Name"/>
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnTransferHost"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Make Host"/>
+        android:layout_marginEnd="4dp"
+        app:iconGravity="textStart"
+        app:icon="@drawable/crown_icon"
+        app:iconPadding="0dp"/>
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnKick"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Kick"/>
+        app:iconGravity="textStart"
+        app:icon="@drawable/kick_player_icon"
+        app:iconPadding="0dp"/>
 </LinearLayout>

@@ -82,6 +82,9 @@ class UserSetting : AppCompatActivity() {
             }
         }
 
+        val cancelBtn: Button = findViewById(R.id.cancelBtn)
+        cancelBtn.setOnClickListener { finish() }
+
     }
 
     private fun userConfirm(uri: String?) {

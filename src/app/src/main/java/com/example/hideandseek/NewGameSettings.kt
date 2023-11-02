@@ -78,6 +78,9 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
                 createButtonClicked(receivedUsername, receivedURI)
             }
         }
+
+        val cancelBtn: Button = findViewById(R.id.btnCancelGame)
+        cancelBtn.setOnClickListener { finish() }
     }
 
     /**

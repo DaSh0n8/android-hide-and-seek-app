@@ -6,4 +6,29 @@
     </style>
 
     <style name="Theme.HideAndSeek" parent="Base.Theme.HideAndSeek" />
+
+    <style name="blackToWhiteText">
+        <item name="android:textColor">@color/black</item>
+    </style>
+
+    <style name="buttonTint">
+        <item name="android:backgroundTint">#333333</item>
+    </style>
+
+    <style name="borderBox">
+        <item name="android:background">@drawable/border_box</item>
+    </style>
+
+    <style name="background">
+        <item name="android:background">@drawable/page_background</item>
+    </style>
+
+    <style name="helpIcon">
+        <item name="srcCompat">@drawable/help_icon</item>
+    </style>
+
+    <style name="chatBubble">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:background">@drawable/message_border</item>
+    </style>
 </resources>
