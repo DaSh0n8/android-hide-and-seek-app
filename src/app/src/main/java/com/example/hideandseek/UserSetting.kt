@@ -25,7 +25,6 @@ import com.google.firebase.database.ValueEventListener
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.segmentation.Segmentation
 import com.google.mlkit.vision.segmentation.selfie.SelfieSegmenterOptions
-import java.io.ByteArrayOutputStream
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.time.LocalTime
@@ -33,7 +32,7 @@ import java.time.LocalTime
 class UserSetting : AppCompatActivity() {
     private var host: Boolean = false
     private var lobbyCode: String? = null
-    private var userIcon: Bitmap? = null
+    private var uri: String? = null
     private lateinit var database: FirebaseDatabase
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -56,11 +55,11 @@ class UserSetting : AppCompatActivity() {
                     // show the progress bar
                     val loading = this.findViewById<ProgressBar>(R.id.loading)
                     loading.visibility = View.VISIBLE
-                    val output = result.data?.getStringExtra("uri")
+                    uri = result.data?.getStringExtra("uri")
 
                     // show the selfie segmentation if available
-                    if (output != null) {
-                        selfieSegmentation(output)
+                    if (uri != null) {
+                        selfieSegmentation(uri!!)
                     }
                 }
             }
@@ -76,16 +75,16 @@ class UserSetting : AppCompatActivity() {
         confirmBtn.setOnClickListener {
             NetworkUtils.checkConnectivityAndProceed(this) {
                 if (host) {
-                    hostConfirm(userIcon)
+                    hostConfirm(uri)
                 } else {
-                    userConfirm(userIcon)
+                    userConfirm(uri)
                 }
             }
         }
 
     }
 
-    private fun userConfirm(userIcon: Bitmap?) {
+    private fun userConfirm(uri: String?) {
         val usernameInput: EditText = findViewById(R.id.username_input)
         val username: String = usernameInput.text.toString()
 
@@ -134,14 +133,9 @@ class UserSetting : AppCompatActivity() {
                                 intent.putExtra("isSeeker", false)
                                 intent.putExtra("playerCode", playerCode)
 
-                                if (userIcon != null) {
-                                    // compress the bitmap
-                                    val stream = ByteArrayOutputStream()
-                                    userIcon?.compress(Bitmap.CompressFormat.PNG, 100, stream)
-                                    val byteArray = stream.toByteArray()
-
+                                if (uri != null) {
                                     // pass the bitmap to next activity
-                                    intent.putExtra("userIcon", byteArray)
+                                    intent.putExtra("uri", uri)
                                 }
 
                                 startActivity(intent)
@@ -163,7 +157,7 @@ class UserSetting : AppCompatActivity() {
             })
         }
     }
-    private fun hostConfirm(userIcon: Bitmap?) {
+    private fun hostConfirm(uri: String?) {
         val usernameInput: EditText = findViewById(R.id.username_input)
         val username: String = usernameInput.text.toString()
 
@@ -172,14 +166,9 @@ class UserSetting : AppCompatActivity() {
         } else {
             val intent: Intent = Intent(this@UserSetting,NewGameSettings::class.java)
 
-            if (userIcon != null) {
-                // compress the bitmap
-                val stream = ByteArrayOutputStream()
-                userIcon?.compress(Bitmap.CompressFormat.PNG, 100, stream)
-                val byteArray = stream.toByteArray()
-
+            if (uri != null) {
                 // pass the bitmap to next activity
-                intent.putExtra("userIcon", byteArray)
+                intent.putExtra("uri", uri)
             }
 
             intent.putExtra("username_key", username)
