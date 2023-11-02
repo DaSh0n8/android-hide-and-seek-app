@@ -63,7 +63,7 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
         database = application.getRealtimeDb()
 
         // observe the changes on the slider
-        val discreteSlider: Slider = findViewById(R.id.discreteSlider)
+        val discreteSlider: Slider = findViewById(R.id.radiusSlider)
         discreteSlider.addOnChangeListener { _, radius, _ ->
             // update the visible geofence on map as it goes
             geofenceRadius = radius.toDouble()
@@ -96,7 +96,7 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
         val gameTimeInput: EditText = findViewById(R.id.editGameTime)
         val gameTime: String = gameTimeInput.text.toString().trim()
 
-        val radiusInput: Slider = findViewById(R.id.discreteSlider)
+        val radiusInput: Slider = findViewById(R.id.radiusSlider)
         val geofenceRadius: Float = radiusInput.value
 
         val gameSessionRef = database.getReference("gameSessions").push()

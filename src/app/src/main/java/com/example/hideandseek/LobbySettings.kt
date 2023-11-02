@@ -84,7 +84,7 @@ class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
         database = application.getRealtimeDb()
 
         // observe the changes on the slider
-        val discreteSlider: Slider = findViewById(R.id.discreteSlider)
+        val discreteSlider: Slider = findViewById(R.id.radiusSlider)
         discreteSlider.addOnChangeListener { _, radius, _ ->
             // update the visible geofence on map as it goes
             geofenceRadius = radius.toDouble()
@@ -108,7 +108,7 @@ class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
         val hidingTimeInput: EditText = findViewById(R.id.editHidingTime)
         val updateIntervalInput: EditText = findViewById(R.id.editUpdateInterval)
         val gameTimeInput: EditText = findViewById(R.id.editGameTime)
-        val radiusInput: Slider = findViewById(R.id.discreteSlider)
+        val radiusInput: Slider = findViewById(R.id.radiusSlider)
 
         val gameSessionRef = database.getReference("gameSessions")
         val query = gameSessionRef.orderByChild("sessionId").equalTo(lobbyCode)
@@ -150,7 +150,7 @@ class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
         val gameTimeInput: EditText = findViewById(R.id.editGameTime)
         val gameTime: String = gameTimeInput.text.toString().trim()
 
-        val radiusInput: Slider = findViewById(R.id.discreteSlider)
+        val radiusInput: Slider = findViewById(R.id.radiusSlider)
         val geofenceRadius: Float = radiusInput.value
 
         if (updateInterval.isBlank() || hidingTime.isBlank() || gameTime.isBlank()) {

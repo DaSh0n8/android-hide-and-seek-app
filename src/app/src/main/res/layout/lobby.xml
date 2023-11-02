@@ -21,8 +21,8 @@
 
         <Button
             android:id="@+id/chatButton"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="45dp"
+            android:layout_height="42dp"
             android:text="Chat"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -138,149 +138,153 @@
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/settingsPlaceholder"
+            style="@style/borderBox"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            style="@style/borderBox"
             app:layout_constraintBottom_toTopOf="@+id/waitHost"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintHorizontal_bias="0.937"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/hiderBox"
             app:layout_constraintVertical_bias="0.0">
 
             <TextView
                 android:id="@+id/hidersTextView"
+                style="@style/blackToWhiteText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="24dp"
                 android:layout_marginTop="16dp"
                 android:text="Hiding Time:"
-                style="@style/blackToWhiteText"
                 android:textSize="17sp"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="@+id/settingsPlaceholder"
                 app:layout_constraintTop_toTopOf="@+id/settingsPlaceholder" />
 
-            <EditText
-                android:id="@+id/editHidingTime"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="-10dp"
-                android:layout_marginEnd="16dp"
-                android:hint="Hiding Time (Mins)"
-                android:inputType="number"
-                app:layout_constraintStart_toEndOf="@+id/hidersTextView"
-                app:layout_constraintTop_toTopOf="@+id/hidersTextView" />
-
             <View
                 android:id="@+id/divider2"
-                android:layout_marginHorizontal="5dp"
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
+                android:layout_marginHorizontal="5dp"
+                android:layout_marginTop="12dp"
                 android:background="#E0E0E0"
                 app:layout_constraintEnd_toEndOf="@+id/settingsPlaceholder"
                 app:layout_constraintStart_toStartOf="@+id/settingsPlaceholder"
-                app:layout_constraintTop_toBottomOf="@+id/editHidingTime" />
+                app:layout_constraintTop_toBottomOf="@+id/hidersTextView" />
 
             <TextView
                 android:id="@+id/seekersTextView"
+                style="@style/blackToWhiteText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="24dp"
                 android:layout_marginTop="10dp"
                 android:text="Ping Interval:"
-                style="@style/blackToWhiteText"
                 android:textSize="17sp"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="@+id/settingsPlaceholder"
                 app:layout_constraintTop_toBottomOf="@+id/divider2" />
 
-            <EditText
-                android:id="@+id/editUpdateInterval"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="-10dp"
-                android:layout_marginEnd="16dp"
-                android:hint="Ping Interval (Mins)"
-                android:inputType="number"
-                app:layout_constraintStart_toEndOf="@+id/seekersTextView"
-                app:layout_constraintTop_toTopOf="@+id/seekersTextView" />
-
             <View
                 android:id="@+id/divider3"
                 android:layout_width="match_parent"
-                android:layout_margin="5dp"
                 android:layout_height="1dp"
-                android:layout_marginTop="0dp"
+                android:layout_margin="5dp"
+                android:layout_marginTop="17dp"
                 android:background="#E0E0E0"
                 app:layout_constraintEnd_toEndOf="@+id/settingsPlaceholder"
                 app:layout_constraintStart_toStartOf="@+id/settingsPlaceholder"
-                app:layout_constraintTop_toBottomOf="@+id/editUpdateInterval" />
+                app:layout_constraintTop_toBottomOf="@+id/seekersTextView" />
 
             <TextView
                 android:id="@+id/timeTextView"
+                style="@style/blackToWhiteText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="24dp"
                 android:layout_marginTop="10dp"
                 android:text="Game Length:"
-                style="@style/blackToWhiteText"
                 android:textSize="17sp"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="@+id/settingsPlaceholder"
                 app:layout_constraintTop_toBottomOf="@+id/divider3" />
-
-            <EditText
-                android:id="@+id/editGameTime"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="-10dp"
-                android:layout_marginEnd="16dp"
-                android:hint="Game Time (Mins)"
-                android:inputType="number"
-                app:layout_constraintStart_toEndOf="@+id/timeTextView"
-                app:layout_constraintTop_toTopOf="@+id/timeTextView" />
 
             <View
                 android:id="@+id/divider1"
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:layout_marginHorizontal="5dp"
-                android:layout_marginTop="0dp"
+                android:layout_marginTop="12dp"
                 android:background="#E0E0E0"
                 app:layout_constraintEnd_toEndOf="@+id/settingsPlaceholder"
                 app:layout_constraintStart_toStartOf="@+id/settingsPlaceholder"
-                app:layout_constraintTop_toBottomOf="@+id/editGameTime" />
+                app:layout_constraintTop_toBottomOf="@+id/timeTextView" />
 
             <TextView
                 android:id="@+id/modeTextView"
+                style="@style/blackToWhiteText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="24dp"
                 android:layout_marginTop="10dp"
                 android:text="Radius:"
-                style="@style/blackToWhiteText"
                 android:textSize="17sp"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="@+id/settingsPlaceholder"
                 app:layout_constraintTop_toBottomOf="@+id/divider1" />
 
             <com.google.android.material.slider.Slider
-                android:id="@+id/discreteSlider"
+                android:id="@+id/radiusSlider"
                 android:layout_width="200dp"
                 android:layout_height="20dp"
-                android:layout_marginTop="0dp"
                 android:layout_marginStart="30dp"
+                android:layout_marginTop="0dp"
                 android:stepSize="100"
                 android:valueFrom="100"
                 android:valueTo="500"
+                android:enabled="false"
                 app:layout_constraintStart_toEndOf="@+id/modeTextView"
                 app:layout_constraintTop_toBottomOf="@+id/divider1"
-                app:thumbColor="#005AFF"/>
+                app:thumbColor="#005AFF" />
+
+            <TextView
+                android:id="@+id/hidingTimeField"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="14dp"
+                android:text="Hiding Time"
+                app:layout_constraintBottom_toTopOf="@+id/divider2"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.503"
+                app:layout_constraintStart_toEndOf="@+id/hidersTextView"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.888" />
+
+            <TextView
+                android:id="@+id/pingIntervalField"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="11dp"
+                android:text="Ping Interval"
+                app:layout_constraintBottom_toTopOf="@+id/divider3"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.503"
+                app:layout_constraintStart_toEndOf="@+id/seekersTextView"
+                app:layout_constraintTop_toBottomOf="@+id/divider2" />
+
+            <TextView
+                android:id="@+id/gameLengthField"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                android:layout_marginBottom="11dp"
+                android:text="Game Length"
+                app:layout_constraintBottom_toTopOf="@+id/divider1"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/timeTextView"
+                app:layout_constraintTop_toBottomOf="@+id/divider3" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

@@ -8,6 +8,7 @@ import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.widget.ArrayAdapter
 import android.widget.Button
+import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ListView
 import android.widget.TextView
@@ -15,6 +16,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import com.google.android.material.slider.Slider
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -73,6 +75,8 @@ class Lobby : AppCompatActivity() {
             uploadIcon(receivedUserIcon, receivedLobbyCode, receivedUsername)
         }
 
+        loadSettingsInFields(receivedLobbyCode)
+
         val query = realtimeDb.getReference("gameSessions")
             .orderByChild("sessionId")
             .equalTo(receivedLobbyCode)
@@ -126,7 +130,7 @@ class Lobby : AppCompatActivity() {
             }
         }
 
-        val updateGameSettings: FrameLayout = findViewById(R.id.settingsPlaceholder)
+        val updateGameSettings: Button = findViewById(R.id.settingsButton)
         updateGameSettings.setOnClickListener {
             NetworkUtils.checkConnectivityAndProceed(this) {
                 val intent = Intent(this@Lobby, LobbySettings::class.java)
@@ -139,6 +143,7 @@ class Lobby : AppCompatActivity() {
 
         lobbyListener = query.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
+                loadSettingsInFields(currentLobbyCode)
                 seekersList.clear()
                 hidersList.clear()
 
@@ -211,7 +216,7 @@ class Lobby : AppCompatActivity() {
     private fun updateUIBasedOnHostStatus(isHost: Boolean) {
         val startGameButton: Button = findViewById(R.id.startGameButton)
         val waitHost: TextView = findViewById(R.id.waitHost)
-        val updateGameSettings: FrameLayout = findViewById(R.id.settingsPlaceholder)
+        val updateGameSettings: Button = findViewById(R.id.settingsButton)
         val hidersListView = findViewById<ListView>(R.id.hiderListView)
         val seekersListView = findViewById<ListView>(R.id.seekerListView)
 
@@ -618,6 +623,38 @@ class Lobby : AppCompatActivity() {
 
             override fun onCancelled(databaseError: DatabaseError) {
                 Toast.makeText(this@Lobby, "Error fetching data", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
+    private fun loadSettingsInFields(lobbyCode: String?){
+        if (lobbyCode == null){
+            return
+        }
+        val hidingTimeInput: TextView = findViewById(R.id.hidingTimeField)
+        val updateIntervalInput: TextView = findViewById(R.id.pingIntervalField)
+        val gameTimeInput: TextView = findViewById(R.id.gameLengthField)
+        val radiusInput: Slider = findViewById(R.id.radiusSlider)
+
+        val gameSessionRef = realtimeDb.getReference("gameSessions")
+        val query = gameSessionRef.orderByChild("sessionId").equalTo(lobbyCode)
+
+        query.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (snapshot.exists()) {
+                    val gameSessionSnapshot = snapshot.children.first()
+                    val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+
+                    gameSession?.let {
+                        hidingTimeInput.setText(it.hidingTime.toString())
+                        updateIntervalInput.setText(it.updateInterval.toString())
+                        gameTimeInput.setText(it.gameLength.toString())
+                        radiusInput.value = it.radius.toFloat()
+                    }
+                }
+            }
+            override fun onCancelled(error: DatabaseError) {
+                Toast.makeText(this@Lobby, "Error loading game settings", Toast.LENGTH_SHORT).show()
             }
         })
     }
