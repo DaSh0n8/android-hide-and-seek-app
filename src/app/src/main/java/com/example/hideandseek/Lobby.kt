@@ -12,15 +12,12 @@ import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.widget.ArrayAdapter
 import android.widget.Button
-import android.widget.EditText
-import android.widget.FrameLayout
 import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import com.google.android.material.slider.Slider
 import androidx.core.graphics.drawable.toBitmap
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -702,7 +699,8 @@ class Lobby : AppCompatActivity() {
         titleText: String,
         messageText: String,
         positiveButtonText: String,
-        positiveButtonAction: () -> Unit
+        positiveButtonAction: () -> Unit,
+        onCancelAction: () -> Unit // Add a parameter for onCancel action
     ) {
         val builder = AlertDialog.Builder(this)
 
@@ -722,6 +720,10 @@ class Lobby : AppCompatActivity() {
                 positiveButtonAction()
                 dialog.dismiss()
             }
+            setOnCancelListener {
+                onCancelAction() // Execute onCancel action
+            }
+
             val dialog = create()
             dialog.setOnShowListener { dialogInterface ->
                 val okButton = (dialogInterface as AlertDialog).getButton(AlertDialog.BUTTON_POSITIVE)
@@ -731,33 +733,45 @@ class Lobby : AppCompatActivity() {
         }
     }
 
+
     private fun removedDialog(lobbyCode: String?, reason: String) {
         createCustomDialog(
             "Sorry...",
             "You have been removed by the host",
-            "OK"
-        ) {
-            returnHomeIntent(lobbyCode, reason)
-        }
+            "OK",
+            {
+                returnHomeIntent(lobbyCode, reason)
+            },
+            {
+                returnHomeIntent(lobbyCode, reason)
+            }
+        )
     }
 
     private fun madeHostDialog() {
         createCustomDialog(
             "Hey...",
             "You have been made host",
-            "OK"
-        ) { /* Positive button action for madeHostDialog */ }
+            "OK",
+            {},
+            {}
+        )
     }
 
     private fun hostLeftDialog(lobbyCode: String?, reason: String) {
         createCustomDialog(
             "Sorry...",
             "Host has left the game",
-            "OK"
-        ) {
-            returnHomeIntent(lobbyCode, reason)
-        }
+            "OK",
+            {
+                returnHomeIntent(lobbyCode, reason)
+            },
+            {
+                returnHomeIntent(lobbyCode, reason)
+            }
+        )
     }
+
 
     private fun selfieSegmentation(output: String, lobbyCode: String?, username: String?) {
         try {

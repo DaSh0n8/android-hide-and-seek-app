@@ -428,7 +428,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                             // eliminate self if exited the geofence
                             val geofenceLatLng = LatLng(gameSession!!.geofenceLat, gameSession.geofenceLon)
                             val leeway = 10 // 10 metres leeway
-                            if(!p.eliminated && !isCoordinateInsideGeofence(user, geofenceLatLng, (geofenceRadius+leeway).toDouble())) {
+                            if(!p.seeker && !p.eliminated && !isCoordinateInsideGeofence(user, geofenceLatLng, (geofenceRadius+leeway).toDouble())) {
                                 eliminatePlayer(p.playerCode, false)
                                 exitGeofenceDialog()
                             }
