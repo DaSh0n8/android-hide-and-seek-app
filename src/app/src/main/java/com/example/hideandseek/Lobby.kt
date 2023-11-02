@@ -12,12 +12,15 @@ import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.widget.ArrayAdapter
 import android.widget.Button
+import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import com.google.android.material.slider.Slider
 import androidx.core.graphics.drawable.toBitmap
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -82,6 +85,8 @@ class Lobby : AppCompatActivity() {
         if (receivedURI != null) {
             selfieSegmentation(receivedURI, receivedLobbyCode, receivedUsername)
         }
+
+        loadSettingsInFields(receivedLobbyCode)
 
         val query = realtimeDb.getReference("gameSessions")
             .orderByChild("sessionId")
@@ -149,6 +154,7 @@ class Lobby : AppCompatActivity() {
 
         lobbyListener = query.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
+                loadSettingsInFields(currentLobbyCode)
                 seekersList.clear()
                 hidersList.clear()
 
@@ -568,7 +574,7 @@ class Lobby : AppCompatActivity() {
                         for (player in gameSession.players) {
                             val lastUpdatedTime = LocalTime.parse(player.lastUpdated)
                             val duration = Duration.between(lastUpdatedTime, currentTime)
-                            if (duration.seconds > 20) {
+                            if (duration.seconds > 60) {
                                 kickPlayer(lobbyCode, player.userName)
                                 Log.e("checkPlayerActivity", "Kicking the player ${player.userName}")
                             }
@@ -632,6 +638,38 @@ class Lobby : AppCompatActivity() {
         })
     }
 
+    private fun loadSettingsInFields(lobbyCode: String?){
+        if (lobbyCode == null){
+            return
+        }
+        val hidingTimeInput: TextView = findViewById(R.id.hidingTimeField)
+        val updateIntervalInput: TextView = findViewById(R.id.pingIntervalField)
+        val gameTimeInput: TextView = findViewById(R.id.gameLengthField)
+        val radiusInput: TextView = findViewById(R.id.radiusText)
+
+        val gameSessionRef = realtimeDb.getReference("gameSessions")
+        val query = gameSessionRef.orderByChild("sessionId").equalTo(lobbyCode)
+
+        query.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (snapshot.exists()) {
+                    val gameSessionSnapshot = snapshot.children.first()
+                    val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
+
+                    gameSession?.let {
+                        hidingTimeInput.setText(it.hidingTime.toString())
+                        updateIntervalInput.setText(it.updateInterval.toString())
+                        gameTimeInput.setText(it.gameLength.toString())
+                        radiusInput.setText(it.radius.toString())
+                    }
+                }
+            }
+            override fun onCancelled(error: DatabaseError) {
+                Toast.makeText(this@Lobby, "Error loading game settings", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
     override fun onStop() {
         super.onStop()
         connectTimer.cancel()
@@ -639,7 +677,7 @@ class Lobby : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         var tickCounter = 0
-        val interval = 10
+        val interval = 5
         connectTimer = object: CountDownTimer(Long.MAX_VALUE, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 if (tickCounter == interval) {

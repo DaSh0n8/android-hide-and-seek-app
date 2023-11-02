@@ -126,7 +126,185 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
+
+        <!--        <Button-->
+        <!--            android:id="@+id/switchTeamButton"-->
+        <!--            android:layout_width="wrap_content"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:layout_marginTop="12dp"-->
+        <!--            android:backgroundTint="#005AFF"-->
+        <!--            android:text="Switch Teams"-->
+        <!--            app:layout_constraintEnd_toStartOf="@+id/leaveLobbyButton"-->
+        <!--            app:layout_constraintHorizontal_bias="0.5"-->
+        <!--            app:layout_constraintStart_toStartOf="parent"-->
+        <!--            app:layout_constraintTop_toBottomOf="@+id/hiderListView" />-->
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/settingsPlaceholder"
+            style="@style/borderBox"
+            android:layout_width="362dp"
+            android:layout_height="183dp"
+            android:layout_marginTop="10dp"
+            app:layout_constraintBottom_toTopOf="@+id/waitHost"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.937"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/hiderBox"
+            app:layout_constraintVertical_bias="0.0">
+
+            <TextView
+                android:id="@+id/hidersTextView"
+                style="@style/blackToWhiteText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="16dp"
+                android:text="Hiding Time:"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="@+id/settingsPlaceholder"
+                app:layout_constraintTop_toTopOf="@+id/settingsPlaceholder" />
+
+            <View
+                android:id="@+id/divider2"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginHorizontal="5dp"
+                android:layout_marginTop="12dp"
+                android:background="#E0E0E0"
+                app:layout_constraintEnd_toEndOf="@+id/settingsPlaceholder"
+                app:layout_constraintStart_toStartOf="@+id/settingsPlaceholder"
+                app:layout_constraintTop_toBottomOf="@+id/hidersTextView" />
+
+            <TextView
+                android:id="@+id/seekersTextView"
+                style="@style/blackToWhiteText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="10dp"
+                android:text="Ping Interval:"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="@+id/settingsPlaceholder"
+                app:layout_constraintTop_toBottomOf="@+id/divider2" />
+
+            <View
+                android:id="@+id/divider3"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_margin="5dp"
+                android:layout_marginTop="17dp"
+                android:background="#E0E0E0"
+                app:layout_constraintEnd_toEndOf="@+id/settingsPlaceholder"
+                app:layout_constraintStart_toStartOf="@+id/settingsPlaceholder"
+                app:layout_constraintTop_toBottomOf="@+id/seekersTextView" />
+
+            <TextView
+                android:id="@+id/timeTextView"
+                style="@style/blackToWhiteText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="10dp"
+                android:text="Game Length:"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="@+id/settingsPlaceholder"
+                app:layout_constraintTop_toBottomOf="@+id/divider3" />
+
+            <View
+                android:id="@+id/divider1"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginHorizontal="5dp"
+                android:layout_marginTop="12dp"
+                android:background="#E0E0E0"
+                app:layout_constraintEnd_toEndOf="@+id/settingsPlaceholder"
+                app:layout_constraintStart_toStartOf="@+id/settingsPlaceholder"
+                app:layout_constraintTop_toBottomOf="@+id/timeTextView" />
+
+            <TextView
+                android:id="@+id/modeTextView"
+                style="@style/blackToWhiteText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="10dp"
+                android:text="Radius:"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="@+id/settingsPlaceholder"
+                app:layout_constraintTop_toBottomOf="@+id/divider1" />
+
+            <TextView
+                android:id="@+id/hidingTimeField"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="14dp"
+                android:text="Hiding Time"
+                app:layout_constraintBottom_toTopOf="@+id/divider2"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.503"
+                app:layout_constraintStart_toEndOf="@+id/hidersTextView"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.888" />
+
+            <TextView
+                android:id="@+id/pingIntervalField"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="11dp"
+                android:text="Ping Interval"
+                app:layout_constraintBottom_toTopOf="@+id/divider3"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.503"
+                app:layout_constraintStart_toEndOf="@+id/seekersTextView"
+                app:layout_constraintTop_toBottomOf="@+id/divider2" />
+
+            <TextView
+                android:id="@+id/gameLengthField"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                android:layout_marginBottom="11dp"
+                android:text="Game Length"
+                app:layout_constraintBottom_toTopOf="@+id/divider1"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/timeTextView"
+                app:layout_constraintTop_toBottomOf="@+id/divider3" />
+
+            <TextView
+                android:id="@+id/radiusText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:text="TextView"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.626"
+                app:layout_constraintStart_toEndOf="@+id/modeTextView" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <TextView
+            android:id="@+id/waitHost"
+            style="@style/blackToWhiteText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Waiting for host to start the game..."
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toTopOf="@+id/buttonRow"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.505"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/settingsPlaceholder" />
+
         <LinearLayout
+            android:id="@+id/buttonRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -194,40 +372,25 @@
         </LinearLayout>
 
 
-        <FrameLayout
-            android:id="@+id/settingsPlaceholder"
-            android:layout_width="match_parent"
-            android:layout_height="141dp"
-            android:layout_marginTop="12dp"
-            android:background="@android:color/darker_gray"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHeight_percent="0.3"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/hiderBox"
-            app:layout_constraintWidth_percent="0.8">
+        <!--        <FrameLayout-->
+        <!--            android:id="@+id/settingsPlaceholder"-->
+        <!--            android:layout_width="match_parent"-->
+        <!--            android:layout_height="141dp"-->
+        <!--            android:layout_marginTop="12dp"-->
+        <!--            android:background="@android:color/darker_gray"-->
+        <!--            app:layout_constraintEnd_toEndOf="parent"-->
+        <!--            app:layout_constraintHeight_percent="0.3"-->
+        <!--            app:layout_constraintStart_toStartOf="parent"-->
+        <!--            app:layout_constraintTop_toBottomOf="@+id/hiderBox"-->
+        <!--            app:layout_constraintWidth_percent="0.8">-->
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="Game Settings Placeholder" />
-        </FrameLayout>
+        <!--            <TextView-->
+        <!--                android:layout_width="wrap_content"-->
+        <!--                android:layout_height="wrap_content"-->
+        <!--                android:layout_gravity="center"-->
+        <!--                android:text="Game Settings Placeholder" />-->
+        <!--        </FrameLayout>-->
 
-
-        <TextView
-            android:id="@+id/waitHost"
-            style="@style/blackToWhiteText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Waiting for host to start the game..."
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:visibility="invisible"
-            app:layout_constraintBottom_toTopOf="@+id/startGameButton"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.505"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/settingsPlaceholder" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
