@@ -3,7 +3,6 @@ package com.example.hideandseek
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
-import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
@@ -17,14 +16,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.SwitchCompat
 import androidx.core.content.ContextCompat
-import kotlin.properties.Delegates
 
 class HomeScreen : AppCompatActivity() {
 
     private lateinit var lightSensor: LightSensor
-//    private lateinit var editor: SharedPreferences.Editor
-//    private var isLightSensorEnabled by Delegates.notNull<Boolean>()
-//    private val LIGHT_SENSOR_ENABLED_PREFERENCE = "light_sensor_enabled_preference"
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.home_screen)
@@ -33,18 +29,7 @@ class HomeScreen : AppCompatActivity() {
         val locationHelper = LocationHelper(this, 1)
         locationHelper.askPermission()
 
-//        val sharedPrefs = getSharedPreferences("MyAppPrefs", Context.MODE_PRIVATE)
-//        isLightSensorEnabled = sharedPrefs.getBoolean(LIGHT_SENSOR_ENABLED_PREFERENCE, true)
-//        editor = sharedPrefs.edit()
-//        editor.putBoolean(LIGHT_SENSOR_ENABLED_PREFERENCE, false)
-//        editor.apply()
         lightSensor = LightSensor(this)
-
-
-//        if(!isLightSensorEnabled) {
-//            lightSensor.disableSensor()
-//        }
-
 
         val createGameButton: Button = findViewById(R.id.createGameButton)
         createGameButton.setOnClickListener {
@@ -76,11 +61,7 @@ class HomeScreen : AppCompatActivity() {
         val nightModeSwitch: SwitchCompat = findViewById(R.id.nightModeSwitch)
         lightSensor.setSwitch(nightModeSwitch)
         nightModeSwitch.setOnClickListener {
-//            if (isLightSensorEnabled) {
-//                editor.putBoolean(LIGHT_SENSOR_ENABLED_PREFERENCE, false)
-//                editor.apply()
             lightSensor.disableSensor()
-//            }
             if (nightModeSwitch.isChecked) {
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
             } else {
