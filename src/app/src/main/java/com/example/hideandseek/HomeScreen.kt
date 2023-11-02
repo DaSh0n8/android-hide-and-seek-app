@@ -72,6 +72,11 @@ class HomeScreen : AppCompatActivity() {
         if (error != null) {
             Toast.makeText(this@HomeScreen, error, Toast.LENGTH_LONG).show()
         }
+        val tutorial: Button = findViewById(R.id.tutorial)
+        tutorial.setOnClickListener{
+            val intent = Intent(this@HomeScreen, TutorialPageMain::class.java)
+            startActivity(intent)
+        }
     }
 
     private fun openAppSettings() {
