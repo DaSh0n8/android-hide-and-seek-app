@@ -19,7 +19,7 @@
             android:layout_width="55dp"
             android:layout_height="41dp"
             android:layout_marginTop="10dp"
-            android:background="@color/white"
+            android:background="#00000000"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/eliminated" />
     </LinearLayout>
@@ -49,10 +49,11 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="30dp"
             android:text="Switch Teams:"
+            android:gravity="center"
             android:textStyle="bold|italic"
-            android:textSize="20dp"
+            android:textSize="30dp"
             />
 
         <LinearLayout
@@ -62,91 +63,76 @@
             android:orientation="horizontal">
 
             <TextView
-                android:layout_width="242dp"
+                android:layout_width="293dp"
                 android:layout_height="match_parent"
                 android:gravity="center"
                 android:text="Click this button to switch to the opposite team"
                 android:textSize="18dp" />
 
-            <ImageView
-                android:id="@+id/imageView5"
-                android:layout_width="136dp"
-                android:layout_height="match_parent"
-                app:layout_constraintBottom_toTopOf="@+id/guideline4"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/guideline2"
-                app:srcCompat="@drawable/switchbtn" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/switchTeamButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginBottom="4dp"
+                android:layout_weight="1"
+                android:backgroundTint="#005AFF"
+                app:icon="@drawable/swap_icon"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                app:iconTint="@color/white"
+                app:layout_constraintBottom_toBottomOf="parent" />
         </LinearLayout>
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="30dp"
             android:text="Leave Lobby:"
+            android:gravity="center"
             android:textStyle="bold|italic"
-            android:textSize="20dp"
+            android:textSize="30dp"
             />
 
         <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="64dp"
+            android:layout_height="62dp"
             android:orientation="horizontal">
 
             <TextView
-                android:layout_width="238dp"
-                android:layout_height="match_parent"
+                android:layout_width="292dp"
+                android:layout_height="62dp"
                 android:gravity="center"
                 android:text="Click this button to leave the lobby"
                 android:textSize="18dp" />
 
-            <ImageView
-                android:id="@+id/imageView6"
-                android:layout_width="144dp"
-                android:layout_height="match_parent"
-                app:layout_constraintBottom_toTopOf="@+id/guideline4"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/leaveLobbyButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginBottom="4dp"
+                android:layout_weight="1"
+                android:backgroundTint="#005AFF"
+                app:icon="@drawable/leave_lobby_icon"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                app:iconTint="@color/white"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/guideline2"
-                app:srcCompat="@drawable/exit" />
+                app:layout_constraintEnd_toStartOf="@+id/switchTeamButton"
+                app:layout_constraintStart_toStartOf="parent" />
         </LinearLayout>
+
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="20dp"
-            android:text="Game Setting:"
-            android:textStyle="bold|italic"
-            android:textSize="20dp"
-            />
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="64dp"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="238dp"
-                android:layout_height="match_parent"
-                android:gravity="center"
-                android:text="Click this button to change the game settings"
-                android:textSize="18dp" />
-
-            <ImageView
-                android:id="@+id/imageView7"
-                android:layout_width="144dp"
-                android:layout_height="53dp"
-                app:layout_constraintBottom_toTopOf="@+id/guideline4"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/guideline2"
-                app:srcCompat="@drawable/set" />
-        </LinearLayout>
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="30dp"
+            android:gravity="center"
             android:text="Chat:"
             android:textStyle="bold|italic"
-            android:textSize="20dp"
+            android:textSize="30dp"
             />
         <LinearLayout
             android:layout_width="wrap_content"
@@ -154,44 +140,48 @@
             android:orientation="horizontal">
 
             <TextView
-                android:layout_width="238dp"
+                android:layout_width="295dp"
                 android:layout_height="match_parent"
                 android:gravity="center"
                 android:text="Click this button to chat with your buddies"
                 android:textSize="18dp" />
 
-            <ImageView
-                android:id="@+id/imageView8"
-                android:layout_width="144dp"
-                android:layout_height="51dp"
-                app:layout_constraintBottom_toTopOf="@+id/guideline4"
+            <Button
+                android:id="@+id/chatButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/blue"
+                app:icon="@drawable/chat"
+                android:layout_marginStart="10dp"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/guideline2"
-                app:srcCompat="@drawable/chat" />
+                app:layout_constraintTop_toTopOf="parent" />
         </LinearLayout>
 
     </LinearLayout>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:background="@color/white"
         android:gravity="center|bottom">
+
         <ImageButton
             android:id="@+id/left_b"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_weight="1"
-            android:background="@color/white"
+            android:background="#00000000"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/left_arrow" />
+
         <ImageButton
             android:id="@+id/right_b"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_weight="1"
-            android:background="@color/white"
+            android:background="#00000000"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/right_arrow" />
 
