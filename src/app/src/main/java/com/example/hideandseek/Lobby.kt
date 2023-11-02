@@ -645,7 +645,7 @@ class Lobby : AppCompatActivity() {
         val hidingTimeInput: TextView = findViewById(R.id.hidingTimeField)
         val updateIntervalInput: TextView = findViewById(R.id.pingIntervalField)
         val gameTimeInput: TextView = findViewById(R.id.gameLengthField)
-        val radiusInput: Slider = findViewById(R.id.radiusSlider)
+        val radiusInput: TextView = findViewById(R.id.radiusText)
 
         val gameSessionRef = realtimeDb.getReference("gameSessions")
         val query = gameSessionRef.orderByChild("sessionId").equalTo(lobbyCode)
@@ -660,7 +660,7 @@ class Lobby : AppCompatActivity() {
                         hidingTimeInput.setText(it.hidingTime.toString())
                         updateIntervalInput.setText(it.updateInterval.toString())
                         gameTimeInput.setText(it.gameLength.toString())
-                        radiusInput.value = it.radius.toFloat()
+                        radiusInput.setText(it.radius.toString())
                     }
                 }
             }
