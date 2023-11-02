@@ -53,7 +53,7 @@ class GameOver : AppCompatActivity() {
             } else {
                 resultImg.setImageResource(R.drawable.seekers_win_night)
             }
-            if (isSeeker!!) {
+            if (isSeeker) {
                 resultText.text = youWon
                 if (mediaPlayer == null) {
                     mediaPlayer = MediaPlayer.create(this, R.raw.win)
@@ -78,7 +78,7 @@ class GameOver : AppCompatActivity() {
             } else {
                 resultImg.setImageResource(R.drawable.hiders_win_night)
             }
-            if (isSeeker!!) {
+            if (isSeeker) {
                 resultText.text = youLost
                 if (mediaPlayer == null) {
                     mediaPlayer = MediaPlayer.create(this, R.raw.fail)
