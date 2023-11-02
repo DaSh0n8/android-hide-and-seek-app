@@ -424,7 +424,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                             // eliminate self if exited the geofence
                             val geofenceLatLng = LatLng(gameSession!!.geofenceLat, gameSession.geofenceLon)
                             val leeway = 10 // 10 metres leeway
-                            if(!isCoordinateInsideGeofence(user, geofenceLatLng, (geofenceRadius+leeway).toDouble())) {
+                            if(!p.eliminated && !isCoordinateInsideGeofence(user, geofenceLatLng, (geofenceRadius+leeway).toDouble())) {
                                 eliminatePlayer(p.playerCode, false)
                                 Toast.makeText(this@GamePlay, "You have been eliminated as you exited the game area!", Toast.LENGTH_SHORT).show()
                             }
