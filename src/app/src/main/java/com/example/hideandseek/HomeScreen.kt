@@ -34,7 +34,6 @@ class HomeScreen : AppCompatActivity() {
                 if (locationHelper.checkLocationPermission()) {
                     val intent = Intent(this@HomeScreen, UserSetting::class.java)
                     intent.putExtra("host", true)
-                    lightSensor.disableSensor()
                     startActivity(intent)
                 } else {
                     connectInternetDialog()
@@ -47,7 +46,6 @@ class HomeScreen : AppCompatActivity() {
             NetworkUtils.checkConnectivityAndProceed(this) {
                 if (locationHelper.checkLocationPermission()) {
                     val intent = Intent(this@HomeScreen, JoinGame::class.java)
-                    lightSensor.disableSensor()
                     startActivity(intent)
                 } else {
                     connectInternetDialog()
@@ -55,18 +53,18 @@ class HomeScreen : AppCompatActivity() {
             }
         }
 
-
         //  Night mode switch
         val nightModeSwitch: SwitchCompat = findViewById(R.id.nightModeSwitch)
+        lightSensor.setSwitch(nightModeSwitch)
         nightModeSwitch.setOnClickListener {
+            lightSensor.disableSensor()
             if (nightModeSwitch.isChecked) {
-                lightSensor.disableSensor()
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
             } else {
-                lightSensor.disableSensor()
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
             }
         }
+
 
         val error = intent.getStringExtra("error")
         if (error != null) {
@@ -77,6 +75,13 @@ class HomeScreen : AppCompatActivity() {
             val intent = Intent(this@HomeScreen, TutorialPageMain::class.java)
             startActivity(intent)
         }
+    }
+
+    override fun onPause() {
+        super.onPause()
+
+        // Disable the light sensor when the activity is paused
+        lightSensor.disableSensor()
     }
 
     private fun openAppSettings() {

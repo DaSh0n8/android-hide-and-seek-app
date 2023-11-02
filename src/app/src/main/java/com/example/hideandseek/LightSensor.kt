@@ -9,17 +9,23 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat.getSystemService
 import android.util.Log
+import androidx.appcompat.widget.SwitchCompat
 
 class LightSensor : SensorEventListener {
 
     private var disabled: Boolean = false
     private var context: Context
     private lateinit var sensorManager: SensorManager
+    private lateinit var switch: SwitchCompat
     private var brightness: Sensor? = null
 
     constructor(context: Context) : super() {
         this.context = context
         enableSensor()
+    }
+
+    fun setSwitch(switch: SwitchCompat) {
+        this.switch = switch
     }
 
     private fun enableSensor() {
@@ -38,7 +44,7 @@ class LightSensor : SensorEventListener {
     public fun disableSensor() {
         // Unregister the sensor when the activity pauses.
         sensorManager.unregisterListener(this)
-//        sensorManager.unregisterListener(this)
+//        sensorManager.unregisterListener(this)t
     }
 
 
@@ -55,8 +61,14 @@ class LightSensor : SensorEventListener {
             Log.v("sensor..", "sensor$luxValue")
             if (luxValue.toInt() > 3000) {
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+                if (switch.isChecked) {
+                    switch.toggle()
+                }
             } else {
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+                if (!switch.isChecked) {
+                    switch.toggle()
+                }
             }
         }
     }
