@@ -48,7 +48,7 @@
         <ImageView
             android:id="@+id/imageView5"
             android:layout_width="351dp"
-            android:layout_height="388dp"
+            android:layout_height="308dp"
             app:layout_constraintBottom_toTopOf="@+id/guideline4"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -58,10 +58,21 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="30dp"
             android:gravity="center_horizontal"
             android:text="Once the hiding time is done, seekers can eliminate hiders with their hider codes"
             android:textSize="20dp" />
+
+        <ImageView
+            android:id="@+id/imageView6"
+            android:layout_width="257dp"
+            android:layout_height="103dp"
+            android:layout_marginTop="5dp"
+            app:layout_constraintBottom_toTopOf="@+id/guideline4"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/guideline2"
+            app:srcCompat="@drawable/hidercode" />
     </LinearLayout>
     <LinearLayout
         android:layout_width="match_parent"

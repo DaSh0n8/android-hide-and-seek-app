@@ -19,7 +19,7 @@ class LobbyTutorial : AppCompatActivity() {
             overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
         }
         right.setOnClickListener {
-            val intent = Intent(this@LobbyTutorial, PlayGameTutorial::class.java)
+            val intent = Intent(this@LobbyTutorial, host_settings_tutorial::class.java)
             //intent.putExtra("host", true)
             startActivity(intent)
             overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)

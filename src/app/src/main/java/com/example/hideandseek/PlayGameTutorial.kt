@@ -13,7 +13,7 @@ class PlayGameTutorial : AppCompatActivity() {
         val right : ImageButton = findViewById(R.id.right_button4)
         val exit : ImageButton = findViewById(R.id.close_btn7)
         left.setOnClickListener{
-            val intent = Intent(this@PlayGameTutorial, ChooseGameSettingsTutorial::class.java)
+            val intent = Intent(this@PlayGameTutorial, host_settings_tutorial::class.java)
             //intent.putExtra("host", true)
             startActivity(intent)
             overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
