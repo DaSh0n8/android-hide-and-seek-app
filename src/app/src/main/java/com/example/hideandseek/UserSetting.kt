@@ -3,27 +3,36 @@ package com.example.hideandseek
 import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.os.Bundle
+import android.util.Log
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.graphics.drawable.toBitmap
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
-import java.io.ByteArrayOutputStream
+import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.segmentation.Segmentation
+import com.google.mlkit.vision.segmentation.selfie.SelfieSegmenterOptions
+import java.io.FileNotFoundException
+import java.io.IOException
 import java.time.LocalTime
 
 class UserSetting : AppCompatActivity() {
     private var host: Boolean = false
     private var lobbyCode: String? = null
-    private var userIcon: Bitmap? = null
+    private var uri: String? = null
     private lateinit var database: FirebaseDatabase
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,14 +52,14 @@ class UserSetting : AppCompatActivity() {
         val resultLauncher =
             this.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
                 if (result.resultCode == Activity.RESULT_OK) {
-                    val byteArray = result.data?.getByteArrayExtra("userIcon")
+                    // show the progress bar
+                    val loading = this.findViewById<ProgressBar>(R.id.loading)
+                    loading.visibility = View.VISIBLE
+                    uri = result.data?.getStringExtra("uri")
 
                     // show the selfie segmentation if available
-                    if (byteArray != null) {
-                        userIcon = BitmapFactory.decodeByteArray(byteArray, 0, byteArray?.size ?:0)
-                        var result = makeBlackPixelsTransparent(userIcon!!)
-                        var profilePic: ImageView = findViewById(R.id.profilePic)
-                        profilePic.setImageBitmap(result)
+                    if (uri != null) {
+                        selfieSegmentation(uri!!)
                     }
                 }
             }
@@ -66,16 +75,19 @@ class UserSetting : AppCompatActivity() {
         confirmBtn.setOnClickListener {
             NetworkUtils.checkConnectivityAndProceed(this) {
                 if (host) {
-                    hostConfirm(userIcon)
+                    hostConfirm(uri)
                 } else {
-                    userConfirm(userIcon)
+                    userConfirm(uri)
                 }
             }
         }
 
+        val cancelBtn: Button = findViewById(R.id.cancelBtn)
+        cancelBtn.setOnClickListener { finish() }
+
     }
 
-    private fun userConfirm(userIcon: Bitmap?) {
+    private fun userConfirm(uri: String?) {
         val usernameInput: EditText = findViewById(R.id.username_input)
         val username: String = usernameInput.text.toString()
 
@@ -124,14 +136,9 @@ class UserSetting : AppCompatActivity() {
                                 intent.putExtra("isSeeker", false)
                                 intent.putExtra("playerCode", playerCode)
 
-                                if (userIcon != null) {
-                                    // compress the bitmap
-                                    val stream = ByteArrayOutputStream()
-                                    userIcon?.compress(Bitmap.CompressFormat.PNG, 100, stream)
-                                    val byteArray = stream.toByteArray()
-
+                                if (uri != null) {
                                     // pass the bitmap to next activity
-                                    intent.putExtra("userIcon", byteArray)
+                                    intent.putExtra("uri", uri)
                                 }
 
                                 startActivity(intent)
@@ -153,7 +160,7 @@ class UserSetting : AppCompatActivity() {
             })
         }
     }
-    private fun hostConfirm(userIcon: Bitmap?) {
+    private fun hostConfirm(uri: String?) {
         val usernameInput: EditText = findViewById(R.id.username_input)
         val username: String = usernameInput.text.toString()
 
@@ -162,14 +169,9 @@ class UserSetting : AppCompatActivity() {
         } else {
             val intent: Intent = Intent(this@UserSetting,NewGameSettings::class.java)
 
-            if (userIcon != null) {
-                // compress the bitmap
-                val stream = ByteArrayOutputStream()
-                userIcon?.compress(Bitmap.CompressFormat.PNG, 100, stream)
-                val byteArray = stream.toByteArray()
-
+            if (uri != null) {
                 // pass the bitmap to next activity
-                intent.putExtra("userIcon", byteArray)
+                intent.putExtra("uri", uri)
             }
 
             intent.putExtra("username_key", username)
@@ -198,6 +200,65 @@ class UserSetting : AppCompatActivity() {
         }
 
         return resultBitmap
+    }
+
+    private fun selfieSegmentation(output: String) {
+        try {
+            val uri = Uri.parse(output)
+            var image: InputImage = InputImage.fromFilePath(this@UserSetting, uri)
+
+            // configure segmenter
+            val options =
+                SelfieSegmenterOptions.Builder()
+                    .setDetectorMode(SelfieSegmenterOptions.SINGLE_IMAGE_MODE)
+                    .build()
+            val segmenter = Segmentation.getClient(options)
+
+            // process the image
+            segmenter.process(image)
+                .addOnSuccessListener { results ->
+                    val mask = results.buffer
+                    val maskWidth = results.width
+                    val maskHeight = results.height
+
+                    try {
+                        val inputStream = contentResolver.openInputStream(uri!!)
+                        var userPhoto =
+                            Drawable.createFromStream(inputStream, uri.toString())
+
+                        // convert user image into bitmap and retrieve the foreground
+                        var bitmapImage = userPhoto?.toBitmap(maskWidth, maskHeight)
+                        var copyBitmap = bitmapImage?.copy(Bitmap.Config.ARGB_8888, true)
+
+                        val threshold = 0.92
+                        for (y in 0 until maskHeight) {
+                            for (x in 0 until maskWidth) {
+                                val foregroundConfidence = mask.float
+                                if (foregroundConfidence < threshold) {
+                                    copyBitmap?.setPixel(x, y, Color.TRANSPARENT)
+                                }
+                            }
+                        }
+
+                        // display result
+                        var profilePic: ImageView = findViewById(R.id.profilePic)
+                        profilePic.setImageBitmap(copyBitmap)
+
+                        val loading = this.findViewById<ProgressBar>(R.id.loading)
+                        loading.visibility = View.INVISIBLE
+
+                    } catch (e: FileNotFoundException) {
+                        Log.e("File", "File Absent: $e")
+                    }
+
+                }
+                .addOnFailureListener { e ->
+                    Log.e("Segmentation", "Segmentation failed: $e")
+                }
+
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
     }
 
 }

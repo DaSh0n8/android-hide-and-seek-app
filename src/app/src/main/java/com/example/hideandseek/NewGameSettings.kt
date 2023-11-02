@@ -72,18 +72,21 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
 
         val createGameButton: Button = findViewById(R.id.btnStartGame)
         val receivedUsername: String? = intent.getStringExtra("username_key")
-        val receivedUserIcon: ByteArray? = intent.getByteArrayExtra("userIcon")
+        val receivedURI: String? = intent.getStringExtra("uri")
         createGameButton.setOnClickListener {
             NetworkUtils.checkConnectivityAndProceed(this) {
-                createButtonClicked(receivedUsername, receivedUserIcon)
+                createButtonClicked(receivedUsername, receivedURI)
             }
         }
+
+        val cancelBtn: Button = findViewById(R.id.btnCancelGame)
+        cancelBtn.setOnClickListener { finish() }
     }
 
     /**
      * Create game session with user input values
      */
-    private fun createButtonClicked(username: String?, userIcon: ByteArray?){
+    private fun createButtonClicked(username: String?, uri: String?){
         if (username == null){
             return
         }
@@ -119,7 +122,7 @@ class NewGameSettings : AppCompatActivity(), OnMapReadyCallback {
             gameSessionRef.setValue(newGameSession)
 
             val intent = Intent(this, Lobby::class.java)
-            intent.putExtra("userIcon", userIcon)
+            intent.putExtra("uri", uri)
             intent.putExtra("lobby_key", sessionIdString)
             intent.putExtra("username_key", username)
             intent.putExtra("host", true)
