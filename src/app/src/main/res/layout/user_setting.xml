@@ -21,20 +21,20 @@
             android:id="@+id/changePic"
             android:layout_width="58dp"
             android:layout_height="54dp"
+            android:backgroundTint="#FFD100"
             android:clickable="true"
             android:src="@android:drawable/ic_input_add"
-            app:layout_constraintBottom_toTopOf="@+id/guideline6"
-            app:layout_constraintEnd_toStartOf="@+id/guideline5"
-            android:backgroundTint="#FFD100"/>
+            app:layout_constraintBottom_toBottomOf="@+id/profilePic"
+            app:layout_constraintEnd_toEndOf="@+id/profilePic" />
 
         <TextView
             android:id="@+id/header"
+            style="@style/blackToWhiteText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="User Setting"
             android:textSize="40sp"
             android:textStyle="bold"
-            style="@style/blackToWhiteText"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
@@ -46,17 +46,19 @@
             android:layout_height="195dp"
             android:background="@android:color/transparent"
             android:cropToPadding="false"
-            app:layout_constraintBottom_toTopOf="@+id/guideline6"
-            app:layout_constraintEnd_toStartOf="@+id/guideline5"
-            app:srcCompat="@drawable/emptyprofile" />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:srcCompat="@drawable/emptyprofile"
+            tools:layout_editor_absoluteY="176dp" />
 
         <FrameLayout
             android:id="@+id/rectangles_frame"
+            style="@style/borderBox"
             android:layout_width="335dp"
             android:layout_height="185dp"
             android:layout_marginTop="40dp"
             android:layout_marginBottom="40dp"
-            style="@style/borderBox"
             app:layout_constraintBottom_toTopOf="@+id/confirmBtn"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -65,12 +67,12 @@
 
             <TextView
                 android:id="@+id/username"
+                style="@style/blackToWhiteText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal|top"
                 android:layout_marginTop="20dp"
                 android:text="Your Username"
-                style="@style/blackToWhiteText"
                 android:textSize="22sp"
                 android:textStyle="bold" />
 
@@ -116,13 +118,6 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             app:layout_constraintGuide_percent="0.75" />
-
-        <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/guideline6"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            app:layout_constraintGuide_percent="0.4" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

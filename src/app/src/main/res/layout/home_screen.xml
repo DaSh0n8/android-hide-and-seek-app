@@ -95,7 +95,7 @@
             android:layout_height="wrap_content"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/help_icon"
+            style="@style/helpIcon"
             android:background="#00000000"/>
 
 
