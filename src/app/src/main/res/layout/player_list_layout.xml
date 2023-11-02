@@ -22,6 +22,7 @@
         android:layout_marginEnd="4dp"
         app:iconGravity="textStart"
         app:icon="@drawable/crown_icon"
+        android:backgroundTint="#005AFF"
         app:iconPadding="0dp"/>
 
     <com.google.android.material.button.MaterialButton
@@ -30,5 +31,6 @@
         android:layout_height="wrap_content"
         app:iconGravity="textStart"
         app:icon="@drawable/kick_player_icon"
+        android:backgroundTint="#FF0000"
         app:iconPadding="0dp"/>
 </LinearLayout>

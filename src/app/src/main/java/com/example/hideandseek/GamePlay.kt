@@ -321,7 +321,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                         // check the last update
                         val currTime = LocalTime.now()
                         val duration = minToMilli(Duration.between(LocalTime.parse(player.lastUpdated), currTime).toMinutes().toInt())
-                        if (!player.eliminated && duration > 20000 && !player.seeker) {
+                        if (!player.eliminated && duration > 40000 && !player.seeker) {
                             setPlayerStatus(lobbyCode, player.userName, disconnected)
                         }
 
@@ -832,7 +832,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
      */
     private fun confirmConnectivity(lobbyCode: String?, username: String?) {
         var tickCounter = 0
-        val checkpoint = 10
+        val checkpoint = 5
         connectTimer = object: CountDownTimer(hideTime + gameTime, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 if (tickCounter == checkpoint) {
