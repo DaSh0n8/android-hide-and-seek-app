@@ -79,6 +79,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private var lastLoc = mutableMapOf<String, LatLng>()
     private var lastStatus = mutableMapOf<String, Boolean>()
     private var mediaPlayer : MediaPlayer? = null
+    //private var mediaPlayer2 : MediaPlayer? = null
     private val disconnected = "disconnected"
 
 
@@ -112,9 +113,10 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         isSeeker = intent.getBooleanExtra("isSeeker", false)
         mediaPlayer = MediaPlayer.create(this, R.raw.start_game)
         mediaPlayer?.start()
-        mediaPlayer?.setOnCompletionListener (MediaPlayer.OnCompletionListener{
-            mediaPlayer = MediaPlayer.create(this, R.raw.start)
-        } )
+        mediaPlayer?.setOnCompletionListener{
+            onRelease()
+        }
+
         if (isSeeker){
             binding = GamePlayBinding.inflate(layoutInflater)
             setContentView(binding.root)
@@ -193,8 +195,11 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                 val minutes = (millisUntilFinished / 1000) / 60
                 countDownValue.text = String.format("%02d:%02d", minutes, seconds)
                 if (minutes.toDouble() == 0.0 && seconds.toDouble() == 3.0){
-                    mediaPlayer?.start()
+                    newSound()
                 }
+                mediaPlayer?.setOnCompletionListener (MediaPlayer.OnCompletionListener{
+                    onRelease()
+                } )
             }
 
 
@@ -221,11 +226,11 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                             val minutes = (millisUntilFinished / 1000) / 60
                             countDownValue.text = String.format("%02d:%02d", minutes, seconds)
                             if (minutes.toDouble() == 0.0 && seconds.toDouble() == 3.0){
-                                mediaPlayer?.start()
+                                newSound()
                             }
-                            mediaPlayer?.setOnCompletionListener (MediaPlayer.OnCompletionListener{
-                                mediaPlayer?.release();
-                            } )
+                            mediaPlayer?.setOnCompletionListener{
+                                onRelease()
+                            }
 
                             // if only 20% time left, trigger the accelerometer
                             if (millisUntilFinished < triggerTime && !isSeeker && !hasTriggered) {
@@ -951,5 +956,15 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
             "$username has been eliminated!",
             "OK"
         ) { /* Positive button action for eliminateDialog */ }
+    }
+
+    private fun newSound(){
+        mediaPlayer = MediaPlayer.create(this, R.raw.start)
+        mediaPlayer?.start()
+    }
+
+    private fun onRelease(){
+        mediaPlayer?.release()
+        mediaPlayer = null
     }
 }
