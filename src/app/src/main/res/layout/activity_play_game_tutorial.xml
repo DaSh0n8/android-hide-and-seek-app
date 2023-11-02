@@ -18,7 +18,7 @@
             android:layout_width="55dp"
             android:layout_height="41dp"
             android:layout_marginTop="10dp"
-            android:background="@color/white"
+            android:background="#00000000"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/eliminated" />
     </LinearLayout>
@@ -37,9 +37,10 @@
             android:text="Play the Game:"
             android:textStyle="bold"
             android:textSize="30dp" />
+
         <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_width="327dp"
+            android:layout_height="62dp"
             android:layout_marginTop="10dp"
             android:gravity="center_horizontal"
             android:text="Hiders must find their hiding spots within the hiding time"
@@ -78,7 +79,6 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:background="@color/white"
         android:gravity="center|bottom">
 
         <ImageButton
@@ -86,7 +86,7 @@
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_weight="1"
-            android:background="@color/white"
+            android:background="#00000000"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/left_arrow" />
 
@@ -95,7 +95,7 @@
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_weight="1"
-            android:background="@color/white"
+            android:background="#00000000"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/right_arrow" />
     </LinearLayout>
