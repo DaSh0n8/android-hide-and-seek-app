@@ -36,6 +36,7 @@
             android:layout_marginTop="10dp"
             android:gravity="center_horizontal"
             android:text="How to WIN:"
+            android:textStyle="bold"
             android:textSize="30dp" />
 
         <TextView

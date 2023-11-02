@@ -36,6 +36,7 @@
             android:layout_marginTop="20dp"
             android:gravity="center_horizontal"
             android:text="Wait in the lobby for the game to start"
+            android:textStyle="bold"
             android:textSize="30dp" />
         <TextView
             android:layout_width="match_parent"

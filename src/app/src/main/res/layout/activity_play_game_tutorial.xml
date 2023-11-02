@@ -35,13 +35,14 @@
             android:layout_marginTop="10dp"
             android:gravity="center_horizontal"
             android:text="Play the Game:"
+            android:textStyle="bold"
             android:textSize="30dp" />
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:gravity="center_horizontal"
-            android:text="Hiders must find their hiding spots, and seekers must now attempt to seek them before time runs out!"
+            android:text="Hiders must find their hiding spots within the hiding time"
             android:textSize="20dp" />
 
         <ImageView
@@ -59,7 +60,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:gravity="center_horizontal"
-            android:text="Each Hider gets an elimination code, Seekers can eliminate hiders using their unique codes"
+            android:text="Once the hiding time is done, seekers can eliminate hiders with their hider codes"
             android:textSize="20dp" />
     </LinearLayout>
     <LinearLayout
