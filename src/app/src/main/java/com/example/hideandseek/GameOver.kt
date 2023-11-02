@@ -3,6 +3,8 @@ package com.example.hideandseek
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
+import android.media.MediaPlayer
+import android.os.Build
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
@@ -21,7 +23,7 @@ import java.time.LocalTime
 
 class GameOver : AppCompatActivity() {
     private lateinit var database: FirebaseDatabase
-
+    private var mediaPlayer : MediaPlayer? = null
     private val youWon = "Congrats, You Won!!!"
     private val youLost = "Sorry, You Lost!!!"
     private lateinit var connectTimer: CountDownTimer
@@ -36,8 +38,8 @@ class GameOver : AppCompatActivity() {
 
         val username: String? = intent.getStringExtra("username")
         val lobbyCode: String? = intent.getStringExtra("lobbyCode")
-        val host: Boolean? = intent.getBooleanExtra("host", false)
-        val isSeeker: Boolean? = intent.getBooleanExtra("isSeeker", false)
+        val host: Boolean = intent.getBooleanExtra("host", false)
+        val isSeeker: Boolean = intent.getBooleanExtra("isSeeker", false)
         val seekerWon = intent.getBooleanExtra("seekerWonGame", false)
 
         confirmConnectivity(lobbyCode, username)
@@ -53,8 +55,22 @@ class GameOver : AppCompatActivity() {
             }
             if (isSeeker!!) {
                 resultText.text = youWon
+                if (mediaPlayer == null) {
+                    mediaPlayer = MediaPlayer.create(this, R.raw.win)
+                }
+                mediaPlayer?.start()
+                mediaPlayer?.setOnCompletionListener (MediaPlayer.OnCompletionListener{
+                    mediaPlayer?.release();
+                } )
             } else {
                 resultText.text = youLost
+                if (mediaPlayer == null) {
+                    mediaPlayer = MediaPlayer.create(this, R.raw.fail)
+                }
+                mediaPlayer?.start()
+                mediaPlayer?.setOnCompletionListener (MediaPlayer.OnCompletionListener{
+                    mediaPlayer?.release();
+                } )
             }
         } else {
             if (!isDarkTheme()) {
@@ -64,8 +80,22 @@ class GameOver : AppCompatActivity() {
             }
             if (isSeeker!!) {
                 resultText.text = youLost
+                if (mediaPlayer == null) {
+                    mediaPlayer = MediaPlayer.create(this, R.raw.fail)
+                }
+                mediaPlayer?.start()
+                mediaPlayer?.setOnCompletionListener (MediaPlayer.OnCompletionListener{
+                    mediaPlayer?.release();
+                } )
             } else {
                 resultText.text = youWon
+                if (mediaPlayer == null) {
+                    mediaPlayer = MediaPlayer.create(this, R.raw.win)
+                }
+                mediaPlayer?.start()
+                mediaPlayer?.setOnCompletionListener (MediaPlayer.OnCompletionListener{
+                    mediaPlayer?.release();
+                } )
             }
         }
 
@@ -73,7 +103,7 @@ class GameOver : AppCompatActivity() {
         val backToHomeBtn: Button = findViewById(R.id.btnHome)
         backToHomeBtn.setOnClickListener {
             NetworkUtils.checkConnectivityAndProceed(this) {
-                if (host!!) {
+                if (host) {
                     endGameSession(lobbyCode)
                 } else {
                     removePlayer(lobbyCode, username)
@@ -89,7 +119,7 @@ class GameOver : AppCompatActivity() {
         }
 
         // back to lobby
-        var backToLobbyBtn: Button = findViewById(R.id.btnPlayAgain)
+        val backToLobbyBtn: Button = findViewById(R.id.btnPlayAgain)
         backToLobbyBtn.setOnClickListener {
             NetworkUtils.checkConnectivityAndProceed(this) {
                 returnLobby(username, lobbyCode, host)
@@ -113,7 +143,7 @@ class GameOver : AppCompatActivity() {
 
                     if (gameSession != null) {
                         // Update the GameSession object
-                        gameSession?.gameStatus = "ended"
+                        gameSession.gameStatus = "ended"
 
                         for (player in gameSession.players) {
                             player.playerStatus = "End Game Screen"
@@ -232,8 +262,9 @@ class GameOver : AppCompatActivity() {
         })
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
-        var backToHomeBtn: Button = findViewById(R.id.btnHome)
+        val backToHomeBtn: Button = findViewById(R.id.btnHome)
         backToHomeBtn.performClick()
         super.onBackPressed()
     }

@@ -3,6 +3,7 @@ package com.example.hideandseek
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
+import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
@@ -30,6 +31,7 @@ class HomeScreen : AppCompatActivity() {
 
         val createGameButton: Button = findViewById(R.id.createGameButton)
         createGameButton.setOnClickListener {
+
             NetworkUtils.checkConnectivityAndProceed(this) {
                 if (locationHelper.checkLocationPermission()) {
                     val intent = Intent(this@HomeScreen, UserSetting::class.java)
