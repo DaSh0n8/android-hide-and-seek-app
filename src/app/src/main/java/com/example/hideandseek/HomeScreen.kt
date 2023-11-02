@@ -59,10 +59,11 @@ class HomeScreen : AppCompatActivity() {
         //  Night mode switch
         val nightModeSwitch: SwitchCompat = findViewById(R.id.nightModeSwitch)
         nightModeSwitch.setOnClickListener {
-            lightSensor.disableSensor()
             if (nightModeSwitch.isChecked) {
+                lightSensor.disableSensor()
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
             } else {
+                lightSensor.disableSensor()
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
             }
         }
