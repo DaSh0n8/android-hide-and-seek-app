@@ -933,6 +933,44 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
+    private fun createCustomDialogCancel(
+        titleText: String,
+        messageText: String,
+        positiveButtonText: String,
+        positiveButtonAction: () -> Unit,
+        onCancelAction: () -> Unit // Add a parameter for onCancel action
+    ) {
+        val builder = AlertDialog.Builder(this)
+
+        val customTitleView = layoutInflater.inflate(R.layout.dialog_title, null)
+        val customMessageView = layoutInflater.inflate(R.layout.dialog_message, null)
+
+        // Set the title text dynamically
+        (customTitleView.findViewById<TextView>(R.id.title)).text = titleText
+
+        // Set the message text dynamically
+        (customMessageView.findViewById<TextView>(R.id.message)).text = messageText
+
+        with(builder) {
+            setCustomTitle(customTitleView) // Set the custom title view
+            setView(customMessageView)     // Set the custom message view
+            setPositiveButton(positiveButtonText) { dialog, _ ->
+                positiveButtonAction()
+                dialog.dismiss()
+            }
+            setOnCancelListener {
+                onCancelAction() // Execute onCancel action
+            }
+
+            val dialog = create()
+            dialog.setOnShowListener { dialogInterface ->
+                val okButton = (dialogInterface as AlertDialog).getButton(AlertDialog.BUTTON_POSITIVE)
+                okButton.setTextColor(ContextCompat.getColor(this@GamePlay, R.color.blue))
+            }
+            dialog.show()
+        }
+    }
+
     private fun deadDialog() {
         createCustomDialog(
             "Whoops...",
@@ -950,13 +988,17 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun disconnectedDialog() {
-        createCustomDialog(
+        createCustomDialogCancel(
             "Sorry...",
             "You have been eliminated due to disconnection from the internet",
-            "OK"
-        ) {
-            returnHome()
-        }
+            "OK",
+            {
+                returnHome()
+            },
+            {
+                returnHome()
+            }
+        )
     }
 
     private fun eliminateDialog(username: String?) {
