@@ -574,7 +574,7 @@ class Lobby : AppCompatActivity() {
                         for (player in gameSession.players) {
                             val lastUpdatedTime = LocalTime.parse(player.lastUpdated)
                             val duration = Duration.between(lastUpdatedTime, currentTime)
-                            if (duration.seconds > 20) {
+                            if (duration.seconds > 60) {
                                 kickPlayer(lobbyCode, player.userName)
                                 Log.e("checkPlayerActivity", "Kicking the player ${player.userName}")
                             }
@@ -677,7 +677,7 @@ class Lobby : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         var tickCounter = 0
-        val interval = 10
+        val interval = 5
         connectTimer = object: CountDownTimer(Long.MAX_VALUE, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 if (tickCounter == interval) {

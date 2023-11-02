@@ -280,7 +280,7 @@ class LobbySettings : AppCompatActivity(), OnMapReadyCallback {
     override fun onStart() {
         super.onStart()
         var tickCounter = 0
-        val interval = 10
+        val interval = 5
         connectTimer = object: CountDownTimer(Long.MAX_VALUE, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 if (tickCounter == interval) {
