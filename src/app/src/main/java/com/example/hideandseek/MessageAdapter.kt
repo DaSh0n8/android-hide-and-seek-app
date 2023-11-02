@@ -13,11 +13,25 @@ class MessageAdapter(context: Context, messages: List<ChatClass>) :
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         var convertView = convertView
         if (convertView == null) {
-            convertView = LayoutInflater.from(context).inflate(android.R.layout.simple_list_item_1, parent, false)
+            convertView = LayoutInflater.from(context).inflate(R.layout.chat_bubble, parent, false)
         }
         val message = getItem(position)
-        val textView = convertView!!.findViewById<TextView>(android.R.id.text1)
-        textView.text = "${message?.userName} : ${message?.message}"
+        val usernameTextView = convertView!!.findViewById<TextView>(R.id.usernameTextView)
+        val messageTextView = convertView.findViewById<TextView>(R.id.messageTextView)
+
+        usernameTextView.text = message?.userName
+        messageTextView.text = message?.message
         return convertView
     }
+
+//    override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+//        var convertView = convertView
+//        if (convertView == null) {
+//            convertView = LayoutInflater.from(context).inflate(android.R.layout.simple_list_item_1, parent, false)
+//        }
+//        val message = getItem(position)
+//        val textView = convertView!!.findViewById<TextView>(android.R.id.text1)
+//        textView.text = "${message?.userName} : ${message?.message}"
+//        return convertView
+//    }
 }

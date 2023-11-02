@@ -26,4 +26,9 @@
     <style name="helpIcon">
         <item name="srcCompat">@drawable/help_icon</item>
     </style>
+
+    <style name="chatBubble">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:background">@drawable/message_border</item>
+    </style>
 </resources>
