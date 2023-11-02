@@ -1,13 +1,11 @@
 package com.example.hideandseek
 
-import android.content.Context
 import android.content.Intent
-import android.content.res.Configuration
-import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.widget.Button
+import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -58,9 +56,10 @@ class HomeScreen : AppCompatActivity() {
         }
 
 
-//        Night mode switch
+        //  Night mode switch
         val nightModeSwitch: SwitchCompat = findViewById(R.id.nightModeSwitch)
         nightModeSwitch.setOnClickListener {
+            lightSensor.disableSensor()
             if (nightModeSwitch.isChecked) {
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
             } else {
@@ -72,7 +71,7 @@ class HomeScreen : AppCompatActivity() {
         if (error != null) {
             Toast.makeText(this@HomeScreen, error, Toast.LENGTH_LONG).show()
         }
-        val tutorial: Button = findViewById(R.id.tutorial)
+        val tutorial: ImageButton = findViewById(R.id.tutorial)
         tutorial.setOnClickListener{
             val intent = Intent(this@HomeScreen, TutorialPageMain::class.java)
             startActivity(intent)
