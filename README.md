@@ -18,8 +18,6 @@ Introduce an Android application aimed at bringing the traditional hide and seek
 |         **Zimo Peng**        |   zimop@student.unimelb.edu.au   |
 |        **Brandon**           |  brandonveili@student.unimelb.edu.au  |
 |       **Victor Lok**         |   vlok@student.unimelb.edu.au    |
-|       **Zijian Chai**        |  zijcai1@student.unimelb.edu.au  |
-|        **Xin Wang**          |    xw17@student.unimelb.edu.au   |
 
 ## Naming Conventions
 
