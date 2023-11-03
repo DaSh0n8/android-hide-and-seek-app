@@ -295,7 +295,6 @@ class Lobby : AppCompatActivity() {
 
     private fun leaveLobby(lobbyCode: String?, username: String?) {
         connectTimer.cancel()
-        removeLobbyListener(lobbyCode!!)
         val query = realtimeDb.getReference("gameSessions")
             .orderByChild("sessionId")
             .equalTo(lobbyCode)
@@ -307,32 +306,26 @@ class Lobby : AppCompatActivity() {
                     val gameSession = gameSessionSnapshot.getValue(GameSessionClass::class.java)
 
                     if (gameSession != null) {
-                        val players = gameSession.players
-                        val playerIndex = players.indexOfFirst { it.userName == username }
+                        val playerIsHost = gameSession.players.find { it.userName == username }?.host == true
 
-                        if (playerIndex != -1) {
-                            val playerIsHost = players[playerIndex].host
-
-                            if (playerIsHost) {
-                                gameSession.gameStatus = "ended"
-                                gameSessionSnapshot.ref.setValue(gameSession).addOnSuccessListener {
-                                    returnHomeIntent(lobbyCode, LEAVE)
-
-                                }.addOnFailureListener {
-                                    Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
-                                }
-                            } else {
-                                val ref = realtimeDb.getReference("gameSessions").child(gameSessionSnapshot.key!!)
-                                ref.child("players").child(playerIndex.toString()).removeValue().addOnSuccessListener {
-                                    returnHomeIntent(lobbyCode, LEAVE)
-
-                                }.addOnFailureListener {
-                                    Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
-                                }
+                        if (playerIsHost) {
+                            // Update the local GameSession object
+                            gameSession?.gameStatus = "ended"
+                            gameSessionSnapshot.ref.setValue(gameSession).addOnFailureListener {
+                                Toast.makeText(this@Lobby, "Game session ended", Toast.LENGTH_SHORT).show()
                             }
                         } else {
-                            Toast.makeText(this@Lobby, "$username not found in the game session", Toast.LENGTH_SHORT).show()
+                            val updatedPlayers = gameSession.players.toMutableList()
+                            updatedPlayers.removeIf { it.userName == username}
+
+                            gameSession.players = updatedPlayers
+                            gameSessionSnapshot.ref.setValue(gameSession).addOnFailureListener {
+                                Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
+                            }
                         }
+
+                        returnHomeIntent(lobbyCode, LEAVE)
+
                     } else {
                         Toast.makeText(this@Lobby, "Unexpected Error", Toast.LENGTH_SHORT).show()
                     }
@@ -340,7 +333,8 @@ class Lobby : AppCompatActivity() {
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
-                Toast.makeText(this@Lobby, "Error fetching data", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@Lobby, "Error fetching data", Toast.LENGTH_SHORT)
+                    .show()
             }
         })
     }
