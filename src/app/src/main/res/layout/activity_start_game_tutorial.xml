@@ -106,7 +106,6 @@
             style="@style/borderBox"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="120dp"
             android:layout_gravity="center"
             android:ems="10"
             android:enabled="false"
@@ -127,6 +126,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:layout_marginBottom="7dp"
         android:gravity="center|bottom">
         <ImageButton
             android:id="@+id/left_button2"
@@ -135,7 +135,7 @@
             android:layout_weight="1"
             android:background="#00000000"
             android:scaleType="fitCenter"
-            app:srcCompat="@drawable/left_arrow" />
+            app:srcCompat="@drawable/left_arrow_blue" />
         <ImageButton
             android:id="@+id/right_button2"
             android:layout_width="match_parent"
@@ -143,7 +143,7 @@
             android:layout_weight="1"
             android:background="#00000000"
             android:scaleType="fitCenter"
-            app:srcCompat="@drawable/right_arrow" />
+            app:srcCompat="@drawable/right_arrow_blue" />
     </LinearLayout>
 
 </LinearLayout>
