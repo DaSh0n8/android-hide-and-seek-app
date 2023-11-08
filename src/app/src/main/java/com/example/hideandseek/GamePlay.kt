@@ -72,7 +72,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
     private var gameTime = defaultGameTime
     private var hideTime = defaultHideTime
     private var updateInterval = defaultInterval
-    private var rapidInterval = (5 * 1000).toLong() // 5 seconds
+    private var rapidInterval = (3 * 1000).toLong() // 3 seconds
     private var geofenceRadius = defaultRadius
     private lateinit var userLatLng: LatLng
     private var inGamePlayers: List<String>? = null
@@ -344,7 +344,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
                         }
 
                         val markerOptions = MarkerOptions().position(lastLoc[player.userName]!!).title(player.userName)
-
+                        Log.d("Players", playersIcons.keys.toString())
                         val iconBitmap = if (!player.seeker && !player.eliminated && player.playerStatus != disconnected) {
                             hidersAvailable = true
                             playersIcons[player.userName] ?: userIconBitmap
@@ -628,6 +628,7 @@ class GamePlay : AppCompatActivity(), OnMapReadyCallback {
             pathRef.downloadUrl.addOnSuccessListener {
                 pathRef.getBytes(1_000_000)
                     .addOnSuccessListener { icons ->
+                        Log.d("Retrieve User icon", "$lobbyCode/$username.jpg")
                         val userIcon = BitmapFactory.decodeByteArray(icons, 0, icons?.size ?:0)
                         val result = makeBlackPixelsTransparent(userIcon!!)
                         userIcons[username] = scaleBitmap(result, 45)
